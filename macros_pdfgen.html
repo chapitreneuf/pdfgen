@@ -83,27 +83,42 @@
 <DEFMACRO NAME="PDFGEN_HTML_SCRIPTS">
   <!--[ TODO: organiser en plugin lodel sur le modele de checklist : 
       <script src="[#SHAREDIR]/plugins/custom/checklist/node_modules/jquery/dist/jquery.min.js"></script> ]-->
-
   <script>
-    window.PagedConfig = {
-      auto: false
-    };
-  </script>
-  <script src="tpl/pdfgen/vendor/pagedjs-0.1.40/paged.polyfill.js"></script>
-  
-  <script>
-    function runPagedjs () {
+    function ready(fn) {
+      if (document.readyState != "loading") {
+        fn();
+      } else {
+        document.addEventListener("DOMContentLoaded", fn);
+      }
+    }
+    
+    function runPagedjs() {
       window.PagedPolyfill.preview();
     }
 
-    // TODO: lang depending on detected languages
+    // TODO: add abstract langs ?
+    function getRequiredLangs(selector) {
+      return Array.from(document.querySelectorAll(selector)).reduce(function (obj, el) {
+        var lang = el.getAttribute("lang");
+        if (obj[lang]) return obj;
+        // Chrome doesn't support hyphenation yet, so we "FORCEHYPHENOPOLY" anyway.
+        obj[lang] = "FORCEHYPHENOPOLY";
+        return obj;
+      }, {});
+    }
+
+    window.PagedConfig = {
+      auto: false
+    };
+
     var Hyphenopoly = {
-      require: {
-        "fr": "anticonstitutionnellement"
+      require: getRequiredLangs(".hyphenate[lang], .hyphenate [lang]"),
+      fallbacks: {
+        "en": "en-gb"
       },
       setup: {
         selectors: {
-          ".texte": {}
+          ".hyphenate": {}
         }
       },
       handleEvent: {
@@ -114,7 +129,9 @@
       }
     };
   </script>
+
   <script src="tpl/pdfgen/vendor/hyphenopoly-4.7.0/Hyphenopoly_Loader.js"></script>
+  <script src="tpl/pdfgen/vendor/pagedjs-0.1.40/paged.polyfill.js"></script>
 </DEFMACRO>
 
 /**
@@ -455,7 +472,7 @@
  */
 <DEFMACRO NAME="PDFGEN_ARTICLE_TEXTE_CONTENTS">
   <div class="row">
-    <div class="article__text-contents col-lg-9">
+    <div class="article__text-contents col-lg-9 hyphenate" lang="[#LANGUE]">
       <!--[ Image d'accroche ]-->
       <MACRO NAME="PDFGEN_ARTICLE_IMAGEACCROCHE" />
 
@@ -531,7 +548,7 @@
   <IF COND="[#ANNEXE] AND [#TEXTE_ACCESSIBLE]">
     <section class="article__appendix col-12 col-lg-10">
       <h2 class="section-header">[@ANNEXE]</h2>
-      <div class="article__appendix-contents">
+      <div class="article__appendix-contents hyphenate" lang="[#LANGUE]">
         [#ANNEXE|cleanCallNotes|tocss('heading')|illustrations(800, 'annexe')|media]
       </div>
     </section>
@@ -554,7 +571,7 @@
   <IF COND="[#NOTESBASPAGE] AND [#TEXTE_ACCESSIBLE]">
     <section class="article__footnotes col-12 col-lg-10">
       <h2 class="section-header">[@NOTES]</h2>
-      <div class="article__footnotes-contents">
+      <div class="article__footnotes-contents hyphenate" lang="[#LANGUE]">
         [#NOTESBASPAGE]
       </div>
     </section>
