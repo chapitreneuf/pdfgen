@@ -86,7 +86,7 @@
 </DEFMACRO>
 
 /**
- * Initialisation de la page.
+ * Initialisation de la page article.
  */
 <DEFMACRO NAME="PDFGEN_ARTICLE_INIT">
   <!--[ Détecter les entrées d'index et créer une globale %HASENTRIES ]-->
@@ -124,9 +124,7 @@
     <MACRO NAME="PDFGEN_ARTICLE_DOCANNEXES" />
     <MACRO NAME="PDFGEN_ARTICLE_NOTESBASPAGE" />
     <MACRO NAME="PDFGEN_ARTICLE_NOTEFIN" />
-    <IF COND="[#TYPE] NE 'actualite' AND [#TYPE] NE 'informations'">
-      <MACRO NAME="PDFGEN_ARTICLE_POURCITER" />
-    </IF>
+    <MACRO NAME="PDFGEN_ARTICLE_POURCITER" />
     <FUNC NAME="PDFGEN_ARTICLE_DESCRIPTION_PERSONNES" TYPE="auteur" SECTION_ID="authors-infos" />
     <FUNC NAME="PDFGEN_ARTICLE_DESCRIPTION_PERSONNES" TYPE="traducteur" SECTION_ID="translators-infos" />
     <MACRO NAME="PDFGEN_ARTICLE_LICENSE" />
@@ -165,14 +163,14 @@
     </IF>
 
     <!--[ Auteurs ]-->
-    <FUNC NAME="PDFGEN_LISTER_PERSONNES" TYPE="auteur" WRAP_ID="article-author" WRAP_CLASS="article__author" HREF="#authors-infos"/>
+    <FUNC NAME="PDFGEN_LISTER_PERSONNES" TYPE="auteur" WRAP_ID="article-author" WRAP_CLASS="article__author"/>
 
     <!--[ Traducteurs ]-->
-    <FUNC NAME="PDFGEN_LISTER_PERSONNES" TYPE="traducteur" WRAP_ID="article-translator" WRAP_CLASS="article__author" PREPEND="[@TRADUCTION_DE] " HREF="#article__translators-infos" />
+    <FUNC NAME="PDFGEN_LISTER_PERSONNES" TYPE="traducteur" WRAP_ID="article-translator" WRAP_CLASS="article__author" PREPEND="[@TRADUCTION_DE] "/>
 
     <!--[ DOI ]-->
     <IF COND="[%PREFIXEDOI] AND [#TYPE] EQ 'article'">
-      <p class="article__doi"><a href="https://dx.doi.org/[%PREFIXEDOI][#ID]">DOI&nbsp;: [%PREFIXEDOI][#ID]</a></p>
+      <p class="article__doi">DOI&nbsp;: [%PREFIXEDOI][#ID]</p>
     </IF>
 
     <!--[ Pagination ]-->
@@ -243,7 +241,17 @@
       <h2 class="section-header">[@RESUME]</h2>
     </IF>
     <div class="article__abstract-contents col-12 col-lg-10">
-      <FUNC NAME="PDFGEN_ML_ONGLETS" TAB_TEXTE="[#RESUME]" TAB_ID="abstract" />
+      <IF COND="[#RESUME] LIKE /<r2r:ml lang=\"([a-z]+)\"/">
+        <LET VAR="lang_exists">[#SITELANG|in_array([#MATCHES.1])]</LET>
+        <LOOP NAME="foreach" ARRAY="[#MATCHES.1]">
+          <div class="article__abstract-text" xml:lang="[#VALUE]">
+            <h3 class="article__abstract-title" >[#VALUE|humanlang]</h3>
+            [#RESUME:#VALUE]
+          </div>
+        </LOOP>
+      <ELSE/>
+        [#TAB_TEXTE]
+      </IF>
     </div>
   </IF>
 </DEFMACRO>
@@ -407,12 +415,6 @@
 
       <MACRO NAME="PDFGEN_ARTICLE_TEXTE_CONTENTS" />
     </section>
-  <!-- [ Si pas de texte on affiche le PDF ] -->
-  <ELSEIF COND="[#ALTERFICHIER] AND [#TEXTE_ACCESSIBLE]" />
-    <section class="article__facsimile">
-      <h2 class="section-header">[@TEXTE]</h2>
-      <a class="btn btn-block" role="button" href="[#ID|makeurlwithid|query_string('file', '1')]" title="[#TITRE|removenotes|textebrut|htmlspecialchars(ENT_COMPAT, 'UTF-8')]">[@TELECHARGER_FACSIMILE] (PDF&#160;&#8211; [#ALTERFICHIER|nicefilesize])</a>
-    </section>
   </IF>
 </DEFMACRO>
 
@@ -436,10 +438,6 @@
         [#TEXTE|removenotes|tocable|tocss('heading')|illustrations(800)|cuttext(1000, true)|media]
       </IF>
       <IF COND="[#OPTIONS.OPTIONSAFFICHAGE.AFFICHAGEREMERCIEMENTS] EQ 'bottom' AND [#REMERCIEMENTS]">[#REMERCIEMENTS]</IF>
-    </div>
-    <div id="sidenotes" class="article__sidenotes col-3 d-hidden d-md-visible">
-      [#NOTESBASPAGE|cutnotes(150)]
-      <p class="notesbaspage notesbaspage--more" style="display: none;"><a class="notesbaspage__more-link" href="#">[@NOTES_SUIVANTES]</a></p>
     </div>
   </div>
 </DEFMACRO>
@@ -677,36 +675,6 @@
     <!--[ sous-rubrique ]-->
     <ELSE />, [#TITRE]</IF>
   </LOOP>
-</DEFFUNC>
-
-/**
- * Affiche un texte multilingue par onglets
- * @param {string} tab_texte - Texte multilingue
- * @param {string} tab_id - Préfixe pour l'attribut ID des DIV
- */
-<DEFFUNC NAME="PDFGEN_ML_ONGLETS" REQUIRED="tab_texte, tab_id">
-  <IF COND="[#TAB_TEXTE] LIKE /<r2r:ml lang=\"([a-z]+)\"/">
-    <LET VAR="lang_exists">[#SITELANG|in_array([#MATCHES.1])]</LET>
-    <IF COND="[#MATCHES.0|count] GT 1">
-      <ul class="nav nav-tabs" role="tablist">
-        <LOOP NAME="foreach" ARRAY="[#MATCHES.1]">
-          <li class="nav-item">
-            <a class="nav-link<IF COND="(![#LANG_EXISTS] AND [#KEY] EQ 0) OR ([#LANG_EXISTS] AND [#VALUE] EQ [#SITELANG])"> active</IF>" href="#[#TAB_ID]-[#VALUE]" aria-controls="#[#TAB_ID]-[#VALUE]" hreflang="[#VALUE]" role="tab" data-toggle="tab">[#VALUE|humanlang]</a>
-          </li>
-        </LOOP>
-      </ul>
-    </IF>
-    <div class="tab-content">
-      <LOOP NAME="foreach" ARRAY="[#MATCHES.1]">
-        <LET VAR="tab_dir"><FUNC NAME="PDFGEN_GET_LANG_DIR" LANG="[#VALUE]"/></LET>
-        <div role="tabpanel" id="[#TAB_ID]-[#VALUE]" class="tab-pane lang-[#VALUE] dir-[#TAB_DIR]<IF COND="!((![#LANG_EXISTS] AND [#KEY] GT 0) OR ([#LANG_EXISTS] AND [#VALUE] NE [#SITELANG]))"> active</IF>" lang="[#VALUE]" xml:lang="[#VALUE]">
-          [#TAB_TEXTE:#VALUE]
-        </div>
-      </LOOP>
-    </div>
-  <ELSE/>
-    [#TAB_TEXTE]
-  </IF>
 </DEFFUNC>
 
 /**
