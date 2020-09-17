@@ -1,0 +1,93 @@
+<CONTENT VERSION="1.0" LANG="fr" CHARSET="utf-8"/>
+
+/**
+ * Macro principale du générateur de PDF.
+ * Initialisation puis routage vers le bon template (pour l'instant support des textes uniquement).
+ * Utilisation : ?page=pdfgen&document=999
+ */
+<DEFMACRO NAME="PDFGEN_MAIN">
+
+  <MACRO NAME="PDFGEN_HTML_START"/>
+  
+  <!--[ Recherche du type du document ]-->
+  <MACRO NAME="PDFGEN_INIT_TYPE" />
+
+  <SWITCH TEST="[%TPL_TYPE]">
+    <DO CASE="textes">
+      <MACRO NAME="PDFGEN_ARTICLE"/>
+    </DO>
+    <DO CASE="default">
+      <p>Document [#DOCUMENT] is not a valid article.</p>
+    </DO>
+  </SWITCH>
+
+  <MACRO NAME="PDFGEN_HTML_END"/>
+</DEFMACRO>
+
+/**
+ * Déterminer le type de template (globale [%TPL_TYPE]).
+ * Voir : https://github.com/OpenEdition/checklist-lodel/blob/8cbaa5a06187e9d209c76aafa64a23e7056f85e6/tpl/macros_checklist.html#L19
+ */
+<DEFMACRO NAME="PDFGEN_INIT_TYPE">
+  <LOOP NAME="pdfgen_init_type"
+        TABLE="entities, types"
+        SELECT="id, class, type"
+        WHERE="id = '[#DOCUMENT]' AND class IN ('publications', 'textes') AND entities.idtype = types.id">
+    <DO>
+      <IF COND="[#CLASS] EQ 'textes'">
+        <LET VAR="tpl_type" GLOBAL="1">textes</LET>
+      <ELSE/>
+        <LET VAR="tpl_type" GLOBAL="1">publications</LET>
+      </IF>
+    </DO>
+  </LOOP>
+</DEFMACRO>
+
+/**
+ * Ouverture de la page HTML.
+ */
+<DEFMACRO NAME="PDFGEN_HTML_START">
+  <!DOCTYPE html>
+  <html lang="fr">
+  <head>
+    <meta charset="utf-8">
+    <title>[#TITRE|textebrut] – [#OPTIONS.METADONNEESSITE.TITRESITE]</title>
+    <MACRO NAME="PDFGEN_HTML_STYLES"/>
+  </head>
+  <body>
+</DEFMACRO>
+
+/**
+ * Fermeture de la page HTML.
+ */
+<DEFMACRO NAME="PDFGEN_HTML_END">
+  <MACRO NAME="PDFGEN_HTML_SCRIPTS"/>
+  </body>
+  </html>
+</DEFMACRO>
+
+/**
+ * Styles CSS.
+ */
+<DEFMACRO NAME="PDFGEN_HTML_STYLES">
+  <!--[ TODO: organiser en plugin lodel sur le modele de checklist : 
+    <link rel="stylesheet" href="[#SHAREDIR]/plugins/custom/checklist/public/css/checklist-lodel.css"> ]-->
+
+  <!-- Styles du PDF -->
+  <link rel="stylesheet" href="tpl/pdfgen/pdfgen.css">
+</DEFMACRO>
+
+/**
+ * Scripts JavaScript.
+ */
+<DEFMACRO NAME="PDFGEN_HTML_SCRIPTS">
+  <!--[ TODO: organiser en plugin lodel sur le modele de checklist : 
+      <script src="[#SHAREDIR]/plugins/custom/checklist/node_modules/jquery/dist/jquery.min.js"></script> ]-->
+</DEFMACRO>
+
+/**
+ * Contenu principal (article).
+ */
+<DEFMACRO NAME="PDFGEN_ARTICLE">
+  Hello world!
+</DEFMACRO>
