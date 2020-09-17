@@ -83,6 +83,38 @@
 <DEFMACRO NAME="PDFGEN_HTML_SCRIPTS">
   <!--[ TODO: organiser en plugin lodel sur le modele de checklist : 
       <script src="[#SHAREDIR]/plugins/custom/checklist/node_modules/jquery/dist/jquery.min.js"></script> ]-->
+
+  <script>
+    window.PagedConfig = {
+      auto: false
+    };
+  </script>
+  <script src="tpl/pdfgen/vendor/pagedjs-0.1.40/paged.polyfill.js"></script>
+  
+  <script>
+    function runPagedjs () {
+      window.PagedPolyfill.preview();
+    }
+
+    // TODO: lang depending on detected languages
+    var Hyphenopoly = {
+      require: {
+        "fr": "anticonstitutionnellement"
+      },
+      setup: {
+        selectors: {
+          ".texte": {}
+        }
+      },
+      handleEvent: {
+        // Run Paged.js after Hyphenopoly
+        "hyphenopolyEnd": runPagedjs,
+        // Event triggered when browser-native CSS hyphenation is available
+        "tearDown": runPagedjs
+      }
+    };
+  </script>
+  <script src="tpl/pdfgen/vendor/hyphenopoly-4.7.0/Hyphenopoly_Loader.js"></script>
 </DEFMACRO>
 
 /**
