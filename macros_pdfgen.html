@@ -143,26 +143,6 @@
 </DEFMACRO>
 
 /**
- * Initialisation de la page article.
- */
-<DEFMACRO NAME="PDFGEN_ARTICLE_INIT">
-  <!--[ Détecter les entrées d'index et créer une globale %HASENTRIES ]-->
-  <LOOP NAME="hasentries" TABLE="relations, entries, entrytypes" SELECT="COUNT(entries.id)" WHERE="nature = 'E' AND id1 = [#ID] AND id2 = entries.id AND class != 'indexavances'">
-    <IF COND="[#NBRESULTATS] GT 0">
-      <LET VAR="hasentries" GLOBAL="1">1</LET>
-    </IF>
-  </LOOP>
-
-  <!--[ Liste des auteurs ]-->
-  <LET VAR="liste_auteurs" GLOBAL="1"><FUNC NAME="PDFGEN_LISTER_PERSONNES" TYPE="auteur" APPEND=", " /></LET>
-
-  <!--[ Barrière mobile ]-->
-  <IF COND="[#DATEPUBLI] LE today() OR [#LODELUSER.RIGHTS] GE 5">
-    <LET VAR="texte_accessible">1</LET>
-  </IF>
-</DEFMACRO>
-
-/**
  * Macro principale des articles.
  */
 <DEFMACRO NAME="PDFGEN_ARTICLE_MAIN">
@@ -187,6 +167,26 @@
       <p>[@AVERTISSEMENT_TEXTE_INTEGRAL] [#DATEPUBLI|formateddate('%B %Y')].</p>
     </IF>
   </LOOP>
+</DEFMACRO>
+
+/**
+ * Initialisation de la page article.
+ */
+<DEFMACRO NAME="PDFGEN_ARTICLE_INIT">
+  <!--[ Détecter les entrées d'index et créer une globale %HASENTRIES ]-->
+  <LOOP NAME="hasentries" TABLE="relations, entries, entrytypes" SELECT="COUNT(entries.id)" WHERE="nature = 'E' AND id1 = [#ID] AND id2 = entries.id AND class != 'indexavances'">
+    <IF COND="[#NBRESULTATS] GT 0">
+      <LET VAR="hasentries" GLOBAL="1">1</LET>
+    </IF>
+  </LOOP>
+
+  <!--[ Liste des auteurs ]-->
+  <LET VAR="liste_auteurs" GLOBAL="1"><FUNC NAME="PDFGEN_LISTER_PERSONNES" TYPE="auteur" APPEND=", " /></LET>
+
+  <!--[ Barrière mobile ]-->
+  <IF COND="[#DATEPUBLI] LE today() OR [#LODELUSER.RIGHTS] GE 5">
+    <LET VAR="texte_accessible">1</LET>
+  </IF>
 </DEFMACRO>
 
 /**
