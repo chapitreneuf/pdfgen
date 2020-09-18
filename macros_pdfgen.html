@@ -51,7 +51,7 @@
   <html lang="fr">
   <head>
     <meta charset="utf-8">
-    <title>[#TITRE|textebrut] – [#OPTIONS.METADONNEESSITE.TITRESITE]</title>
+    <title>pdfgen (document [#DOCUMENT]) – [#OPTIONS.METADONNEESSITE.TITRESITE]</title>
     <MACRO NAME="PDFGEN_HTML_STYLES"/>
   </head>
   <body>
@@ -162,6 +162,7 @@
 <DEFMACRO NAME="PDFGEN_ARTICLE_MAIN">
   <LOOP NAME="pdfgen_article_main" TABLE="textes" WHERE="id=[#DOCUMENT]">
     <MACRO NAME="PDFGEN_ARTICLE_INIT" />
+    <MACRO NAME="PDFGEN_ARTICLE_FRONT" />
     <MACRO NAME="PDFGEN_ARTICLE_HEADER" />
     <MACRO NAME="PDFGEN_ARTICLE_RESUMES" />
     <MACRO NAME="PDFGEN_ARTICLE_MOTSCLES" />
@@ -173,11 +174,86 @@
     <MACRO NAME="PDFGEN_ARTICLE_DOCANNEXES" />
     <MACRO NAME="PDFGEN_ARTICLE_NOTESBASPAGE" />
     <MACRO NAME="PDFGEN_ARTICLE_NOTEFIN" />
-    <MACRO NAME="PDFGEN_ARTICLE_POURCITER" />
     <FUNC NAME="PDFGEN_ARTICLE_DESCRIPTION_PERSONNES" TYPE="auteur" SECTION_ID="authors-infos" />
     <FUNC NAME="PDFGEN_ARTICLE_DESCRIPTION_PERSONNES" TYPE="traducteur" SECTION_ID="translators-infos" />
-    <MACRO NAME="PDFGEN_ARTICLE_LICENSE" />
   </LOOP>
+</DEFMACRO>
+
+/**
+ * Page de garde de l'article.
+ */
+<DEFMACRO NAME="PDFGEN_ARTICLE_FRONT">
+  <section class="front">
+    <!--[ Logo de la revue
+          Par défaut le chemin est : tpl/pdf_logo.png 
+          TODO: ajouter une option de plugin pour personnaliser le chemin. ]-->
+    <img class="front__logo" src="tpl/pdf_logo.png" alt="" />
+
+    <!--[ Titre de la revue ]-->
+    <p class="front__titresite">[#OPTIONS.METADONNEESSITE.TITRESITE]</p>
+
+    <!--[ Numéro parent ]-->
+    <LET VAR="id_numero_parent">[#ID|getParentByType('numero')]</LET>
+    <LOOP NAME="pdfgen_article_front_parent" TABLE="publications" WHERE="id='[#ID_NUMERO_PARENT]'" SELECT="numero, titre, periode, datepublipapier, datepubli, creationdate" />
+      [#NUMERO]
+      <FUNC NAME="PDFGEN_PERIODE_PUBLI" WRAP_CLASS="publi-date" PREPEND="&nbsp;|&nbsp;" /><br />
+      <IF COND="[#TITRE] AND [#TITRE] NE [#NUMERO]">
+        [#TITRE]
+      </IF>
+    </LOOP>
+    <LET VAR="isnumero">[#ID|getParentByType('numero')]</LET>
+
+    <!--[ Titre du document ]-->
+    <h1 class="front__title">[#TITRE|removenotes]</h1>
+    
+    <!--[ Sous-titre du document ]-->
+    <IF COND="[#SOUSTITRE]">
+      <p class="front__subtitle">[#SOUSTITRE|removenotes]</p>
+    </IF>
+    
+    <!--[ Titres alternatifs ]-->
+    <IF COND="[#ALTERTITRE]">
+      <div class="front__altertitle">
+        <LET VAR="value">[#ALTERTITRE]</LET>
+        <LOOP NAME="mltext">
+          <p lang="[#LANG]">[#VALUE|removenotes]</p>
+        </LOOP>
+      </div>
+    </IF>
+
+    <!--[ Auteurs ]-->
+    <FUNC NAME="PDFGEN_LISTER_PERSONNES" TYPE="auteur" WRAP_ID="article-author" WRAP_CLASS="article__author" />
+
+    <!--[ URL ]-->
+    <p class="front__url">URL&nbsp: [#SITEINFOS.URL]/[#ID|makeurlwithid]</p>
+
+    <!--[ DOI ]-->
+    <IF COND="[%PREFIXEDOI] AND [#TYPE] EQ 'article'">
+      <p class="front__doi">DOI&nbsp;: [%PREFIXEDOI][#ID]</p>
+    </IF>
+
+    <!--[ ISSN ]-->
+    <IF COND="[#OPTIONS.METADONNEESSITE.ISSN_ELECTRONIQUE]">
+      <p class="front_issn">ISSN&nbsp;: [#OPTIONS.METADONNEESSITE.ISSN_ELECTRONIQUE]</p>
+    </IF>
+
+    <!--[ Editeur ]-->
+    <IF COND="[#OPTIONS.METADONNEESSITE.EDITEUR]">
+      <p class="front__publisher">[@PUBLISHER]&nbsp;: [#OPTIONS.METADONNEESSITE.EDITEUR]</p>
+    </IF>
+
+    <!--[ Pour citer ]-->
+    <h3>[@REFERENCE_ELECTRONIQUE]</h3>
+    <p class="front__reference">
+      <MACRO NAME="PDFGEN_ARTICLE_REFERENCE_ELECTRONIQUE" />
+    </p>
+
+    <!--[ Droits d'auteur ]-->
+    <IF COND="[#OPTIONS.METADONNEESSITE.DROITSAUTEUR]">
+      <h3>[@LICENCE]</h3>
+      <p class="front__licence">[#OPTIONS.METADONNEESSITE.DROITSAUTEUR]</p>
+    </IF>
+  </section>
 </DEFMACRO>
 
 /**
@@ -217,11 +293,6 @@
     <!--[ Traducteurs ]-->
     <FUNC NAME="PDFGEN_LISTER_PERSONNES" TYPE="traducteur" WRAP_ID="article-translator" WRAP_CLASS="article__author" PREPEND="[@TRADUCTION_DE] "/>
 
-    <!--[ DOI ]-->
-    <IF COND="[%PREFIXEDOI] AND [#TYPE] EQ 'article'">
-      <p class="article__doi">DOI&nbsp;: [%PREFIXEDOI][#ID]</p>
-    </IF>
-
     <!--[ Pagination ]-->
     <IF COND="[#PAGINATION]">
       <p class="article__pagination">p. [#PAGINATION]</p>
@@ -235,40 +306,6 @@
       </div>
     </IF>
   </header>
-</DEFMACRO>
-
-/**
- * Section "Pour citer"
- */
-<DEFMACRO NAME="PDFGEN_ARTICLE_POURCITER">
-  <!--[ Pour citer ]-->
-  <section class="article__quotation col-12 col-lg-10">
-    <div class="article__quotation-contents">
-      <h2 class="section-header">[@POUR_CITER]</h2>
-      <IF COND="[%REFERENCE_PAPIER]">
-        <h3>[@REFERENCE_PAPIER]</h3>
-        <p class="article__quotation-print">
-          <MACRO NAME="PDFGEN_ARTICLE_REFERENCE_PAPIER"/>
-        </p>
-      </IF>
-      <h3>[@REFERENCE_ELECTRONIQUE]</h3>
-      <p class="article__quotation-digital">
-        <MACRO NAME="PDFGEN_ARTICLE_REFERENCE_ELECTRONIQUE" />
-      </p>
-    </div>
-  </section>
-</DEFMACRO>
-
-/**
- * Référence papier.
- */
-<DEFMACRO NAME="PDFGEN_ARTICLE_REFERENCE_PAPIER">
-  <LET VAR="isnumero">[#ID|getParentByType('numero')]</LET>
-  <IF COND="[#NOTICEBIBLIO]">
-    [#NOTICEBIBLIO]
-  <ELSEIF COND="[#PAGINATION] AND [#ISNUMERO]"/>
-    [%LISTE_AUTEURS]«&nbsp;[#TITRE|removenotes]&nbsp;», <em>[#OPTIONS.METADONNEESSITE.TITRESITE]</em><LOOP NAME="reference_papier_numero" SELECT="id, titre, numero, datepublipapier, datepubli, periode" TABLE="relations, publications" WHERE="id2 = '[#ID]' AND type IN ('numero', 'rubrique') AND nature = 'P' AND id1 = publications.identity" ORDER="degree DESC" LIMIT="2"><BEFORE>, </BEFORE><IF COND="[#COUNT] EQ 1" /><IF COND="[#TYPE] EQ 'numero'">[#NUMERO]&nbsp;|&nbsp;[#DATEPUBLIPAPIER|formateddate('%Y')]<ELSE/>[#TITRE]</IF><ELSE />, [#TITRE]</IF></LOOP>, [#PAGINATION].
-  </IF>
 </DEFMACRO>
 
 /**
@@ -641,20 +678,6 @@
     </AFTER>
   </LOOP>
 </DEFFUNC>
-
-/**
- * Section droits d'auteur.
- */
-<DEFMACRO NAME="PDFGEN_ARTICLE_LICENSE">
-  <IF COND="[#OPTIONS.METADONNEESSITE.DROITSAUTEUR]">
-    <section class="article__license col-12 col-lg-10">
-      <div class="article__license-contents">
-        <h2 class="section-header">[@LICENCE]</h2>
-        <p>[#OPTIONS.METADONNEESSITE.DROITSAUTEUR]</p>
-      </div>
-    </section>
-  </IF>
-</DEFMACRO>
 
 /**
  * Affiche les personnes liées à l'entité en cours.
