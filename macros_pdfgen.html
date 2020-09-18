@@ -96,10 +96,18 @@
       window.PagedPolyfill.preview();
     }
 
-    // TODO: add abstract langs ?
     function getRequiredLangs(selector) {
       return Array.from(document.querySelectorAll(selector)).reduce(function (obj, el) {
         var lang = el.getAttribute("lang");
+
+        // Fix document: xml:lang -> lang
+        if (!lang) {
+          var xmlLang = el.getAttribute("lang");
+          if (!xmlLang) return obj;
+          el.setAttribute("lang", xmlLang);
+          lang = xmlLang;
+        }
+
         if (obj[lang]) return obj;
         // Chrome doesn't support hyphenation yet, so we "FORCEHYPHENOPOLY" anyway.
         obj[lang] = "FORCEHYPHENOPOLY";
@@ -112,7 +120,7 @@
     };
 
     var Hyphenopoly = {
-      require: getRequiredLangs(".hyphenate[lang], .hyphenate [lang]"),
+      require: getRequiredLangs(".hyphenate[lang], .hyphenate [lang], .hyphenate[xml:lang], .hyphenate [xml:lang]"),
       fallbacks: {
         "en": "en-gb"
       },
@@ -332,7 +340,7 @@
       <IF COND="[#RESUME] LIKE /<r2r:ml lang=\"([a-z]+)\"/">
         <LET VAR="lang_exists">[#SITELANG|in_array([#MATCHES.1])]</LET>
         <LOOP NAME="foreach" ARRAY="[#MATCHES.1]">
-          <div class="article__abstract-text" xml:lang="[#VALUE]">
+          <div class="article__abstract-text hyphenate" xml:lang="[#VALUE]">
             <h3 class="article__abstract-title" >[#VALUE|humanlang]</h3>
             [#RESUME:#VALUE]
           </div>
