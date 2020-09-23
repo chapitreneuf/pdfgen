@@ -102,7 +102,7 @@
 
         // Fix document: xml:lang -> lang
         if (!lang) {
-          var xmlLang = el.getAttribute("lang");
+          var xmlLang = el.getAttribute("xml:lang");
           if (!xmlLang) return obj;
           el.setAttribute("lang", xmlLang);
           lang = xmlLang;
@@ -120,7 +120,7 @@
     };
 
     var Hyphenopoly = {
-      require: getRequiredLangs(".hyphenate[lang], .hyphenate [lang], .hyphenate[xml:lang], .hyphenate [xml:lang]"),
+      require: getRequiredLangs(".hyphenate[lang], .hyphenate [lang], .hyphenate[xml\\:lang], .hyphenate [xml\\:lang]"),
       fallbacks: {
         "en": "en-gb"
       },
@@ -205,13 +205,13 @@
     <!--[ Numéro parent ]-->
     <LET VAR="id_numero_parent">[#ID|getParentByType('numero')]</LET>
     <LOOP NAME="pdfgen_article_front_parent" TABLE="publications" WHERE="id='[#ID_NUMERO_PARENT]'" SELECT="numero, titre, periode, datepublipapier, datepubli, creationdate" />
-      [#NUMERO]
-      <FUNC NAME="PDFGEN_PERIODE_PUBLI" WRAP_CLASS="publi-date" PREPEND="&nbsp;|&nbsp;" /><br />
-      <IF COND="[#TITRE] AND [#TITRE] NE [#NUMERO]">
-        [#TITRE]
-      </IF>
+      <p class="front__issue">
+        <span class="issue-number">[#NUMERO]</span><FUNC NAME="PDFGEN_PERIODE_PUBLI" WRAP_CLASS="issue-date" PREPEND="&nbsp;|&nbsp;" />
+        <IF COND="[#TITRE] AND [#TITRE] NE [#NUMERO]">
+          <br /><span class="issue-title">[#TITRE]</span>
+        </IF>
+      </p>
     </LOOP>
-    <LET VAR="isnumero">[#ID|getParentByType('numero')]</LET>
 
     <!--[ Titre du document ]-->
     <h1 class="front__title">[#TITRE|removenotes]</h1>
@@ -226,18 +226,19 @@
       <div class="front__altertitle">
         <LET VAR="value">[#ALTERTITRE]</LET>
         <LOOP NAME="mltext">
-          <p lang="[#LANG]">[#VALUE|removenotes]</p>
+          <p lang="[#LANG]" xml:lang="[#LANG]">[#VALUE|removenotes]</p>
         </LOOP>
       </div>
     </IF>
 
     <!--[ Auteurs ]-->
-    <FUNC NAME="PDFGEN_LISTER_PERSONNES" TYPE="auteur" WRAP_ID="article-author" WRAP_CLASS="article__author" />
+    <FUNC NAME="PDFGEN_LISTER_PERSONNES" TYPE="auteur" WRAP_CLASS="front__author" />
 
     <!--[ URL ]-->
     <p class="front__url">URL&nbsp: [#SITEINFOS.URL]/[#ID|makeurlwithid]</p>
 
     <!--[ DOI ]-->
+    <!--[ FIXME: ne peut pas fonctionner, car dépend de macros_custom.html qui n'existe pas forcément (dépend de la maquette) ]-->
     <IF COND="[%PREFIXEDOI] AND [#TYPE] EQ 'article'">
       <p class="front__doi">DOI&nbsp;: [%PREFIXEDOI][#ID]</p>
     </IF>
@@ -270,7 +271,7 @@
  * Header du document.
  */
 <DEFMACRO NAME="PDFGEN_ARTICLE_HEADER">
-  <header class="article__header col-12 col-lg-10">
+  <header class="article__header">
     <!--[ Numéro de document ]-->
     <IF COND="[#NUMERODOCUMENT] AND [#NUMERODOCUMENT] NE '0'">
       <p class="article__number"><span>#[#NUMERODOCUMENT]</span></p>
