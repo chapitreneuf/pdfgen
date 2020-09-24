@@ -1,3 +1,7 @@
+/**
+ * @license Paged.js v0.1.42 | MIT | https://gitlab.pagedmedia.org/tools/pagedjs
+ */
+
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
 	typeof define === 'function' && define.amd ? define(factory) :
@@ -620,62 +624,85 @@
 	}
 
 	function nodeAfter(node, limiter) {
-		let after = node;
+		if (limiter && node === limiter) {
+			return;
+		}
+		let significantNode = nextSignificantNode(node);
+		if (significantNode) {
+			return significantNode;
+		}
+		if (node.parentNode) {
+			while ((node = node.parentNode)) {
+				if (limiter && node === limiter) {
+					return;
+				}
+				significantNode = nextSignificantNode(node);
+				if (significantNode) {
+					return significantNode;
+				}
+			}
+		}
+	}
 
-		if (after.nextSibling) {
-			if (limiter && node === limiter) {
-				return;
-			}
-			after = after.nextSibling;
-		} else {
-			while (after) {
-				after = after.parentNode;
-				if (limiter && after === limiter) {
-					after = undefined;
-					break;
+	function nodeBefore(node, limiter) {
+		if (limiter && node === limiter) {
+			return;
+		}
+		let significantNode = previousSignificantNode(node);
+		if (significantNode) {
+			return significantNode;
+		}
+		if (node.parentNode) {
+			while ((node = node.parentNode)) {
+				if (limiter && node === limiter) {
+					return;
 				}
-				if (after && after.nextSibling) {
-					after = after.nextSibling;
-					break;
+				significantNode = previousSignificantNode(node);
+				if (significantNode) {
+					return significantNode;
 				}
 			}
+		}
+	}
+
+	function elementAfter(node, limiter) {
+		let after = nodeAfter(node, limiter);
+
+		while (after && after.nodeType !== 1) {
+			after = nodeAfter(after, limiter);
 		}
 
 		return after;
 	}
 
-	function nodeBefore(node, limiter) {
-		let before = node;
-		if (before.previousSibling) {
-			if (limiter && node === limiter) {
-				return;
-			}
-			before = before.previousSibling;
-		} else {
-			while (before) {
-				before = before.parentNode;
-				if (limiter && before === limiter) {
-					before = undefined;
-					break;
-				}
-				if (before && before.previousSibling) {
-					before = before.previousSibling;
-					break;
-				}
-			}
+	function elementBefore(node, limiter) {
+		let before = nodeBefore(node, limiter);
+
+		while (before && before.nodeType !== 1) {
+			before = nodeBefore(before, limiter);
 		}
 
 		return before;
 	}
 
-	function elementAfter(node, limiter) {
-		let after = nodeAfter(node);
+	function displayedElementAfter(node, limiter) {
+		let after = elementAfter(node, limiter);
 
-		while (after && after.nodeType !== 1) {
-			after = nodeAfter(after);
+		while (after && after.dataset.undisplayed) {
+			after = elementAfter(after);
 		}
 
 		return after;
+	}
+
+	function displayedElementBefore(node, limiter) {
+		let before = elementBefore(node, limiter);
+
+		while (before && before.dataset.undisplayed) {
+			before = elementBefore(before);
+		}
+
+		return before;
 	}
 
 	function rebuildAncestors(node) {
@@ -810,15 +837,13 @@
 		return false;
 	}
 
-	function needsPageBreak(node) {
-		if( typeof node !== "undefined" &&
-				typeof node.dataset !== "undefined" &&
-				(node.dataset.page || node.dataset.afterPage)
-			 ) {
-			return true;
+	function needsPageBreak(node, previousSignificantNode) {
+		if (typeof node === "undefined" || !previousSignificantNode || isIgnorable(node)) {
+			return false;
 		}
-
-		return false;
+		const previousSignificantNodePage = previousSignificantNode.dataset ? previousSignificantNode.dataset.page : undefined;
+		const currentNodePage = node.dataset ? node.dataset.page : undefined;
+		return currentNodePage !== previousSignificantNodePage;
 	}
 
 	function *words(node) {
@@ -881,7 +906,7 @@
 			return true;
 		}
 
-		if (node.style.display === "none") {
+		if (node.style && node.style.display === "none") {
 			return false;
 		}
 
@@ -1029,6 +1054,124 @@
 		return index;
 	}
 
+
+	/**
+	 * Throughout, whitespace is defined as one of the characters
+	 *  "\t" TAB \u0009
+	 *  "\n" LF  \u000A
+	 *  "\r" CR  \u000D
+	 *  " "  SPC \u0020
+	 *
+	 * This does not use Javascript's "\s" because that includes non-breaking
+	 * spaces (and also some other characters).
+	 */
+
+	/**
+	 * Determine if a node should be ignored by the iterator functions.
+	 * taken from https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model/Whitespace#Whitespace_helper_functions
+	 *
+	 * @param {Node} node An object implementing the DOM1 |Node| interface.
+	 * @return {boolean} true if the node is:
+	 *  1) A |Text| node that is all whitespace
+	 *  2) A |Comment| node
+	 *  and otherwise false.
+	 */
+	function isIgnorable(node) {
+		return (node.nodeType === 8) || // A comment node
+			((node.nodeType === 3) && isAllWhitespace(node)); // a text node, all whitespace
+	}
+
+	/**
+	 * Determine whether a node's text content is entirely whitespace.
+	 *
+	 * @param {Node} node  A node implementing the |CharacterData| interface (i.e., a |Text|, |Comment|, or |CDATASection| node
+	 * @return {boolean} true if all of the text content of |nod| is whitespace, otherwise false.
+	 */
+	function isAllWhitespace(node) {
+		return !(/[^\t\n\r ]/.test(node.textContent));
+	}
+
+	/**
+	 * Version of |previousSibling| that skips nodes that are entirely
+	 * whitespace or comments.  (Normally |previousSibling| is a property
+	 * of all DOM nodes that gives the sibling node, the node that is
+	 * a child of the same parent, that occurs immediately before the
+	 * reference node.)
+	 *
+	 * @param {ChildNode} sib  The reference node.
+	 * @return {Node|null} Either:
+	 *  1) The closest previous sibling to |sib| that is not ignorable according to |is_ignorable|, or
+	 *  2) null if no such node exists.
+	 */
+	function previousSignificantNode(sib) {
+		while ((sib = sib.previousSibling)) {
+			if (!isIgnorable(sib)) return sib;
+		}
+		return null;
+	}
+
+	/**
+	 * Version of |nextSibling| that skips nodes that are entirely
+	 * whitespace or comments.
+	 *
+	 * @param {ChildNode} sib  The reference node.
+	 * @return {Node|null} Either:
+	 *  1) The closest next sibling to |sib| that is not ignorable according to |is_ignorable|, or
+	 *  2) null if no such node exists.
+	 */
+	function nextSignificantNode(sib) {
+		while ((sib = sib.nextSibling)) {
+			if (!isIgnorable(sib)) return sib;
+		}
+		return null;
+	}
+
+	function filterTree(content, func, what) {
+		const treeWalker = document.createTreeWalker(
+			content || this.dom,
+			what || NodeFilter.SHOW_ALL,
+			func ? { acceptNode: func } : null,
+			false
+		);
+
+		let node;
+		let current;
+		node = treeWalker.nextNode();
+		while(node) {
+			current = node;
+			node = treeWalker.nextNode();
+			current.parentNode.removeChild(current);
+		}
+	}
+
+	/**
+	 * Layout
+	 * @class
+	 */
+	class BreakToken {
+
+		constructor(node, offset) {
+			this.node = node;
+			this.offset = offset;
+		}
+
+		equals(otherBreakToken) {
+			if (!otherBreakToken) {
+				return false;
+			}
+			if (this["node"] && otherBreakToken["node"] &&
+				this["node"] !== otherBreakToken["node"]) {
+				return false;
+			}
+			if (this["offset"] && otherBreakToken["offset"] &&
+				this["offset"] !== otherBreakToken["offset"]) {
+				return false;
+			}
+			return true;
+		}
+
+	}
+
 	const MAX_CHARS_PER_BREAK = 1500;
 
 	/**
@@ -1057,13 +1200,15 @@
 			this.settings = options || {};
 
 			this.maxChars = this.settings.maxChars || MAX_CHARS_PER_BREAK;
+			this.forceRenderBreak = false;
 		}
 
-		async renderTo(wrapper, source, breakToken, bounds=this.bounds) {
+		async renderTo(wrapper, source, breakToken, bounds = this.bounds) {
 			let start = this.getStart(source, breakToken);
 			let walker = walk(start, source);
 
 			let node;
+			let prevNode;
 			let done;
 			let next;
 
@@ -1072,8 +1217,11 @@
 
 			let length = 0;
 
+			let prevBreakToken = breakToken || new BreakToken(start);
+
 			while (!done && !newBreakToken) {
 				next = walker.next();
+				prevNode = node;
 				node = next.value;
 				done = next.done;
 
@@ -1085,7 +1233,12 @@
 						await this.waitForImages(imgs);
 					}
 
-					newBreakToken = this.findBreakToken(wrapper, source, bounds);
+					newBreakToken = this.findBreakToken(wrapper, source, bounds, prevBreakToken);
+
+					if (newBreakToken && newBreakToken.equals(prevBreakToken)) {
+						console.warn("Unable to layout item: ", prevNode);
+						return undefined;
+					}
 					return newBreakToken;
 				}
 
@@ -1093,7 +1246,6 @@
 
 				// Check if the rendered element has a break set
 				if (hasRenderedContent && this.shouldBreak(node)) {
-
 					this.hooks && this.hooks.layout.trigger(wrapper, this);
 
 					let imgs = wrapper.querySelectorAll("img");
@@ -1101,10 +1253,15 @@
 						await this.waitForImages(imgs);
 					}
 
-					newBreakToken = this.findBreakToken(wrapper, source, bounds);
+					newBreakToken = this.findBreakToken(wrapper, source, bounds, prevBreakToken);
 
 					if (!newBreakToken) {
 						newBreakToken = this.breakAt(node);
+					}
+
+					if (newBreakToken && newBreakToken.equals(prevBreakToken)) {
+						console.warn("Unable to layout item: ", node);
+						return undefined;
 					}
 
 					length = 0;
@@ -1129,6 +1286,21 @@
 					walker = walk(nodeAfter(node, source), source);
 				}
 
+				if (this.forceRenderBreak) {
+					this.hooks && this.hooks.layout.trigger(wrapper, this);
+
+					newBreakToken = this.findBreakToken(wrapper, source, bounds, prevBreakToken);
+
+					if (!newBreakToken) {
+						newBreakToken = this.breakAt(node);
+					}
+
+					length = 0;
+					this.forceRenderBreak = false;
+
+					break;
+				}
+
 				// Only check x characters
 				if (length >= this.maxChars) {
 
@@ -1139,7 +1311,12 @@
 						await this.waitForImages(imgs);
 					}
 
-					newBreakToken = this.findBreakToken(wrapper, source, bounds);
+					newBreakToken = this.findBreakToken(wrapper, source, bounds, prevBreakToken);
+
+					if (newBreakToken && newBreakToken.equals(prevBreakToken)) {
+						console.warn("Unable to layout item: ", node);
+						return undefined;
+					}
 
 					if (newBreakToken) {
 						length = 0;
@@ -1151,15 +1328,23 @@
 			return newBreakToken;
 		}
 
-		breakAt(node, offset=0) {
-			return {
+		breakAt(node, offset = 0) {
+			let newBreakToken = new BreakToken(
 				node,
 				offset
-			};
+			);
+			let breakHooks = this.hooks.onBreakToken.triggerSync(newBreakToken, undefined, node, this);
+			breakHooks.forEach((newToken) => {
+				if (typeof newToken != "undefined") {
+					newBreakToken = newToken;
+				}
+			});
+
+			return newBreakToken;
 		}
 
 		shouldBreak(node) {
-			let previousSibling = node.previousSibling;
+			let previousSibling = previousSignificantNode(node);
 			let parentNode = node.parentNode;
 			let parentBreakBefore = needsBreakBefore(node) && parentNode && !previousSibling && needsBreakBefore(parentNode);
 			let doubleBreakBefore;
@@ -1168,7 +1353,11 @@
 				doubleBreakBefore = node.dataset.breakBefore === parentNode.dataset.breakBefore;
 			}
 
-			return !doubleBreakBefore && needsBreakBefore(node) || needsPreviousBreakAfter(node) || needsPageBreak(node);
+			return !doubleBreakBefore && needsBreakBefore(node) || needsPreviousBreakAfter(node) || needsPageBreak(node, previousSibling);
+		}
+
+		forceBreak() {
+			this.forceRenderBreak = true;
 		}
 
 		getStart(source, breakToken) {
@@ -1184,7 +1373,7 @@
 			return start;
 		}
 
-		append(node, dest, breakToken, shallow=true, rebuild=true) {
+		append(node, dest, breakToken, shallow = true, rebuild = true) {
 
 			let clone = cloneNode(node, !shallow);
 
@@ -1215,7 +1404,7 @@
 				dest.appendChild(clone);
 			}
 
-			let nodeHooks = this.hooks.renderNode.triggerSync(clone, node);
+			let nodeHooks = this.hooks.renderNode.triggerSync(clone, node, this);
 			nodeHooks.forEach((newNode) => {
 				if (typeof newNode != "undefined") {
 					clone = newNode;
@@ -1235,16 +1424,16 @@
 		async awaitImageLoaded(image) {
 			return new Promise(resolve => {
 				if (image.complete !== true) {
-					image.onload = function() {
-						let { width, height } = window.getComputedStyle(image);
+					image.onload = function () {
+						let {width, height} = window.getComputedStyle(image);
 						resolve(width, height);
 					};
-					image.onerror = function(e) {
-						let { width, height } = window.getComputedStyle(image);
+					image.onerror = function (e) {
+						let {width, height} = window.getComputedStyle(image);
 						resolve(width, height, e);
 					};
 				} else {
-					let { width, height } = window.getComputedStyle(image);
+					let {width, height} = window.getComputedStyle(image);
 					resolve(width, height);
 				}
 			});
@@ -1264,7 +1453,7 @@
 					break;
 				}
 
-				if(window.getComputedStyle(node)["break-inside"] === "avoid") {
+				if (window.getComputedStyle(node)["break-inside"] === "avoid") {
 					breakNode = node;
 					break;
 				}
@@ -1286,7 +1475,11 @@
 
 					if (!renderedNode) {
 						// Find closest element with data-ref
-						renderedNode = findElement(prevValidNode(temp), rendered);
+						let prevNode = prevValidNode(temp);
+						if (!isElement(prevNode)) {
+							prevNode = prevNode.parentElement;
+						}
+						renderedNode = findElement(prevNode, rendered);
 						// Check if temp is the last rendered node at its level.
 						if (!temp.nextSibling) {
 							// We need to ensure that the previous sibling of temp is fully rendered.
@@ -1294,7 +1487,7 @@
 							const walker = document.createTreeWalker(renderedNodeFromSource, NodeFilter.SHOW_ELEMENT);
 							const lastChildOfRenderedNodeFromSource = walker.lastChild();
 							const lastChildOfRenderedNodeMatchingFromRendered = findElement(lastChildOfRenderedNodeFromSource, rendered);
-							// Check if we found that the last child in source 
+							// Check if we found that the last child in source
 							if (!lastChildOfRenderedNodeMatchingFromRendered) {
 								// Pending content to be rendered before virtual break token
 								return;
@@ -1318,8 +1511,14 @@
 
 					parent = findElement(renderedNode, source);
 					index = indexOfTextNode(temp, parent);
-					node = child(parent, index);
-					offset = 0;
+					// No seperatation for the first textNode of an element
+					if(index === 0) {
+						node = parent;
+						offset = 0;
+					} else {
+						node = child(parent, index);
+						offset = 0;
+					}
 				}
 			} else {
 				renderedNode = findElement(container.parentNode, rendered);
@@ -1344,14 +1543,14 @@
 				return;
 			}
 
-			return {
+			return new BreakToken(
 				node,
 				offset
-			};
+			);
 
 		}
 
-		findBreakToken(rendered, source, bounds=this.bounds, extract=true) {
+		findBreakToken(rendered, source, bounds = this.bounds, prevBreakToken, extract = true) {
 			let overflow = this.findOverflow(rendered, bounds);
 			let breakToken, breakLetter;
 
@@ -1365,12 +1564,6 @@
 			if (overflow) {
 				breakToken = this.createBreakToken(overflow, rendered, source);
 				// breakToken is nullable
-				if (breakToken && breakToken["node"] && breakToken["offset"] && breakToken["node"].textContent) {
-					breakLetter = breakToken["node"].textContent.charAt(breakToken["offset"]);
-				} else {
-					breakLetter = undefined;
-				}
-
 				let breakHooks = this.hooks.onBreakToken.triggerSync(breakToken, overflow, rendered, this);
 				breakHooks.forEach((newToken) => {
 					if (typeof newToken != "undefined") {
@@ -1378,6 +1571,16 @@
 					}
 				});
 
+				// Stop removal if we are in a loop
+				if (breakToken && breakToken.equals(prevBreakToken)) {
+					return breakToken;
+				}
+
+				if (breakToken && breakToken["node"] && breakToken["offset"] && breakToken["node"].textContent) {
+					breakLetter = breakToken["node"].textContent.charAt(breakToken["offset"]);
+				} else {
+					breakLetter = undefined;
+				}
 
 				if (breakToken && breakToken.node && extract) {
 					this.removeOverflow(overflow, breakLetter);
@@ -1387,18 +1590,18 @@
 			return breakToken;
 		}
 
-		hasOverflow(element, bounds=this.bounds) {
+		hasOverflow(element, bounds = this.bounds) {
 			let constrainingElement = element && element.parentNode; // this gets the element, instead of the wrapper for the width workaround
-			let { width } = element.getBoundingClientRect();
+			let {width} = element.getBoundingClientRect();
 			let scrollWidth = constrainingElement ? constrainingElement.scrollWidth : 0;
 			return Math.max(Math.floor(width), scrollWidth) > Math.round(bounds.width);
 		}
 
-		findOverflow(rendered, bounds=this.bounds) {
+		findOverflow(rendered, bounds = this.bounds) {
 			if (!this.hasOverflow(rendered, bounds)) return;
 
 			let start = Math.round(bounds.left);
-			let end =  Math.round(bounds.right);
+			let end = Math.round(bounds.right);
 			let range;
 
 			let walker = walk(rendered.firstChild, rendered);
@@ -1423,7 +1626,7 @@
 						// Check if it is a float
 						let isFloat = false;
 
-						if (isElement(node) ) {
+						if (isElement(node)) {
 							let styles = window.getComputedStyle(node);
 							isFloat = styles.getPropertyValue("float") !== "none";
 							skip = styles.getPropertyValue("break-inside") === "avoid";
@@ -1434,27 +1637,27 @@
 
 						if (prev) {
 							range = document.createRange();
-							range.setStartBefore(prev);
+							range.selectNode(prev);
 							break;
 						}
 
 						if (!br && !isFloat && isElement(node)) {
 							range = document.createRange();
-							range.setStartBefore(node);
+							range.selectNode(node);
 							break;
 						}
 
 						if (isText(node) && node.textContent.trim().length) {
 							range = document.createRange();
-							range.setStartBefore(node);
+							range.selectNode(node);
 							break;
 						}
 
 					}
 
 					if (!range && isText(node) &&
-							node.textContent.trim().length &&
-							window.getComputedStyle(node.parentNode)["break-inside"] !== "avoid") {
+						node.textContent.trim().length &&
+						window.getComputedStyle(node.parentNode)["break-inside"] !== "avoid") {
 
 						let rects = getClientRects(node);
 						let rect;
@@ -1466,7 +1669,7 @@
 							}
 						}
 
-						if(left >= end) {
+						if (left >= end) {
 							range = document.createRange();
 							offset = this.textBreak(node, start, end);
 							if (!offset) {
@@ -1498,7 +1701,7 @@
 
 		}
 
-		findEndToken(rendered, source, bounds=this.bounds) {
+		findEndToken(rendered, source, bounds = this.bounds) {
 			if (rendered.childNodes.length === 0) {
 				return;
 			}
@@ -1510,7 +1713,7 @@
 				if (!validNode(lastChild)) {
 					// Only get elements with refs
 					lastChild = lastChild.previousSibling;
-				} else if(!validNode(lastChild.lastChild)) {
+				} else if (!validNode(lastChild.lastChild)) {
 					// Deal with invalid dom items
 					lastChild = prevValidNode(lastChild.lastChild);
 					break;
@@ -1607,17 +1810,30 @@
 		hyphenateAtBreak(startContainer, breakLetter) {
 			if (isText(startContainer)) {
 				let startText = startContainer.textContent;
-				let prevLetter = startText[startText.length-1];
+				let prevLetter = startText[startText.length - 1];
 
 				// Add a hyphen if previous character is a letter or soft hyphen
 				if (
-					  (breakLetter && /^\w|\u00AD$/.test(prevLetter) && /^\w|\u00AD$/.test(breakLetter)) ||
-					  (!breakLetter && /^\w|\u00AD$/.test(prevLetter))
+					(breakLetter && /^\w|\u00AD$/.test(prevLetter) && /^\w|\u00AD$/.test(breakLetter)) ||
+					(!breakLetter && /^\w|\u00AD$/.test(prevLetter))
 				) {
 					startContainer.parentNode.classList.add("pagedjs_hyphen");
 					startContainer.textContent += this.settings.hyphenGlyph || "\u2011";
 				}
 			}
+		}
+
+		equalTokens(a, b) {
+			if (!a || !b) {
+				return false;
+			}
+			if (a["node"] && b["node"] && a["node"] !== b["node"]) {
+				return false;
+			}
+			if (a["offset"] && b["offset"] && a["offset"] !== b["offset"]) {
+				return false;
+			}
+			return true;
 		}
 	}
 
@@ -1693,7 +1909,7 @@
 			let page = this.element;
 			// let pagebox = this.pagebox;
 
-			let index = pgnum+1;
+			let index = pgnum + 1;
 
 			let id = `page-${index}`;
 
@@ -1748,7 +1964,7 @@
 			this.layoutMethod = new Layout(this.area, this.hooks, maxChars);
 
 			let newBreakToken = await this.layoutMethod.renderTo(this.wrapper, contents, breakToken);
-
+			
 			this.addListeners(contents);
 
 			this.endToken = newBreakToken;
@@ -1773,7 +1989,7 @@
 			let e;
 			for (var i = 0; i < entries.length; i++) {
 				e = entries[i];
-				if(e.dataset.ref === ref) {
+				if (e.dataset.ref === ref) {
 					return e;
 				}
 			}
@@ -1803,8 +2019,8 @@
 			}
 			// TODO: fall back to mutation observer?
 
-			this._onScroll = function() {
-				if(this.listening) {
+			this._onScroll = function () {
+				if (this.listening) {
 					this.element.scrollLeft = 0;
 				}
 			}.bind(this);
@@ -1827,30 +2043,31 @@
 				this.element.removeEventListener("underflow", this._checkOverflowAfterResize, false);
 			}
 
-			this.element &&this.element.removeEventListener("scroll", this._onScroll);
+			this.element && this.element.removeEventListener("scroll", this._onScroll);
 
 		}
 
 		addResizeObserver(contents) {
 			let wrapper = this.wrapper;
 			let prevHeight = wrapper.getBoundingClientRect().height;
-			this.ro = new ResizeObserver( entries => {
+			this.ro = new ResizeObserver(entries => {
 
 				if (!this.listening) {
 					return;
 				}
+				requestAnimationFrame(() => {
+					for (let entry of entries) {
+						const cr = entry.contentRect;
 
-				for (let entry of entries) {
-					const cr = entry.contentRect;
-
-					if (cr.height > prevHeight) {
-						this.checkOverflowAfterResize(contents);
-						prevHeight = wrapper.getBoundingClientRect().height;
-					} else if (cr.height < prevHeight ) { // TODO: calc line height && (prevHeight - cr.height) >= 22
-						this.checkUnderflowAfterResize(contents);
-						prevHeight = cr.height;
+						if (cr.height > prevHeight) {
+							this.checkOverflowAfterResize(contents);
+							prevHeight = wrapper.getBoundingClientRect().height;
+						} else if (cr.height < prevHeight) { // TODO: calc line height && (prevHeight - cr.height) >= 22
+							this.checkUnderflowAfterResize(contents);
+							prevHeight = cr.height;
+						}
 					}
-				}
+				});
 			});
 
 			this.ro.observe(wrapper);
@@ -1861,7 +2078,7 @@
 				return;
 			}
 
-			let newBreakToken = this.layoutMethod.findBreakToken(this.wrapper, contents);
+			let newBreakToken = this.layoutMethod.findBreakToken(this.wrapper, contents, this.startToken);
 
 			if (newBreakToken) {
 				this.endToken = newBreakToken;
@@ -1875,8 +2092,6 @@
 			}
 
 			let endToken = this.layoutMethod.findEndToken(this.wrapper, contents);
-
-			// let newBreakToken = this.layoutMethod.findBreakToken(this.wrapper, contents);
 
 			if (endToken) {
 				this._onUnderflow && this._onUnderflow(endToken);
@@ -1918,7 +2133,6 @@
 			let fragment = range.createContextualFragment(markup);
 
 			this.addRefs(fragment);
-			this.removeEmpty(fragment);
 
 			return fragment;
 		}
@@ -1933,7 +2147,6 @@
 			// }
 
 			this.addRefs(contents);
-			this.removeEmpty(contents);
 
 			return contents;
 		}
@@ -1942,7 +2155,7 @@
 			var treeWalker = document.createTreeWalker(
 				content,
 				NodeFilter.SHOW_ELEMENT,
-				{ acceptNode: function(node) { return NodeFilter.FILTER_ACCEPT; } },
+				null,
 				false
 			);
 
@@ -1965,61 +2178,9 @@
 			}
 		}
 
-		removeEmpty(content) {
-			var treeWalker = document.createTreeWalker(
-				content,
-				NodeFilter.SHOW_TEXT,
-				{ acceptNode: function(node) {
-					// Only remove more than a single space
-					if (node.textContent.length > 1 && !node.textContent.trim()) {
-
-						// Don't touch whitespace if text is preformated
-						let parent = node.parentNode;
-						let pre = isElement(parent) && parent.closest("pre");
-						if (pre) {
-							return NodeFilter.FILTER_REJECT;
-						}
-
-						return NodeFilter.FILTER_ACCEPT;
-					} else {
-						return NodeFilter.FILTER_REJECT;
-					}
-				} },
-				false
-			);
-
-			let node;
-			let current;
-			node = treeWalker.nextNode();
-			while(node) {
-				current = node;
-				node = treeWalker.nextNode();
-				// if (!current.nextSibling || (current.nextSibling && current.nextSibling.nodeType === 1)) {
-				current.parentNode.removeChild(current);
-				// }
-			}
-		}
-
 		find(ref) {
 			return this.refs[ref];
 		}
-
-		// isWrapper(element) {
-		//   return wrappersRegex.test(element.nodeName);
-		// }
-
-		isText(node) {
-			return node.tagName === "TAG";
-		}
-
-		isElement(node) {
-			return node.nodeType === 1;
-		}
-
-		hasChildren(node) {
-			return node.childNodes && node.childNodes.length;
-		}
-
 
 		destroy() {
 			this.refs = undefined;
@@ -2313,6 +2474,7 @@
 
 			this.hooks = {};
 			this.hooks.beforeParsed = new Hook(this);
+			this.hooks.filter = new Hook(this);
 			this.hooks.afterParsed = new Hook(this);
 			this.hooks.beforePageLayout = new Hook(this);
 			this.hooks.layout = new Hook(this);
@@ -2362,6 +2524,8 @@
 
 			parsed = new ContentParser(content);
 
+			this.hooks.filter.triggerSync(parsed);
+
 			this.source = parsed;
 			this.breakToken = undefined;
 
@@ -2372,7 +2536,7 @@
 				this.setup(renderTo);
 			}
 
-			this.emit("rendering", content);
+			this.emit("rendering", parsed);
 
 			await this.hooks.afterParsed.trigger(parsed, this);
 
@@ -2385,7 +2549,7 @@
 			}
 
 			this.rendered = true;
-			this.pagesArea.style.setProperty("--pagedjs-page-count", this.total);		
+			this.pagesArea.style.setProperty("--pagedjs-page-count", this.total);
 
 			await this.hooks.afterRendered.trigger(this.pages, this);
 
@@ -2429,7 +2593,6 @@
 
 			let done = false;
 			let result;
-
 			while (!done) {
 				result = await this.q.enqueue(() => { return this.renderAsync(renderer); });
 				done = result.done;
@@ -25494,6 +25657,10 @@
 	--pagedjs-padding-right: 0mm;
 	--pagedjs-padding-bottom: 0mm;
 	--pagedjs-padding-left: 0mm;
+	--pagedjs-border-top: 0mm;
+	--pagedjs-border-right: 0mm;
+	--pagedjs-border-bottom: 0mm;
+	--pagedjs-border-left: 0mm;
 	--pagedjs-bleed-top: 0mm;
 	--pagedjs-bleed-right: 0mm;
 	--pagedjs-bleed-bottom: 0mm;
@@ -25513,6 +25680,7 @@
 	--pagedjs-mark-cross-display: none;
 	--pagedjs-mark-crop-display: none;
 	--pagedjs-page-count: 0;
+	--pagedjs-page-counter-increment: 1;
 }
 
 @page {
@@ -25836,8 +26004,11 @@
 	grid-row: page;
 	width: 100%;
 	height: 100%;
-	padding: var(--pagedjs-padding-top) var(--pagedjs-padding-right) var(--pagedjs-padding-bottom) var(--pagedjs-padding-left) 
-
+	padding: var(--pagedjs-padding-top) var(--pagedjs-padding-right) var(--pagedjs-padding-bottom) var(--pagedjs-padding-left);
+	border-top: var(--pagedjs-border-top);
+	border-right: var(--pagedjs-border-right);
+	border-bottom: var(--pagedjs-border-bottom);
+	border-left: var(--pagedjs-border-left);
 }
 
 .pagedjs_pagebox > .pagedjs_area > .pagedjs_page_content {
@@ -25848,19 +26019,17 @@
 }
 
 .pagedjs_page {
-	counter-increment: page;
+	counter-increment: page var(--pagedjs-page-counter-increment);
 	width: var(--pagedjs-width);
 	height: var(--pagedjs-height);
 }
 
 .pagedjs_page.pagedjs_right_page {
-	counter-increment: page;
 	width: var(--pagedjs-width-right);
 	height: var(--pagedjs-height-right);
 }
 
 .pagedjs_page.pagedjs_left_page {
-	counter-increment: page;
 	width: var(--pagedjs-width-left);
 	height: var(--pagedjs-height-left);
 }
@@ -25868,7 +26037,6 @@
 .pagedjs_pages {
 	counter-reset: pages var(--pagedjs-page-count);
 }
-
 
 .pagedjs_pagebox .pagedjs_margin-top-left-corner,
 .pagedjs_pagebox .pagedjs_margin-top-right-corner,
@@ -26426,7 +26594,6 @@ img {
 			this.width = undefined;
 			this.height = undefined;
 			this.orientation = undefined;
-
 			this.marginalia = {};
 		}
 
@@ -26440,18 +26607,25 @@ img {
 				width: undefined,
 				height: undefined,
 				orientation: undefined,
-				margin : {
+				margin: {
 					top: {},
 					right: {},
 					left: {},
 					bottom: {}
 				},
-				padding : {
+				padding: {
 					top: {},
 					right: {},
 					left: {},
 					bottom: {}
 				},
+				border: {
+					top: {},
+					right: {},
+					left: {},
+					bottom: {}
+				},
+				backgroundOrigin: undefined,
 				block: {},
 				marks: undefined
 			};
@@ -26497,7 +26671,7 @@ img {
 				page.marginalia = marginalia;
 			}
 
-			let declarations = this.replaceDeclartations(node);
+			let declarations = this.replaceDeclarations(node);
 
 			if (declarations.size) {
 				page.size = declarations.size;
@@ -26564,6 +26738,10 @@ img {
 				page.padding = declarations.padding;
 			}
 
+			if (declarations.border) {
+				page.border = declarations.border;
+			}
+
 			if (declarations.marks) {
 				page.marks = declarations.marks;
 			}
@@ -26606,15 +26784,15 @@ img {
 				let bleedrecto = undefined;
 
 				if (":left" in this.pages) {
-		      bleedverso = this.pages[":left"].bleed;
-		    }
+					bleedverso = this.pages[":left"].bleed;
+				}
 
-		    if (":right" in this.pages) {
-		      bleedrecto = this.pages[":right"].bleed;
-		    }
+				if (":right" in this.pages) {
+					bleedrecto = this.pages[":right"].bleed;
+				}
 
 				if ((width && height) &&
-						(this.width !== width || this.height !== height)) {
+					(this.width !== width || this.height !== height)) {
 					this.width = width;
 					this.height = height;
 					this.format = format;
@@ -26702,7 +26880,7 @@ img {
 			return parsed;
 		}
 
-		replaceDeclartations(ast) {
+		replaceDeclarations(ast) {
 			let parsed = {};
 
 			lib.walk(ast.block, {
@@ -26737,7 +26915,7 @@ img {
 						parsed.margin[m] = declaration.value.children.first();
 						dList.remove(dItem);
 
-					} else if (prop === "padding"){
+					} else if (prop === "padding") {
 						parsed.padding = this.getPaddings(declaration.value);
 						dList.remove(dItem);
 
@@ -26753,8 +26931,43 @@ img {
 						}
 						parsed.padding[p] = declaration.value.children.first();
 						dList.remove(dItem);
+					}
 
-					} else if (prop === "size") {
+					else if (prop === "border") {
+						if (!parsed.border) {
+							parsed.border = {
+								top: {},
+								right: {},
+								left: {},
+								bottom: {}
+							};
+						}
+						parsed.border.top = lib.generate(declaration.value);
+						parsed.border.right = lib.generate(declaration.value);
+						parsed.border.left = lib.generate(declaration.value);
+						parsed.border.bottom = lib.generate(declaration.value);
+
+						dList.remove(dItem);
+
+					}
+
+					else if (prop.indexOf("border-") === 0) {
+						if (!parsed.border) {
+							parsed.border = {
+								top: {},
+								right: {},
+								left: {},
+								bottom: {}
+							};
+						}
+						let p = prop.substring("border-".length);
+
+						parsed.border[p] = lib.generate(declaration.value);
+						dList.remove(dItem);
+
+					}
+
+					else if (prop === "size") {
 						parsed.size = this.getSize(declaration);
 						dList.remove(dItem);
 					} else if (prop === "bleed") {
@@ -26780,7 +26993,7 @@ img {
 											unit: "px"
 										});
 										break;
-										// ignore
+									// ignore
 								}
 
 							}
@@ -26793,8 +27006,8 @@ img {
 			});
 
 			return parsed;
-		}
 
+		}
 		getSize(declaration) {
 			let width, height, orientation, format;
 
@@ -26802,7 +27015,7 @@ img {
 			lib.walk(declaration, {
 				visit: "Dimension",
 				enter: (node, item, list) => {
-					let {value, unit} = node;
+					let { value, unit } = node;
 					if (typeof width === "undefined") {
 						width = { value, unit };
 					} else if (typeof height === "undefined") {
@@ -26860,9 +27073,16 @@ img {
 			};
 
 			lib.walk(declaration, {
-				visit: "Dimension",
-				enter: (node, item, list) => {
-					margins.push(node);
+				enter: (node) => {
+					switch (node.type) {
+						case "Dimension": // margin: 1in 2in, margin: 20px, etc...
+							margins.push(node);
+							break;
+						case "Number": // margin: 0
+							margins.push({value: node.value, unit: "px"});
+							break;
+						// ignore
+					}
 				}
 			});
 
@@ -26900,9 +27120,16 @@ img {
 			};
 
 			lib.walk(declaration, {
-				visit: "Dimension",
-				enter: (node, item, list) => {
-					paddings.push(node);
+				enter: (node) => {
+					switch (node.type) {
+						case "Dimension": // padding: 1in 2in, padding: 20px, etc...
+							paddings.push(node);
+							break;
+						case "Number": // padding: 0
+							paddings.push({value: node.value, unit: "px"});
+							break;
+						// ignore
+					}
 				}
 			});
 			if (paddings.length === 1) {
@@ -26930,6 +27157,42 @@ img {
 			}
 			return padding;
 		}
+
+		// get values for the border on the @page to pass them to the element with the .pagedjs_area class
+		getBorders(declaration) {
+			let border = {
+				top: {},
+				right: {},
+				left: {},
+				bottom: {}
+			};
+
+			if (declaration.prop == "border") {
+				border.top = lib.generate(declaration.value);
+				border.right = lib.generate(declaration.value);
+				border.bottom = lib.generate(declaration.value);
+				border.left = lib.generate(declaration.value);
+
+			}
+			else if (declaration.prop == "border-top") {
+				border.top = lib.generate(declaration.value);
+			}
+			else if (declaration.prop == "border-right") {
+				border.right = lib.generate(declaration.value);
+
+			}
+			else if (declaration.prop == "border-bottom") {
+				border.bottom = lib.generate(declaration.value);
+
+			}
+			else if (declaration.prop == "border-left") {
+				border.left = lib.generate(declaration.value);
+			}
+
+			return border;
+		}
+
+
 		addPageClasses(pages, ast, sheet) {
 			// First add * page
 			if ("*" in pages && !pages["*"].added) {
@@ -26988,11 +27251,14 @@ img {
 				loc: 0,
 				children: children
 			};
+
+
 			let rule = this.createRule(selectors, block);
 
 			this.addMarginVars(page.margin, children, children.first());
-
 			this.addPaddingVars(page.padding, children, children.first());
+			this.addBorderVars(page.border, children, children.first());
+
 
 			if (page.width) {
 				this.addDimensions(page.width, page.height, page.orientation, children, children.first());
@@ -27002,7 +27268,6 @@ img {
 				this.addMarginaliaStyles(page, ruleList, rule, sheet);
 				this.addMarginaliaContent(page, ruleList, rule, sheet);
 			}
-
 			return rule;
 		}
 
@@ -27020,6 +27285,7 @@ img {
 						}
 					});
 					list.append(mVar, item);
+
 				}
 			}
 		}
@@ -27027,6 +27293,7 @@ img {
 		addPaddingVars(padding, list, item) {
 			// variables for padding
 			for (let p in padding) {
+
 				if (typeof padding[p].value !== "undefined") {
 					let value = padding[p].value + (padding[p].unit || "");
 					let pVar = list.createItem({
@@ -27040,6 +27307,25 @@ img {
 
 					list.append(pVar, item);
 				}
+
+			}
+		}
+
+		addBorderVars(border, list, item) {
+			// variables for borders
+			for (let b in border) {
+				if (typeof border[b] !== "undefined") {
+					let value = border[b];
+					let bVar = list.createItem({
+						type: "Declaration",
+						property: "--pagedjs-border-" + b,
+						value: {
+							type: "Raw",
+							value: value
+						}
+					});
+					list.append(bVar, item);
+				}	
 
 			}
 		}
@@ -27074,7 +27360,7 @@ img {
 				let block = lib.clone(page.marginalia[loc]);
 				let hasContent = false;
 
-				if(block.children.isEmpty()) {
+				if (block.children.isEmpty()) {
 					continue;
 				}
 
@@ -27108,11 +27394,11 @@ img {
 
 						if (node.property === "width" &&
 							(loc === "top-left" ||
-							 loc === "top-center" ||
-							 loc === "top-right" ||
-							 loc === "bottom-left" ||
-							 loc === "bottom-center" ||
-							 loc === "bottom-right")) {
+								loc === "top-center" ||
+								loc === "top-right" ||
+								loc === "bottom-left" ||
+								loc === "bottom-center" ||
+								loc === "bottom-right")) {
 							let c = lib.clone(node);
 							c.property = "max-width";
 							list.appendData(c);
@@ -27120,11 +27406,11 @@ img {
 
 						if (node.property === "height" &&
 							(loc === "left-top" ||
-							 loc === "left-middle" ||
-							 loc === "left-bottom" ||
-							 loc === "right-top" ||
-							 loc === "right-middle" ||
-							 loc === "right-bottom")) {
+								loc === "left-middle" ||
+								loc === "left-bottom" ||
+								loc === "right-top" ||
+								loc === "right-middle" ||
+								loc === "right-bottom")) {
 							let c = lib.clone(node);
 							c.property = "max-height";
 							list.appendData(c);
@@ -27170,7 +27456,7 @@ img {
 					}
 				});
 
-				if(content.children.isEmpty()) {
+				if (content.children.isEmpty()) {
 					continue;
 				}
 
@@ -27282,7 +27568,7 @@ img {
 					bleedLeftRecto = this.createVariable("--pagedjs-bleed-right-left", CSSValueToString(bleedrecto.left));
 
 					widthStringRight = `calc( ${CSSValueToString(width)} + ${CSSValueToString(bleedrecto.left)} + ${CSSValueToString(bleedrecto.right)} )`;
-				  heightStringRight = `calc( ${CSSValueToString(height)} + ${CSSValueToString(bleedrecto.top)} + ${CSSValueToString(bleedrecto.bottom)} )`;
+					heightStringRight = `calc( ${CSSValueToString(height)} + ${CSSValueToString(bleedrecto.top)} + ${CSSValueToString(bleedrecto.bottom)} )`;
 				}
 				if (bleedverso) {
 					bleedTopVerso = this.createVariable("--pagedjs-bleed-left-top", CSSValueToString(bleedverso.top));
@@ -27291,18 +27577,18 @@ img {
 					bleedLeftVerso = this.createVariable("--pagedjs-bleed-left-left", CSSValueToString(bleedverso.left));
 
 					widthStringLeft = `calc( ${CSSValueToString(width)} + ${CSSValueToString(bleedverso.left)} + ${CSSValueToString(bleedverso.right)} )`;
-				  heightStringLeft = `calc( ${CSSValueToString(height)} + ${CSSValueToString(bleedverso.top)} + ${CSSValueToString(bleedverso.bottom)} )`;
+					heightStringLeft = `calc( ${CSSValueToString(height)} + ${CSSValueToString(bleedverso.top)} + ${CSSValueToString(bleedverso.bottom)} )`;
 				}
 
 				let pageWidthVar = this.createVariable("--pagedjs-width", CSSValueToString(width));
 				let pageHeightVar = this.createVariable("--pagedjs-height", CSSValueToString(height));
 
 				rules.push(
-					bleedTop, 
-					bleedRight, 
-					bleedBottom, 
-					bleedLeft, 
-					bleedTopRecto, 
+					bleedTop,
+					bleedRight,
+					bleedBottom,
+					bleedLeft,
+					bleedTopRecto,
 					bleedRightRecto,
 					bleedBottomRecto,
 					bleedLeftRecto,
@@ -27310,7 +27596,7 @@ img {
 					bleedRightVerso,
 					bleedBottomVerso,
 					bleedLeftVerso,
-					pageWidthVar, 
+					pageWidthVar,
 					pageHeightVar
 				);
 			}
@@ -27957,6 +28243,7 @@ img {
 			if (start) {
 				this.addPageAttributes(page, start, chunker.pages);
 			}
+			// page.element.querySelector('.paged_area').style.color = red;
 		}
 
 		afterPageLayout(fragment, page, breakToken, chunker) {
@@ -27995,14 +28282,14 @@ img {
 				if (centerContent) {
 					centerWidth = window.getComputedStyle(center)["max-width"];
 
-					if(centerWidth === "none" || centerWidth === "auto") {
-						if(!leftContent && !rightContent){
+					if (centerWidth === "none" || centerWidth === "auto") {
+						if (!leftContent && !rightContent) {
 							marginGroup.style["grid-template-columns"] = "0 1fr 0";
-						}else if(leftContent){
-							if(!rightContent){
-								if(leftWidth !== "none" && leftWidth !== "auto"){
+						} else if (leftContent) {
+							if (!rightContent) {
+								if (leftWidth !== "none" && leftWidth !== "auto") {
 									marginGroup.style["grid-template-columns"] = leftWidth + " 1fr " + leftWidth;
-								}else {
+								} else {
 									marginGroup.style["grid-template-columns"] = "auto auto 1fr";
 									left.style["white-space"] = "nowrap";
 									center.style["white-space"] = "nowrap";
@@ -28014,17 +28301,17 @@ img {
 									left.style["white-space"] = "normal";
 									center.style["white-space"] = "normal";
 								}
-							}else {
-								if(leftWidth !== "none" && leftWidth !== "auto"){
-									if(rightWidth !== "none" && rightWidth !== "auto"){
+							} else {
+								if (leftWidth !== "none" && leftWidth !== "auto") {
+									if (rightWidth !== "none" && rightWidth !== "auto") {
 										marginGroup.style["grid-template-columns"] = leftWidth + " 1fr " + rightWidth;
-									}else {
+									} else {
 										marginGroup.style["grid-template-columns"] = leftWidth + " 1fr " + leftWidth;
 									}
-								}else {
-									if(rightWidth !== "none" && rightWidth !== "auto"){
+								} else {
+									if (rightWidth !== "none" && rightWidth !== "auto") {
 										marginGroup.style["grid-template-columns"] = rightWidth + " 1fr " + rightWidth;
-									}else {
+									} else {
 										marginGroup.style["grid-template-columns"] = "auto auto 1fr";
 										left.style["white-space"] = "nowrap";
 										center.style["white-space"] = "nowrap";
@@ -28034,9 +28321,9 @@ img {
 										let rightOuterWidth = right.offsetWidth;
 										let outerwidths = leftOuterWidth + centerOuterWidth + rightOuterWidth;
 										let newcenterWidth = centerOuterWidth * 100 / outerwidths;
-										if(newcenterWidth > 40){
+										if (newcenterWidth > 40) {
 											marginGroup.style["grid-template-columns"] = "minmax(16.66%, 1fr) minmax(33%, " + newcenterWidth + "%) minmax(16.66%, 1fr)";
-										}else {
+										} else {
 											marginGroup.style["grid-template-columns"] = "repeat(3, 1fr)";
 										}
 										left.style["white-space"] = "normal";
@@ -28045,10 +28332,10 @@ img {
 									}
 								}
 							}
-						}else {
-							if(rightWidth !== "none" && rightWidth !== "auto"){
+						} else {
+							if (rightWidth !== "none" && rightWidth !== "auto") {
 								marginGroup.style["grid-template-columns"] = rightWidth + " 1fr " + rightWidth;
-							}else {
+							} else {
 								marginGroup.style["grid-template-columns"] = "auto auto 1fr";
 								right.style["white-space"] = "nowrap";
 								center.style["white-space"] = "nowrap";
@@ -28061,32 +28348,32 @@ img {
 								center.style["white-space"] = "normal";
 							}
 						}
-					}else if(centerWidth !== "none" && centerWidth !== "auto"){
-						if(leftContent && leftWidth !== "none" && leftWidth !== "auto"){
+					} else if (centerWidth !== "none" && centerWidth !== "auto") {
+						if (leftContent && leftWidth !== "none" && leftWidth !== "auto") {
 							marginGroup.style["grid-template-columns"] = leftWidth + " " + centerWidth + " 1fr";
-						}else if(rightContent && rightWidth !== "none" && rightWidth !== "auto"){
+						} else if (rightContent && rightWidth !== "none" && rightWidth !== "auto") {
 							marginGroup.style["grid-template-columns"] = "1fr " + centerWidth + " " + rightWidth;
-						}else {
+						} else {
 							marginGroup.style["grid-template-columns"] = "1fr " + centerWidth + " 1fr";
 						}
 
 					}
 
-				}else {
-					if(leftContent){
-						if(!rightContent){
+				} else {
+					if (leftContent) {
+						if (!rightContent) {
 							marginGroup.style["grid-template-columns"] = "1fr 0 0";
-						}else {
-							if(leftWidth !== "none" && leftWidth !== "auto"){
-								if(rightWidth !== "none" && rightWidth !== "auto"){
+						} else {
+							if (leftWidth !== "none" && leftWidth !== "auto") {
+								if (rightWidth !== "none" && rightWidth !== "auto") {
 									marginGroup.style["grid-template-columns"] = leftWidth + " 1fr " + rightWidth;
-								}else {
+								} else {
 									marginGroup.style["grid-template-columns"] = leftWidth + " 0 1fr";
 								}
-							}else {
-								if(rightWidth !== "none" && rightWidth !== "auto"){
+							} else {
+								if (rightWidth !== "none" && rightWidth !== "auto") {
 									marginGroup.style["grid-template-columns"] = "1fr 0 " + rightWidth;
-								}else {
+								} else {
 									marginGroup.style["grid-template-columns"] = "auto 1fr auto";
 									left.style["white-space"] = "nowrap";
 									right.style["white-space"] = "nowrap";
@@ -28094,16 +28381,16 @@ img {
 									let rightOuterWidth = right.offsetWidth;
 									let outerwidths = leftOuterWidth + rightOuterWidth;
 									let newLeftWidth = leftOuterWidth * 100 / outerwidths;
-									marginGroup.style["grid-template-columns"] = "minmax(16.66%, " + newLeftWidth  + "%) 0 1fr";
+									marginGroup.style["grid-template-columns"] = "minmax(16.66%, " + newLeftWidth + "%) 0 1fr";
 									left.style["white-space"] = "normal";
 									right.style["white-space"] = "normal";
 								}
 							}
 						}
-					}else {
-						if(rightWidth !== "none" && rightWidth !== "auto"){
+					} else {
+						if (rightWidth !== "none" && rightWidth !== "auto") {
 							marginGroup.style["grid-template-columns"] = "1fr 0 " + rightWidth;
-						}else {
+						} else {
 							marginGroup.style["grid-template-columns"] = "0 0 1fr";
 						}
 					}
@@ -28131,66 +28418,66 @@ img {
 				if (middle) {
 					middleHeight = window.getComputedStyle(middle)["max-height"];
 
-					if(middleHeight === "none" || middleHeight === "auto") {
-						if(!topContent && !bottomContent){
+					if (middleHeight === "none" || middleHeight === "auto") {
+						if (!topContent && !bottomContent) {
 							marginGroup.style["grid-template-rows"] = "0 1fr 0";
-						}else if(topContent){
-							if(!bottomContent){
-								if(topHeight !== "none" && topHeight !== "auto"){
+						} else if (topContent) {
+							if (!bottomContent) {
+								if (topHeight !== "none" && topHeight !== "auto") {
 									marginGroup.style["grid-template-rows"] = topHeight + " calc(100% - " + topHeight + "*2) " + topHeight;
 								}
-							}else {
-								if(topHeight !== "none" && topHeight !== "auto"){
-									if(bottomHeight !== "none" && bottomHeight !== "auto"){
+							} else {
+								if (topHeight !== "none" && topHeight !== "auto") {
+									if (bottomHeight !== "none" && bottomHeight !== "auto") {
 										marginGroup.style["grid-template-rows"] = topHeight + " calc(100% - " + topHeight + " - " + bottomHeight + ") " + bottomHeight;
-									}else {
+									} else {
 										marginGroup.style["grid-template-rows"] = topHeight + " calc(100% - " + topHeight + "*2) " + topHeight;
 									}
-								}else {
-									if(bottomHeight !== "none" && bottomHeight !== "auto"){
+								} else {
+									if (bottomHeight !== "none" && bottomHeight !== "auto") {
 										marginGroup.style["grid-template-rows"] = bottomHeight + " calc(100% - " + bottomHeight + "*2) " + bottomHeight;
 									}
 								}
 							}
-						}else {
-							if(bottomHeight !== "none" && bottomHeight !== "auto"){
+						} else {
+							if (bottomHeight !== "none" && bottomHeight !== "auto") {
 								marginGroup.style["grid-template-rows"] = bottomHeight + " calc(100% - " + bottomHeight + "*2) " + bottomHeight;
 							}
 						}
-					}else {
-						if(topContent && topHeight !== "none" && topHeight !== "auto"){
-							marginGroup.style["grid-template-rows"] = topHeight +" " + middleHeight + " calc(100% - (" + topHeight + " + " + middleHeight + "))";
-						}else if(bottomContent && bottomHeight !== "none" && bottomHeight !== "auto"){
+					} else {
+						if (topContent && topHeight !== "none" && topHeight !== "auto") {
+							marginGroup.style["grid-template-rows"] = topHeight + " " + middleHeight + " calc(100% - (" + topHeight + " + " + middleHeight + "))";
+						} else if (bottomContent && bottomHeight !== "none" && bottomHeight !== "auto") {
 							marginGroup.style["grid-template-rows"] = "1fr " + middleHeight + " " + bottomHeight;
-						}else {
+						} else {
 							marginGroup.style["grid-template-rows"] = "calc((100% - " + middleHeight + ")/2) " + middleHeight + " calc((100% - " + middleHeight + ")/2)";
 						}
 
 					}
 
-				}else {
-					if(topContent){
-						if(!bottomContent){
+				} else {
+					if (topContent) {
+						if (!bottomContent) {
 							marginGroup.style["grid-template-rows"] = "1fr 0 0";
-						}else {
-							if(topHeight !== "none" && topHeight !== "auto"){
-								if(bottomHeight !== "none" && bottomHeight !== "auto"){
+						} else {
+							if (topHeight !== "none" && topHeight !== "auto") {
+								if (bottomHeight !== "none" && bottomHeight !== "auto") {
 									marginGroup.style["grid-template-rows"] = topHeight + " 1fr " + bottomHeight;
-								}else {
+								} else {
 									marginGroup.style["grid-template-rows"] = topHeight + " 0 1fr";
 								}
-							}else {
-								if(bottomHeight !== "none" && bottomHeight !== "auto"){
+							} else {
+								if (bottomHeight !== "none" && bottomHeight !== "auto") {
 									marginGroup.style["grid-template-rows"] = "1fr 0 " + bottomHeight;
-								}else {
+								} else {
 									marginGroup.style["grid-template-rows"] = "1fr 0 1fr";
 								}
 							}
 						}
-					}else {
-						if(bottomHeight !== "none" && bottomHeight !== "auto"){
+					} else {
+						if (bottomHeight !== "none" && bottomHeight !== "auto") {
 							marginGroup.style["grid-template-rows"] = "1fr 0 " + bottomHeight;
-						}else {
+						} else {
 							marginGroup.style["grid-template-rows"] = "0 0 1fr";
 						}
 					}
@@ -28310,7 +28597,7 @@ img {
 			};
 		}
 
-		createCalculatedDimension(property, items, important, operator="+") {
+		createCalculatedDimension(property, items, important, operator = "+") {
 			let children = new lib.List();
 			let calculations = new lib.List();
 
@@ -28500,17 +28787,25 @@ img {
 					for (let prop of breaks[b]) {
 
 						if (prop.property === "break-after") {
-							let nodeAfter = elementAfter(elements[i]);
+							let nodeAfter = displayedElementAfter(elements[i], parsed);
 
 							elements[i].setAttribute("data-break-after", prop.value);
 
 							if (nodeAfter) {
 								nodeAfter.setAttribute("data-previous-break-after", prop.value);
 							}
+						} else if (prop.property === "break-before") {
+							let nodeBefore = displayedElementBefore(elements[i], parsed);
+
+							elements[i].setAttribute("data-break-before", prop.value);
+
+							if (nodeBefore) {
+								nodeBefore.setAttribute("data-next-break-before", prop.value);
+							}
 						} else if (prop.property === "page") {
 							elements[i].setAttribute("data-page", prop.value);
 
-							let nodeAfter = elementAfter(elements[i]);
+							let nodeAfter = displayedElementAfter(elements[i], parsed);
 
 							if (nodeAfter) {
 								nodeAfter.setAttribute("data-after-page", prop.value);
@@ -28669,9 +28964,6 @@ img {
 
 			this.styleSheet = polisher.styleSheet;
 			this.counters = {};
-			this.counterBodyReset = {};
-			this.counterBodyInc = {};
-
 		}
 
 		onDeclaration(declaration, dItem, dList, rule) {
@@ -28679,26 +28971,15 @@ img {
 
 			if (property === "counter-increment") {
 				let inc = this.handleIncrement(declaration, rule);
-				if(reset.selector == "body") {
-					this.counterBodyInc= inc;
-				}
 				if (inc) {
 					dList.remove(dItem);
 				}
 			} else if (property === "counter-reset") {
 				let reset = this.handleReset(declaration, rule);
-				if(reset.selector == "body") {
-					this.counterBodyReset  += reset;
-				}
-				console.log(this.counterBody);
-
-			
 				if (reset) {
 					dList.remove(dItem);
 				}
-				
 			}
-			console.log(this.counterBody);
 		}
 
 		onContent(funcNode, fItem, fList, declaration, rule) {
@@ -28725,10 +29006,9 @@ img {
 		}
 
 		handleIncrement(declaration, rule) {
-			let identifier = declaration.value.children.first();
-			let number = declaration.value.children.getSize() > 1
-								&& declaration.value.children.last().value;
-			let name = identifier && identifier.name;
+			const identifier = declaration.value.children.first();
+			const number = declaration.value.children.getSize() > 1 ? declaration.value.children.last().value : 1;
+			const name = identifier && identifier.name;
 
 			if (name === "page" || name.indexOf("target-counter-") === 0) {
 				return;
@@ -28745,7 +29025,7 @@ img {
 
 			return counter.increments[selector] = {
 				selector: selector,
-				number: number || 1
+				number
 			};
 		}
 
@@ -28765,8 +29045,7 @@ img {
 
 			return counter.resets[selector] = {
 				selector: selector,
-				number: number || 0,
-				identifier
+				number: number || 0
 			};
 		}
 
@@ -28776,17 +29055,21 @@ img {
 				counter = this.counters[c];
 				this.processCounterIncrements(parsed, counter);
 				this.processCounterResets(parsed, counter);
-				this.addCounterValues(parsed, counter);
+				if (c !== "page") {
+					this.addCounterValues(parsed, counter);
+				}
 			}
 		}
 
 		scopeCounters(counters) {
 			let countersArray = [];
 			for (let c in counters) {
-				countersArray.push(`${counters[c].name} 0`);
+				if(c !== "page") {
+					countersArray.push(`${counters[c].name} 0`);
+				}
 			}
 			// Add to pages to allow cross page scope
-			this.insertRule(`.pagedjs_pages { counter-reset: ${countersArray.join(" ")}}`);
+			this.insertRule(`.pagedjs_pages { counter-reset: ${countersArray.join(" ")} page 0 pages var(--pagedjs-page-count)}`);
 		}
 
 		insertRule(rule) {
@@ -28800,7 +29083,7 @@ img {
 				// Find elements for increments
 				let incrementElements = parsed.querySelectorAll(increment.selector);
 				// Add counter data
-				for (var i = 0; i < incrementElements.length; i++) {
+				for (let i = 0; i < incrementElements.length; i++) {
 					incrementElements[i].setAttribute("data-counter-"+ counter.name +"-increment", increment.number);
 					incrementElements[i].setAttribute("data-counter-increment", counter.name);
 				}
@@ -28822,8 +29105,8 @@ img {
 		}
 
 		addCounterValues(parsed, counter) {
-			let counterName = counter.name;
-			let elements = parsed.querySelectorAll("[data-counter-"+ counterName +"-reset], [data-counter-"+ counterName +"-increment]");
+			const counterName = counter.name;
+			const elements = parsed.querySelectorAll("[data-counter-"+ counterName +"-reset], [data-counter-"+ counterName +"-increment]");
 
 			let count = 0;
 			let element;
@@ -28831,7 +29114,7 @@ img {
 			let resetValue, incrementValue, resetDelta;
 			let incrementArray;
 
-			for (var i = 0; i < elements.length; i++) {
+			for (let i = 0; i < elements.length; i++) {
 				element = elements[i];
 				resetDelta = 0;
 				incrementArray = [];
@@ -28869,16 +29152,16 @@ img {
 		incrementCounterForElement(element, incrementArray) {
 			if (!element || !incrementArray || incrementArray.length === 0) return;
 
-			let ref = element.dataset.ref;
-			let prevIncrements = Array.from(this.styleSheet.cssRules).filter((rule) => {
+			const ref = element.dataset.ref;
+			const prevIncrements = Array.from(this.styleSheet.cssRules).filter((rule) => {
 				return rule.selectorText === `[data-ref="${element.dataset.ref}"]:not([data-split-from])`
 							 && rule.style[0] === "counter-increment";
 			});
 
-			let increments = [];
+			const increments = [];
 			for (let styleRule of prevIncrements) {
 				let values = styleRule.style.counterIncrement.split(" ");
-				for (var i = 0; i < values.length; i+=2) {
+				for (let i = 0; i < values.length; i+=2) {
 					increments.push(values[i] + " " + values[i+1]);
 				}
 			}
@@ -28887,16 +29170,14 @@ img {
 
 			this.insertRule(`[data-ref="${ref}"]:not([data-split-from]) { counter-increment: ${increments.join(" ")} }`);
 		}
-		
+
 		afterPageLayout(pageElement, page) {
 			let pgreset = pageElement.querySelectorAll("[data-counter-page-reset]");
 			pgreset.forEach((reset) => {
-				let value = reset.datasetCounterPageReset;
-				this.styleSheet.insertRule(`[data-page-number="${pageElement.dataset.pageNumber}"] { counter-reset: page ${value} }`, this.styleSheet.cssRules.length);
+				let value = reset.dataset.counterPageReset;
+				this.styleSheet.insertRule(`[data-page-number="${pageElement.dataset.pageNumber}"] { counter-increment: none; counter-reset: page ${value}; }`, this.styleSheet.cssRules.length);
 			});
 		}
-
-		
 
 	}
 
@@ -28925,9 +29206,16 @@ img {
 		}
 
 		addDataNumbers(list) {
+			let start = 1;
+			if (list.hasAttribute("start")) {
+				start = parseInt(list.getAttribute("start"), 10);
+				if (isNaN(start)) {
+					start = 1;
+				}
+			}
 			let items = list.children;
 			for (var i = 0; i < items.length; i++) {
-				items[i].setAttribute("data-item-num", i + 1);
+				items[i].setAttribute("data-item-num", i + start);
 			}
 		}
 
@@ -28967,6 +29255,176 @@ img {
 		}
 	}
 
+	class PageCounterIncrement extends Handler {
+		constructor(chunker, polisher, caller) {
+			super(chunker, polisher, caller);
+
+			this.styleSheet = polisher.styleSheet;
+			this.pageCounter = {
+				name: "page",
+				increments: {},
+				resets: {}
+			};
+		}
+
+		onDeclaration(declaration, dItem, dList, rule) {
+			const property = declaration.property;
+
+			if (property === "counter-increment") {
+				let inc = this.handleIncrement(declaration, rule);
+				if (inc) {
+					dList.remove(dItem);
+				}
+			}
+		}
+
+		afterParsed(_) {
+			for (const inc in this.pageCounter.increments) {
+				const increment = this.pageCounter.increments[inc];
+				this.insertRule(`${increment.selector} { --pagedjs-page-counter-increment: ${increment.number} }`);
+			}
+		}
+
+		handleIncrement(declaration, rule) {
+			const identifier = declaration.value.children.first();
+			const number = declaration.value.children.getSize() > 1 ? declaration.value.children.last().value : 1;
+			const name = identifier && identifier.name;
+
+			if (name.indexOf("target-counter-") === 0) {
+				return;
+			}
+			// A counter named page is automatically created and incremented by 1 on every page of the document,
+			// unless the counter-increment property in the page context explicitly specifies a different increment for the page counter.
+			// https://www.w3.org/TR/css-page-3/#page-based-counters
+			if (name !== "page") {
+				return;
+			}
+			// the counter-increment property is not defined on the page context (i.e. @page rule), ignoring...
+			if (rule.ruleNode.name === "page" && rule.ruleNode.type === "Atrule") {
+				return;
+			}
+			const selector = lib.generate(rule.ruleNode.prelude);
+			return this.pageCounter.increments[selector] = {
+				selector: selector,
+				number
+			};
+		}
+
+		insertRule(rule) {
+			this.styleSheet.insertRule(rule, this.styleSheet.cssRules.length);
+		}
+	}
+
+	class NthOfType extends Handler {
+		constructor(chunker, polisher, caller) {
+			super(chunker, polisher, caller);
+
+			this.styleSheet = polisher.styleSheet;
+			this.selectors = {};
+		}
+
+		onRule(ruleNode, ruleItem, rulelist) {
+			let selector = lib.generate(ruleNode.prelude);
+			if (selector.match(/:(first|last|nth)-of-type/)) {
+				
+				let declarations = lib.generate(ruleNode.block);
+				declarations = declarations.replace(/[{}]/g,"");
+
+				let uuid = "nth-of-type-" + UUID();
+
+				selector.split(",").forEach((s) => {
+					if (!this.selectors[s]) {
+						this.selectors[s] = [uuid, declarations];
+					} else {
+						this.selectors[s][1] = `${this.selectors[s][1]};${declarations}` ;
+					}
+				});
+
+				rulelist.remove(ruleItem);
+			}
+		}
+
+		afterParsed(parsed) {
+			this.processSelectors(parsed, this.selectors);
+		}
+
+		processSelectors(parsed, selectors) {
+			// add the new attributes to matching elements
+			for (let s in selectors) {
+				let elements = parsed.querySelectorAll(s);
+
+				for (var i = 0; i < elements.length; i++) {
+					let dataNthOfType = elements[i].getAttribute("data-nth-of-type");
+
+					if (dataNthOfType && dataNthOfType != "") {
+						dataNthOfType = `${dataNthOfType},${selectors[s][0]}`;
+						elements[i].setAttribute("data-nth-of-type", dataNthOfType);
+					} else {
+						elements[i].setAttribute("data-nth-of-type", selectors[s][0]);
+					}
+				}
+
+				let rule = `*[data-nth-of-type*='${selectors[s][0]}'] { ${selectors[s][1]}; }`;
+				this.styleSheet.insertRule(rule, this.styleSheet.cssRules.length);
+			}
+		}
+	}
+
+	class Following extends Handler {
+		constructor(chunker, polisher, caller) {
+			super(chunker, polisher, caller);
+
+			this.styleSheet = polisher.styleSheet;
+			this.selectors = {};
+		}
+
+		onRule(ruleNode, ruleItem, rulelist) {
+			let selector = lib.generate(ruleNode.prelude);
+			if (selector.match(/\+/)) {
+				
+				let declarations = lib.generate(ruleNode.block);
+				declarations = declarations.replace(/[{}]/g,"");
+
+				let uuid = "following-" + UUID();
+
+				selector.split(",").forEach((s) => {
+					if (!this.selectors[s]) {
+						this.selectors[s] = [uuid, declarations];
+					} else {
+						this.selectors[s][1] = `${this.selectors[s][1]};${declarations}` ;
+					}
+				});
+
+				rulelist.remove(ruleItem);
+			}
+		}
+
+		afterParsed(parsed) {
+			this.processSelectors(parsed, this.selectors);
+		}
+
+		processSelectors(parsed, selectors) {
+			// add the new attributes to matching elements
+			for (let s in selectors) {
+				let elements = parsed.querySelectorAll(s);
+
+				for (var i = 0; i < elements.length; i++) {
+					let dataFollowing = elements[i].getAttribute("data-following");
+
+					if (dataFollowing && dataFollowing != "") {
+						dataFollowing = `${dataFollowing},${selectors[s][0]}`;
+						elements[i].setAttribute("data-following", dataFollowing);
+					} else {
+						elements[i].setAttribute("data-following", selectors[s][0]);
+					}
+				}
+
+				let rule = `*[data-following*='${selectors[s][0]}'] { ${selectors[s][1]}; }`;
+				this.styleSheet.insertRule(rule, this.styleSheet.cssRules.length);
+			}
+		}
+	}
+
 	var pagedMediaHandlers = [
 		AtPage,
 		Breaks,
@@ -28974,7 +29432,10 @@ img {
 		Splits,
 		Counters,
 		Lists,
-		PositionFixed
+		PositionFixed,
+		PageCounterIncrement,
+		NthOfType,
+		Following
 	];
 
 	class RunningHeaders extends Handler {
@@ -29210,6 +29671,13 @@ img {
 			});
 	}
 
+	function cleanSelector(el) {
+		if(el == null) return;
+		return el
+			.replace(new RegExp("::footnote-call", "g"), "")
+			.replace(new RegExp("::footnote-marker", "g"), "");
+	}
+
 	class StringSets extends Handler {
 		constructor(chunker, polisher, caller) {
 			super(chunker, polisher, caller);
@@ -29277,9 +29745,9 @@ img {
 		
 				// let cssVar = previousPageLastString;
 				// Get the last found string for the current identifier
-				let cssVar = ( name in this.pageLastString ) ? this.pageLastString[name] : '';
+				let cssVar = ( name in this.pageLastString ) ? this.pageLastString[name] : "";
 		
-					selected.forEach((sel) => {
+				selected.forEach((sel) => {
 					// push each content into the array to define in the variable the first and the last element of the page.
 		
 		
@@ -29385,7 +29853,7 @@ img {
 						variable: variable
 					};
 				});
-				
+
 				// Replace with counter
 				funcNode.name = "counter";
 				funcNode.children = new lib.List();
@@ -29407,7 +29875,7 @@ img {
 				let target = this.counterTargets[name];
 				let split = target.selector.split("::");
 				let query = split[0];
-				
+
 				let queried = chunker.pagesArea.querySelectorAll(query + ":not([data-" + target.variable + "])");
 
 				queried.forEach((selected, index) => {
@@ -29429,16 +29897,19 @@ img {
 						if (target.counter === "page") {
 							let pages = chunker.pagesArea.querySelectorAll(".pagedjs_page");
 							let pg = 0;
-							for (var i = 0; i < pages.length; i++) {
+							for (let i = 0; i < pages.length; i++) {
 								let styles = window.getComputedStyle(pages[i]);
 								let reset = styles["counter-reset"].replace("page", "").trim();
+								let increment = styles["counter-increment"].replace("page", "").trim();
 
 								if (reset !== "none") {
 									pg = parseInt(reset);
 								}
-								pg += 1;
+								if (increment !== "none") {
+									pg += parseInt(increment);
+								}
 
-								if (pages[i].contains( element )){
+								if (pages[i].contains(element)) {
 									break;
 								}
 							}
@@ -29584,6 +30055,332 @@ img {
 		StringSets,
 		TargetCounters,
 		TargetText
+	];
+
+	class WhiteSpaceFilter extends Handler {
+		constructor(chunker, polisher, caller) {
+			super(chunker, polisher, caller);
+		}
+
+		filter(content) {
+
+			filterTree(content, (node) => {
+				return this.filterEmpty(node);
+			}, NodeFilter.SHOW_TEXT);
+
+		}
+
+		filterEmpty(node) {
+			if (node.textContent.length > 1 && isIgnorable(node)) {
+
+				// Do not touch the content if text is pre-formatted
+				let parent = node.parentNode;
+				let pre = isElement(parent) && parent.closest("pre");
+				if (pre) {
+					return NodeFilter.FILTER_REJECT;
+				}
+
+				const previousSibling = previousSignificantNode(node);
+				const nextSibling = nextSignificantNode(node);
+
+				if (nextSibling === null && previousSibling === null) {
+					// we should not remove a Node that does not have any siblings.
+					node.textContent = " ";
+					return NodeFilter.FILTER_REJECT;
+				}
+				if (nextSibling === null) {
+					// we can safely remove this node
+					return NodeFilter.FILTER_ACCEPT;
+				}
+				if (previousSibling === null) {
+					// we can safely remove this node
+					return NodeFilter.FILTER_ACCEPT;
+				}
+
+				// replace the content with a single space
+				node.textContent = " ";
+
+				// TODO: we also need to preserve sequences of white spaces when the parent has "white-space" rule:
+				// pre
+				// Sequences of white space are preserved. Lines are only broken at newline characters in the source and at <br> elements.
+				//
+				// pre-wrap
+				// Sequences of white space are preserved. Lines are broken at newline characters, at <br>, and as necessary to fill line boxes.
+				//
+				// pre-line
+				// Sequences of white space are collapsed. Lines are broken at newline characters, at <br>, and as necessary to fill line boxes.
+				//
+				// break-spaces
+				// The behavior is identical to that of pre-wrap, except that:
+				// - Any sequence of preserved white space always takes up space, including at the end of the line.
+				// - A line breaking opportunity exists after every preserved white space character, including between white space characters.
+				// - Such preserved spaces take up space and do not hang, and thus affect the box’s intrinsic sizes (min-content size and max-content size).
+				//
+				// See: https://developer.mozilla.org/en-US/docs/Web/CSS/white-space#Values
+
+				return NodeFilter.FILTER_REJECT;
+			} else {
+				return NodeFilter.FILTER_REJECT;
+			}
+		}
+
+	}
+
+	class CommentsFilter extends Handler {
+		constructor(chunker, polisher, caller) {
+			super(chunker, polisher, caller);
+		}
+
+		filter(content) {
+			filterTree(content, null, NodeFilter.SHOW_COMMENT);
+		}
+
+	}
+
+	class ScriptsFilter extends Handler {
+		constructor(chunker, polisher, caller) {
+			super(chunker, polisher, caller);
+		}
+
+		filter(content) {
+			content.querySelectorAll("script").forEach( script => { script.remove(); });
+		}
+
+	}
+
+	var clearCut = createCommonjsModule(function (module, exports) {
+	/**
+	 * Originally ported from https://github.com/keeganstreet/specificity/blob/866bf7ab4e7f62a7179c15b13a95af4e1c7b1afa/specificity.js
+	 *
+	 * Calculates the specificity of CSS selectors
+	 * http://www.w3.org/TR/css3-selectors/#specificity
+	 *
+	 * Returns a selector integer value
+	 */
+
+	// The following regular expressions assume that selectors matching the preceding regular expressions have been removed
+	var attributeRegex = /(\[[^\]]+\])/g;
+	var idRegex = /(#[^\s\+>~\.\[:]+)/g;
+	var classRegex = /(\.[^\s\+>~\.\[:]+)/g;
+	var pseudoElementRegex = /(::[^\s\+>~\.\[:]+|:first-line|:first-letter|:before|:after)/g;
+	var pseudoClassRegex = /(:[^\s\+>~\.\[:]+)/g;
+	var elementRegex = /([^\s\+>~\.\[:]+)/g;
+	var notRegex = /:not\(([^\)]*)\)/g;
+	var ruleRegex = /\{[^]*/gm;
+	var separatorRegex = /[\*\s\+>~]/g;
+	var straysRegex = /[#\.]/g;
+
+	// Find matches for a regular expression in a string and push their details to parts
+	// Type is "a" for IDs, "b" for classes, attributes and pseudo-classes and "c" for elements and pseudo-elements
+	var findMatch = function(regex, type, types, selector) {
+	  var matches = selector.match(regex);
+	  if (matches) {
+	    for (var i = 0; i < matches.length; i++) {
+	      types[type]++;
+	      // Replace this simple selector with whitespace so it won't be counted in further simple selectors
+	      selector = selector.replace(matches[i], ' ');
+	    }
+	  }
+
+	  return selector;
+	};
+
+	// Calculate the specificity for a selector by dividing it into simple selectors and counting them
+	var calculate = function(selector) {
+	  var commaIndex = selector.indexOf(',');
+	  if (commaIndex !== -1) {
+	    selector = selector.substring(0, commaIndex);
+	  }
+
+	  var  types = {
+	    a: 0,
+	    b: 0,
+	    c: 0
+	  };
+
+	  // Remove the negation psuedo-class (:not) but leave its argument because specificity is calculated on its argument
+	  selector = selector.replace(notRegex, ' $1 ');
+
+	  // Remove anything after a left brace in case a user has pasted in a rule, not just a selector
+	  selector = selector.replace(ruleRegex, ' ');
+
+	  // Add attribute selectors to parts collection (type b)
+	  selector = findMatch(attributeRegex, 'b', types, selector);
+
+	  // Add ID selectors to parts collection (type a)
+	  selector = findMatch(idRegex, 'a', types, selector);
+
+	  // Add class selectors to parts collection (type b)
+	  selector = findMatch(classRegex, 'b', types, selector);
+
+	  // Add pseudo-element selectors to parts collection (type c)
+	  selector = findMatch(pseudoElementRegex, 'c', types, selector);
+
+	  // Add pseudo-class selectors to parts collection (type b)
+	  selector = findMatch(pseudoClassRegex, 'b', types, selector);
+
+	  // Remove universal selector and separator characters
+	  selector = selector.replace(separatorRegex, ' ');
+
+	  // Remove any stray dots or hashes which aren't attached to words
+	  // These may be present if the user is live-editing this selector
+	  selector = selector.replace(straysRegex, ' ');
+
+	  // The only things left should be element selectors (type c)
+	  findMatch(elementRegex, 'c', types, selector);
+
+	  return (types.a * 100) + (types.b * 10) + (types.c * 1);
+	};
+
+	var specificityCache = {};
+
+	exports.calculateSpecificity = function(selector) {
+	  var specificity = specificityCache[selector];
+	  if (specificity === undefined) {
+	    specificity = calculate(selector);
+	    specificityCache[selector] = specificity;
+	  }
+	  return specificity;
+	};
+
+	var validSelectorCache = {};
+	var testSelectorElement = null;
+
+	exports.isSelectorValid = function(selector) {
+	  var valid = validSelectorCache[selector];
+	  if (valid === undefined) {
+	    if (testSelectorElement == null) {
+	      testSelectorElement = document.createElement('div');
+	    }
+
+	    try {
+	      testSelectorElement.querySelector(selector);
+	      valid = true;
+	    } catch (error) {
+	      valid = false;
+	    }
+	    validSelectorCache[selector] = valid;
+	  }
+	  return valid;
+	};
+
+	exports.validateSelector = function(selector) {
+	  if (!exports.isSelectorValid(selector)) {
+	    var error = new SyntaxError(selector + ' is not a valid selector');
+	    error.code = 'EBADSELECTOR';
+	    throw error;
+	  }
+	};
+	});
+	var clearCut_1 = clearCut.calculateSpecificity;
+	var clearCut_2 = clearCut.isSelectorValid;
+	var clearCut_3 = clearCut.validateSelector;
+
+	class UndisplayedFilter extends Handler {
+		constructor(chunker, polisher, caller) {
+			super(chunker, polisher, caller);
+			this.displayRules = {};
+		}
+
+		onDeclaration(declaration, dItem, dList, rule) {
+			if (declaration.property === "display") {
+				let selector = lib.generate(rule.ruleNode.prelude);
+				let value = declaration.value.children.first().name;
+
+				selector.split(",").forEach((s) => {
+					this.displayRules[s] = {
+						value: value,
+						selector: s,
+						specificity: clearCut_1(s),
+						important: declaration.important
+					};
+				});
+			}
+		}
+
+		filter(content) {
+			let { matches, selectors } = this.sortDisplayedSelectors(content, this.displayRules);
+
+			// Find matching elements that have display styles
+			for (let i = 0; i < matches.length; i++) {
+				let element = matches[i];
+				let selector = selectors[i];
+				let displayValue = selector[selector.length-1].value;
+				if(this.removable(element) && displayValue === "none") {
+					element.dataset.undisplayed = "undisplayed";
+				}
+			}
+
+			// Find elements that have inline styles
+			let styledElements = content.querySelectorAll("[style]");
+			for (let i = 0; i < styledElements.length; i++) {
+				let element = styledElements[i];
+				if (this.removable(element)) {
+					element.dataset.undisplayed = "undisplayed";
+				}
+			}
+		}
+
+		sorter(a, b) {
+			if (a.important && !b.important) {
+				return 1;
+			}
+
+			if (b.important && !a.important) {
+				return -1;
+			}
+
+			return a.specificity - b.specificity;
+		}
+
+		sortDisplayedSelectors(content, displayRules=[]) {
+			let matches = [];
+			let selectors = [];
+			for (let d in displayRules) {
+				let displayItem = displayRules[d];
+				let selector = displayItem.selector;
+				let query = [];
+				try {
+					try {
+						query = content.querySelectorAll(selector);
+					} catch (e) {
+						query = content.querySelectorAll(cleanSelector(selector));
+					}
+				} catch (e) {
+					query = [];
+				}
+				let elements = Array.from(query);
+				for (let e of elements) {
+					if (matches.includes(e)) {
+						let index = matches.indexOf(e);
+						selectors[index].push(displayItem);
+						selectors[index] = selectors[index].sort(this.sorter);
+					} else {
+						matches.push(e);
+						selectors.push([displayItem]);
+					}
+				}
+			}
+
+			return { matches, selectors };
+		}
+
+		removable(element) {
+			if (element.style &&
+					element.style.display !== "" &&
+					element.style.display !== "none") {
+				return false;
+			}
+
+			return true;
+		}
+	}
+
+	var filters = [
+		WhiteSpaceFilter,
+		CommentsFilter,
+		ScriptsFilter,
+		UndisplayedFilter
 	];
 
 	var isImplemented$3 = function () {
@@ -30014,7 +30811,7 @@ img {
 		return pipe;
 	};
 
-	let registeredHandlers = [...pagedMediaHandlers, ...generatedContentHandlers];
+	let registeredHandlers = [...pagedMediaHandlers, ...generatedContentHandlers, ...filters];
 
 	class Handlers {
 		constructor(chunker, polisher, caller) {
