@@ -326,26 +326,27 @@
  * Section résumés.
  */
 <DEFMACRO NAME="PDFGEN_ARTICLE_RESUMES">
-  <!--[ Résumés ]-->
   <IF COND="[#RESUME]">
-    <IF COND="[#RESUME|substr_count('<r2r:ml')] GT 1">
-      <h2 class="section-header">[@RESUMES]</h2>
-    <ELSE/>
-      <h2 class="section-header">[@RESUME]</h2>
-    </IF>
-    <div class="article__abstract-contents col-12 col-lg-10">
-      <IF COND="[#RESUME] LIKE /<r2r:ml lang=\"([a-z]+)\"/">
-        <LET VAR="lang_exists">[#SITELANG|in_array([#MATCHES.1])]</LET>
-        <LOOP NAME="foreach" ARRAY="[#MATCHES.1]">
-          <div class="article__abstract-text hyphenate" xml:lang="[#VALUE]">
-            <h3 class="article__abstract-title" >[#VALUE|humanlang]</h3>
-            [#RESUME:#VALUE]
-          </div>
-        </LOOP>
+    <section class="article__abstract">
+      <IF COND="[#RESUME|substr_count('<r2r:ml')] GT 1">
+        <h2 class="section-header">[@RESUMES]</h2>
       <ELSE/>
-        [#TAB_TEXTE]
+        <h2 class="section-header">[@RESUME]</h2>
       </IF>
-    </div>
+      <div class="article__abstract-contents">
+        <IF COND="[#RESUME] LIKE /<r2r:ml lang=\" ([a-z]+)\"/">
+          <LET VAR="lang_exists">[#SITELANG|in_array([#MATCHES.1])]</LET>
+          <LOOP NAME="foreach" ARRAY="[#MATCHES.1]">
+            <div class="article__abstract-text hyphenate" lang="[#VALUE]" xml:lang="[#VALUE]">
+              <h3 class="article__abstract-title">[#VALUE|humanlang]</h3>
+              [#RESUME:#VALUE]
+            </div>
+          </LOOP>
+        <ELSE/>
+          [#TAB_TEXTE]
+        </IF>
+      </div>
+    </section>
   </IF>
 </DEFMACRO>
 
@@ -353,44 +354,45 @@
  * Section indexes liés au document.
  */
 <DEFMACRO NAME="PDFGEN_ARTICLE_MOTSCLES">
-  <!--[ Entrées d'index]-->
   <IF COND="[%HASENTRIES]">
-    <LOOP NAME="pdfgen_article_motscles" 
-      TABLE="relations, entries, entrytypes" 
-      SELECT="DISTINCT(idtype), title, altertitle, type AS entrytype" 
-      WHERE="id1 = '[#ID]' AND id2 = entries.id AND entries.idtype = entrytypes.id AND entrytypes.class = 'indexes'" 
-      ORDER="entrytypes.rank">
+    <section class="article__entries">
+      <LOOP NAME="pdfgen_article_motscles" 
+        TABLE="relations, entries, entrytypes" 
+        SELECT="DISTINCT(idtype), title, altertitle, type AS entrytype" 
+        WHERE="id1 = '[#ID]' AND id2 = entries.id AND entries.idtype = entrytypes.id AND entrytypes.class = 'indexes'" 
+        ORDER="entrytypes.rank">
 
-      <BEFORE>
-        <div class="col-12 col-lg-10 article__entries-title">
-          <h2 class="section-header">[@INDEX]</h2>
-        </div>
-        <div class="article__entries-content col-12 col-lg-10">
-      </BEFORE>
-      <DO>
-        <LOOP NAME="pdfgen_article_motscles_entrees" 
-          TABLE="entries" SELECT="id, g_name" 
-          WHERE="idtype = '[#IDTYPE]' AND iddocument = '[#ID]'" 
-          ORDER="degree">
-          <BEFORE>
-            <!--[ Support index rtl ]-->
-            <IF COND="[#ENTRYTYPE] LIKE /^motscles([a-z]*)$/">
-              <LET VAR="entrydir"><FUNC NAME="PDFGEN_GET_LANG_DIR" LANG="[#MATCHES.1.0]"/></LET>
-            </IF>
-            <div class="article__index article__index--type-[#ENTRYTYPE]" dir="[#ENTRYDIR]">
-              <h3 class="entries-type"><FUNC NAME="PDFGEN_ML_TITRE" INDEX="true" /></h3>
-          </BEFORE>
-          <DOFIRST><a href="[#ID|makeurlwithid]" class="entry">[#G_NAME]</a></DOFIRST>
-          <DO>, <a href="[#ID|makeurlwithid]" class="entry">[#G_NAME]</a></DO>
-          <AFTER>
-            </div>
-          </AFTER>
-        </LOOP>
-      </DO>
-      <AFTER>
-        </div>
-      </AFTER>
-    </LOOP>
+        <BEFORE>
+          <div class="article__entries-title">
+            <h2 class="section-header">[@INDEX]</h2>
+          </div>
+          <div class="article__entries-content">
+        </BEFORE>
+        <DO>
+          <LOOP NAME="pdfgen_article_motscles_entrees" 
+            TABLE="entries" SELECT="id, g_name" 
+            WHERE="idtype = '[#IDTYPE]' AND iddocument = '[#ID]'" 
+            ORDER="degree">
+            <BEFORE>
+              <!--[ Support index rtl ]-->
+              <IF COND="[#ENTRYTYPE] LIKE /^motscles([a-z]*)$/">
+                <LET VAR="entrydir"><FUNC NAME="PDFGEN_GET_LANG_DIR" LANG="[#MATCHES.1.0]"/></LET>
+              </IF>
+              <div class="article__index article__index--type-[#ENTRYTYPE]" dir="[#ENTRYDIR]">
+                <h3 class="entries-type"><FUNC NAME="PDFGEN_ML_TITRE" INDEX="true" /></h3>
+            </BEFORE>
+            <DOFIRST><a href="[#ID|makeurlwithid]" class="entry">[#G_NAME]</a></DOFIRST>
+            <DO>, <a href="[#ID|makeurlwithid]" class="entry">[#G_NAME]</a></DO>
+            <AFTER>
+              </div>
+            </AFTER>
+          </LOOP>
+        </DO>
+        <AFTER>
+          </div>
+        </AFTER>
+      </LOOP>
+    </section>
   </IF>
 </DEFMACRO>
 
@@ -406,7 +408,7 @@
     <LET VAR="TOC_COUNT" GLOBAL="1">0</LET>
     <LOOP NAME="toc" TEXT="[#TEXTE]">
       <BEFORE>
-        <section class="article__toc col-12 col-lg-10">
+        <section class="article__toc">
           <h2 class="section-header">[@TOC]</h2>
           <div class="article__toc-contents">
             <ul>
@@ -452,7 +454,7 @@
 <DEFMACRO NAME="PDFGEN_ARTICLE_ADDENDUM">
   <!--[ Errata ]-->
   <IF COND="[#ADDENDUM]">
-    <section class="article__errata col-12 col-lg-10">
+    <section class="article__errata">
       <h2 class="section-header">[@ERRATA]</h2>
       <div class="article__errata-contents">
         [#ADDENDUM|cleanCallNotes|tocss]
@@ -462,7 +464,7 @@
 
   <!--[ Dédicace ]-->
   <IF COND="[#DEDICACE]">
-    <section class="article__dedication col-12 col-lg-10">
+    <section class="article__dedication">
       <h2 class="section-header">[@DEDICACE]</h2>
       <div class="article__dedication-contents">
         [#DEDICACE|cleanCallNotes|tocss]
@@ -472,7 +474,7 @@
 
   <!--[ NDLR ]-->
   <IF COND="[#NDLR]">
-    <section class="article__ndlr col-12 col-lg-10">
+    <section class="article__ndlr">
       <h2 class="section-header">[@NDLR]</h2>
       <div class="article__ndlr-contents">
         [#NDLR|cleanCallNotes|tocss]
@@ -482,7 +484,7 @@
 
   <!--[ NDLA ]-->
   <IF COND="[#NDLA]">
-    <section class="article__ndla col-12 col-lg-10">
+    <section class="article__ndla">
       <h2 class="section-header">[@NDLA]</h2>
       <div class="article__ndla-contents">
         [#NDLA|cleanCallNotes|tocss]
@@ -516,7 +518,7 @@
  */
 <DEFMACRO NAME="PDFGEN_ARTICLE_TEXTE_CONTENTS">
   <div class="row">
-    <div class="article__text-contents col-lg-9 hyphenate" lang="[#LANGUE]">
+    <div class="article__text-contents hyphenate" lang="[#LANGUE]">
       <!--[ Image d'accroche ]-->
       <MACRO NAME="PDFGEN_ARTICLE_IMAGEACCROCHE" />
 
@@ -546,9 +548,9 @@
     LIMIT="0,1">
 
     <IF COND="[#VIGNETTE]">
-      <LET VAR="accroche">[#VIGNETTE|vignette(350)]</LET>
+      <LET VAR="accroche">[#VIGNETTE|vignette(500)]</LET>
     <ELSE/>
-      <LET VAR="accroche">[#DOCUMENT|vignette(350)]</LET>
+      <LET VAR="accroche">[#DOCUMENT|vignette(500)]</LET>
     </IF>
     <div class="article__accroche">
       <a href="[#ID|makeurlwithid]">
@@ -575,7 +577,7 @@
  */
 <DEFMACRO NAME="PDFGEN_ARTICLE_BIBLIOGRAPHIE">
   <IF COND="[#BIBLIOGRAPHIE] AND [#TEXTE_ACCESSIBLE]">
-    <section class="article__biblio col-12 col-lg-10">
+    <section class="article__biblio">
       <h2 class="section-header">[@BIBLIOGRAPHIE]</h2>
       <div class="article__biblio-contents">
         [(#BIBLIOGRAPHIE|cleanCallNotes|tocss('heading')|illustrations(800, 'bibliographie')|media)]
@@ -590,7 +592,7 @@
 <DEFMACRO NAME="PDFGEN_ARTICLE_ANNEXE">
   <!--[ Annexe ]-->
   <IF COND="[#ANNEXE] AND [#TEXTE_ACCESSIBLE]">
-    <section class="article__appendix col-12 col-lg-10">
+    <section class="article__appendix">
       <h2 class="section-header">[@ANNEXE]</h2>
       <div class="article__appendix-contents hyphenate" lang="[#LANGUE]">
         [#ANNEXE|cleanCallNotes|tocss('heading')|illustrations(800, 'annexe')|media]
@@ -613,7 +615,7 @@
  */
 <DEFMACRO NAME="PDFGEN_ARTICLE_NOTESBASPAGE">
   <IF COND="[#NOTESBASPAGE] AND [#TEXTE_ACCESSIBLE]">
-    <section class="article__footnotes col-12 col-lg-10">
+    <section class="article__footnotes">
       <h2 class="section-header">[@NOTES]</h2>
       <div class="article__footnotes-contents hyphenate" lang="[#LANGUE]">
         [#NOTESBASPAGE]
@@ -649,7 +651,7 @@
     ORDER="degree">
     
     <BEFORE>
-      <section class="article__persons-infos col-12 col-lg-10">
+      <section class="article__persons-infos">
         <IF COND="[#TYPE] EQ 'traducteur'">
           <LET VAR="TITRE_SECTION"><IF COND="[#NBRESULTATS] GT 1">[@TRADUCTEURS]<ELSE/>[@TRADUCTEUR]</IF></LET>
         <ELSE />
