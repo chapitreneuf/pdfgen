@@ -194,45 +194,14 @@
  */
 <DEFMACRO NAME="PDFGEN_ARTICLE_FRONT">
   <section class="front">
-    <!--[ Logo de la revue
-          Par défaut le chemin est : tpl/pdf_logo.png 
-          TODO: ajouter une option de plugin pour personnaliser le chemin. ]-->
-    <img class="front__logo" src="tpl/pdf_logo.png" alt="" />
-
-    <!--[ Titre de la revue ]-->
-    <p class="front__titresite">[#OPTIONS.METADONNEESSITE.TITRESITE]</p>
+    <!--[ Titre et logo du site ]-->
+    <MACRO NAME="PDFGEN_SITE" />
 
     <!--[ Numéro parent ]-->
-    <LET VAR="id_numero_parent">[#ID|getParentByType('numero')]</LET>
-    <LOOP NAME="pdfgen_article_front_parent" TABLE="publications" WHERE="id='[#ID_NUMERO_PARENT]'" SELECT="numero, titre, periode, datepublipapier, datepubli, creationdate" />
-      <p class="front__issue">
-        <span class="issue-number">[#NUMERO]</span><FUNC NAME="PDFGEN_PERIODE_PUBLI" WRAP_CLASS="issue-date" PREPEND="&nbsp;|&nbsp;" />
-        <IF COND="[#TITRE] AND [#TITRE] NE [#NUMERO]">
-          <br /><span class="issue-title">[#TITRE]</span>
-        </IF>
-      </p>
-    </LOOP>
-
-    <!--[ Titre du document ]-->
-    <h1 class="front__title">[#TITRE|removenotes]</h1>
-    
-    <!--[ Sous-titre du document ]-->
-    <IF COND="[#SOUSTITRE]">
-      <p class="front__subtitle">[#SOUSTITRE|removenotes]</p>
-    </IF>
-    
-    <!--[ Titres alternatifs ]-->
-    <IF COND="[#ALTERTITRE]">
-      <div class="front__altertitle">
-        <LET VAR="value">[#ALTERTITRE]</LET>
-        <LOOP NAME="mltext">
-          <p lang="[#LANG]" xml:lang="[#LANG]">[#VALUE|removenotes]</p>
-        </LOOP>
-      </div>
-    </IF>
-
-    <!--[ Auteurs ]-->
-    <FUNC NAME="PDFGEN_LISTER_PERSONNES" TYPE="auteur" WRAP_CLASS="front__author" />
+    <MACRO NAME="PDFGEN_PARENT_ISSUE" />
+   
+    <!--[ Header article ]-->
+    <MACRO NAME="PDFGEN_ARTICLE_HEADER" />
 
     <!--[ URL ]-->
     <p class="front__url">URL&nbsp: [#SITEINFOS.URL]/[#ID|makeurlwithid]</p>
@@ -240,31 +209,63 @@
     <!--[ DOI ]-->
     <!--[ FIXME: ne peut pas fonctionner, car dépend de macros_custom.html qui n'existe pas forcément (dépend de la maquette) ]-->
     <IF COND="[%PREFIXEDOI] AND [#TYPE] EQ 'article'">
-      <p class="front__doi">DOI&nbsp;: [%PREFIXEDOI][#ID]</p>
-    </IF>
-
-    <!--[ ISSN ]-->
-    <IF COND="[#OPTIONS.METADONNEESSITE.ISSN_ELECTRONIQUE]">
-      <p class="front_issn">ISSN&nbsp;: [#OPTIONS.METADONNEESSITE.ISSN_ELECTRONIQUE]</p>
-    </IF>
-
-    <!--[ Editeur ]-->
-    <IF COND="[#OPTIONS.METADONNEESSITE.EDITEUR]">
-      <p class="front__publisher">[@PUBLISHER]&nbsp;: [#OPTIONS.METADONNEESSITE.EDITEUR]</p>
+      <p class="article__doi">DOI&nbsp;: [%PREFIXEDOI][#ID]</p>
     </IF>
 
     <!--[ Pour citer ]-->
     <h3>[@REFERENCE_ELECTRONIQUE]</h3>
-    <p class="front__reference">
+    <p class="article__reference">
       <MACRO NAME="PDFGEN_ARTICLE_REFERENCE_ELECTRONIQUE" />
     </p>
 
     <!--[ Droits d'auteur ]-->
     <IF COND="[#OPTIONS.METADONNEESSITE.DROITSAUTEUR]">
       <h3>[@LICENCE]</h3>
-      <p class="front__licence">[#OPTIONS.METADONNEESSITE.DROITSAUTEUR]</p>
+      <p class="article__licence">[#OPTIONS.METADONNEESSITE.DROITSAUTEUR]</p>
     </IF>
   </section>
+</DEFMACRO>
+
+/**
+ * Informations sur le site.
+ */
+<DEFMACRO NAME="PDFGEN_SITE">
+  <div class="site">
+    <!--[ Logo de la revue
+          Par défaut le chemin est : tpl/pdf_logo.png 
+          TODO: ajouter une option de plugin pour personnaliser le chemin. ]-->
+    <img class="site__logo" src="tpl/pdf_logo.png" alt="" />
+    
+    <!--[ Titre de la revue ]-->
+    <p class="site__title">[#OPTIONS.METADONNEESSITE.TITRESITE]</p>
+
+    <!--[ ISSN ]-->
+    <IF COND="[#OPTIONS.METADONNEESSITE.ISSN_ELECTRONIQUE]">
+      <p class="site__issn">ISSN&nbsp;: [#OPTIONS.METADONNEESSITE.ISSN_ELECTRONIQUE]</p>
+    </IF>
+
+    <!--[ Editeur ]-->
+    <IF COND="[#OPTIONS.METADONNEESSITE.EDITEUR]">
+      <p class="site__publisher">[@PUBLISHER]&nbsp;: [#OPTIONS.METADONNEESSITE.EDITEUR]</p>
+    </IF>
+  </div>
+</DEFMACRO>
+
+/**
+ * Informations sur le numéro parent.
+ */
+<DEFMACRO NAME="PDFGEN_PARENT_ISSUE">
+  <!--[ Numéro parent ]-->
+  <LET VAR="id_numero_parent">[#ID|getParentByType('numero')]</LET>
+  <LOOP NAME="pdfgen_article_front_parent" TABLE="publications" WHERE="id='[#ID_NUMERO_PARENT]'" SELECT="numero, titre, periode, datepublipapier, datepubli, creationdate" />
+    <p class="issue">
+      <span class="issue__number">[#NUMERO]</span>
+      <FUNC NAME="PDFGEN_PERIODE_PUBLI" WRAP_CLASS="issue__date" PREPEND="&nbsp;|&nbsp;" />
+      <IF COND="[#TITRE] AND [#TITRE] NE [#NUMERO]">
+        <br /><span class="issue__title">[#TITRE]</span>
+      </IF>
+    </p>
+  </LOOP>
 </DEFMACRO>
 
 /**
@@ -274,23 +275,23 @@
   <header class="article__header">
     <!--[ Numéro de document ]-->
     <IF COND="[#NUMERODOCUMENT] AND [#NUMERODOCUMENT] NE '0'">
-      <p class="article__number"><span>#[#NUMERODOCUMENT]</span></p>
+      <p class="article__number">#[#NUMERODOCUMENT]</p>
     </IF>
     <!--[ Sous-titre du document ]-->
     <IF COND="[#SURTITRE]">
-      <p class="main-subhead article__subhead">[#SURTITRE|removenotes]</p>
+      <p class="article__subhead">[#SURTITRE|removenotes]</p>
     </IF>
     <!--[ Titre du document ]-->
-    <h1 class="main-title article__title">[#TITRE|removenotes]</h1>
+    <h1 class="article__title">[#TITRE|removenotes]</h1>
 
     <!--[ Sous-titre du document ]-->
     <IF COND="[#SOUSTITRE]">
-      <p class="main-subtitle article__subtitle">[#SOUSTITRE|removenotes]</p>
+      <p class="article__subtitle">[#SOUSTITRE|removenotes]</p>
     </IF>
 
     <!--[ Titres alternatifs ]-->
     <IF COND="[#ALTERTITRE]">
-      <div class="main-altertitle article__altertitle">
+      <div class="article__altertitle">
         <LET VAR="value">[#ALTERTITRE]</LET>
         <LOOP NAME="mltext">
           <p lang="[#LANG]">[#VALUE|removenotes]</p>
@@ -303,11 +304,6 @@
 
     <!--[ Traducteurs ]-->
     <FUNC NAME="PDFGEN_LISTER_PERSONNES" TYPE="traducteur" WRAP_ID="article-translator" WRAP_CLASS="article__author" PREPEND="[@TRADUCTION_DE] "/>
-
-    <!--[ Pagination ]-->
-    <IF COND="[#PAGINATION]">
-      <p class="article__pagination">p. [#PAGINATION]</p>
-    </IF>
 
     <!--[ Notice biblio ]-->
     <IF COND="[#NOTICEBIBLIOOEUVRE]">
