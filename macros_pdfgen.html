@@ -78,6 +78,8 @@
 
   <!-- Styles du PDF -->
   <link rel="stylesheet" href="tpl/pdfgen/pdfgen.css">
+
+  <!-- TODO: ajouter une possibilité de surcharge -->
 </DEFMACRO>
 
 /**
@@ -620,7 +622,7 @@
   <IF COND="[#NOTESBASPAGE] AND [#TEXTE_ACCESSIBLE]">
     <section class="article__footnotes">
       <h2 class="section-header">[@NOTES]</h2>
-      <div class="article__footnotes-contents hyphenate" lang="[#LANGUE]">
+      <div class="article__footnotes-contents hyphenate" lang="[#LANGUE]" xml:lang="[#LANGUE]">
         [#NOTESBASPAGE]
       </div>
     </section>
@@ -634,7 +636,7 @@
   <IF COND="[#NOTEFIN] AND [#TEXTE_ACCESSIBLE]">
     <section class="article__endnotes">
       <h2 class="section-header">[@NOTEFIN]</h2>
-      <div class="article__endnotes-contents">
+      <div class="article__endnotes-contents hyphenate" lang="[#LANGUE]" xml:lang="[#LANGUE]">
         [#NOTEFIN]
       </div>
     </section>
