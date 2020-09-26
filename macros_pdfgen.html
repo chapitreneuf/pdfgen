@@ -165,7 +165,6 @@
       <MACRO NAME="PDFGEN_ARTICLE_TEXTE" />
       <MACRO NAME="PDFGEN_ARTICLE_BIBLIOGRAPHIE" />
       <MACRO NAME="PDFGEN_ARTICLE_ANNEXE" />
-      <MACRO NAME="PDFGEN_ARTICLE_DOCANNEXES" />
       <MACRO NAME="PDFGEN_ARTICLE_NOTESBASPAGE" />
       <MACRO NAME="PDFGEN_ARTICLE_NOTEFIN" />
       <FUNC NAME="PDFGEN_ARTICLE_DESCRIPTION_PERSONNES" TYPE="auteur" SECTION_ID="authors-infos" />
@@ -617,15 +616,6 @@
         [#ANNEXE|cleanCallNotes|tocss('heading')|illustrations(800, 'annexe')|media]
       </div>
     </section>
-  </IF>
-</DEFMACRO>
-
-/**
- * Section fichiers placés en annexe.
- */
-<DEFMACRO NAME="PDFGEN_ARTICLE_DOCANNEXES">
-  <IF COND="[#TEXTE_ACCESSIBLE]">
-    TODO MACRO NAME="PUBLICATION_ANNEXES"
   </IF>
 </DEFMACRO>
 
