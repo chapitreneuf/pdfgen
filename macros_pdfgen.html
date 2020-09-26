@@ -130,6 +130,7 @@
         "en": "en-gb"
       },
       setup: {
+        dontHyphenateClass: "code",
         selectors: {
           ".hyphenate": {}
         }
@@ -155,6 +156,7 @@
     <MACRO NAME="PDFGEN_ARTICLE_INIT" />
     <MACRO NAME="PDFGEN_ARTICLE_FRONT" />
     <MACRO NAME="PDFGEN_ARTICLE_HEADER" />
+    <MACRO NAME="PDFGEN_ARTICLE_NOTICEBIBLIOOEUVRE" />
     <MACRO NAME="PDFGEN_ARTICLE_RESUMES" />
     <MACRO NAME="PDFGEN_ARTICLE_MOTSCLES" />
     <IF COND="[#TEXTE_ACCESSIBLE]">
@@ -199,17 +201,14 @@
  */
 <DEFMACRO NAME="PDFGEN_ARTICLE_FRONT">
   <section class="front">
-    <!--[ Titre et logo du site ]-->
-    <MACRO NAME="PDFGEN_SITE" />
-
-    <!--[ Numéro parent ]-->
-    <MACRO NAME="PDFGEN_PARENT_ISSUE" />
+    <!--[ Logo et titre du site, publication parente ]-->
+    <MACRO NAME="PDFGEN_TOP" />
    
     <!--[ Header article ]-->
     <MACRO NAME="PDFGEN_ARTICLE_HEADER" />
 
     <!--[ URL ]-->
-    <p class="front__url">URL&nbsp: [#SITEINFOS.URL]/[#ID|makeurlwithid]</p>
+    <p class="front__url">[#SITEINFOS.URL]/[#ID|makeurlwithid]</p>
 
     <!--[ DOI ]-->
     <!--[ FIXME: ne peut pas fonctionner, car dépend de macros_custom.html qui n'existe pas forcément (dépend de la maquette) ]-->
@@ -218,14 +217,14 @@
     </IF>
 
     <!--[ Pour citer ]-->
-    <h3>[@REFERENCE_ELECTRONIQUE]</h3>
+    <h2 class="section-header--small">[@REFERENCE_ELECTRONIQUE]</h3>
     <p class="article__reference">
       <MACRO NAME="PDFGEN_ARTICLE_REFERENCE_ELECTRONIQUE" />
     </p>
 
     <!--[ Droits d'auteur ]-->
     <IF COND="[#OPTIONS.METADONNEESSITE.DROITSAUTEUR]">
-      <h3>[@LICENCE]</h3>
+      <h2 class="section-header--small">[@LICENCE]</h3>
       <p class="article__licence">[#OPTIONS.METADONNEESSITE.DROITSAUTEUR]</p>
     </IF>
   </section>
@@ -234,25 +233,32 @@
 /**
  * Informations sur le site.
  */
-<DEFMACRO NAME="PDFGEN_SITE">
-  <div class="site">
-    <!--[ Logo de la revue
-          Par défaut le chemin est : tpl/pdf_logo.png 
-          TODO: ajouter une option de plugin pour personnaliser le chemin. ]-->
-    <img class="site__logo" src="tpl/pdf_logo.png" alt="" />
-    
-    <!--[ Titre de la revue ]-->
-    <p class="site__title">[#OPTIONS.METADONNEESSITE.TITRESITE]</p>
+<DEFMACRO NAME="PDFGEN_TOP">
+  <div class="site flex">
+    <div class="col-0">
+      <!--[ Logo de la revue
+            Par défaut le chemin est : tpl/pdf_logo.png 
+            TODO: ajouter une option de plugin pour personnaliser le chemin. ]-->
+      <img class="site__logo" src="tpl/pdf_logo.png" alt="" />
+    </div>
 
-    <!--[ ISSN ]-->
-    <IF COND="[#OPTIONS.METADONNEESSITE.ISSN_ELECTRONIQUE]">
-      <p class="site__issn">ISSN&nbsp;: [#OPTIONS.METADONNEESSITE.ISSN_ELECTRONIQUE]</p>
-    </IF>
+    <div class="col">
+      <!--[ Titre de la revue ]-->
+      <p class="site__title">[#OPTIONS.METADONNEESSITE.TITRESITE]</p>
+      
+      <!--[ ISSN ]-->
+      <IF COND="[#OPTIONS.METADONNEESSITE.ISSN_ELECTRONIQUE]">
+        <p class="site__issn">ISSN&nbsp;: [#OPTIONS.METADONNEESSITE.ISSN_ELECTRONIQUE]</p>
+      </IF>
+      
+      <!--[ Editeur ]-->
+      <IF COND="[#OPTIONS.METADONNEESSITE.EDITEUR]">
+        <p class="site__publisher">[@PUBLISHER]&nbsp;: [#OPTIONS.METADONNEESSITE.EDITEUR]</p>
+      </IF>
 
-    <!--[ Editeur ]-->
-    <IF COND="[#OPTIONS.METADONNEESSITE.EDITEUR]">
-      <p class="site__publisher">[@PUBLISHER]&nbsp;: [#OPTIONS.METADONNEESSITE.EDITEUR]</p>
-    </IF>
+      <!--[ Numéro parent ]-->
+      <MACRO NAME="PDFGEN_PARENT_ISSUE" />
+    </div>
   </div>
 </DEFMACRO>
 
@@ -299,7 +305,7 @@
       <div class="article__altertitle">
         <LET VAR="value">[#ALTERTITRE]</LET>
         <LOOP NAME="mltext">
-          <p lang="[#LANG]">[#VALUE|removenotes]</p>
+          <p xml:lang="[#LANG]" lang="[#LANG]">[#VALUE|removenotes]</p>
         </LOOP>
       </div>
     </IF>
@@ -308,15 +314,7 @@
     <FUNC NAME="PDFGEN_LISTER_PERSONNES" TYPE="auteur" WRAP_ID="article-author" WRAP_CLASS="article__author"/>
 
     <!--[ Traducteurs ]-->
-    <FUNC NAME="PDFGEN_LISTER_PERSONNES" TYPE="traducteur" WRAP_ID="article-translator" WRAP_CLASS="article__author" PREPEND="[@TRADUCTION_DE] "/>
-
-    <!--[ Notice biblio ]-->
-    <IF COND="[#NOTICEBIBLIOOEUVRE]">
-      <div class="article__reference">
-        <strong>[@REFERENCE_OEUVRE]</strong>
-        <br />[#NOTICEBIBLIOOEUVRE|cleanCallNotes]
-      </div>
-    </IF>
+    <FUNC NAME="PDFGEN_LISTER_PERSONNES" TYPE="traducteur" WRAP_ID="article-translator" WRAP_CLASS="article__translator" PREPEND="[@TRADUCTION_DE] "/>
   </header>
 </DEFMACRO>
 
@@ -328,6 +326,19 @@
 </DEFMACRO>
 
 /**
+ * Notice bibliographique de l'œuvre commentée.
+ */
+<DEFMACRO NAME="PDFGEN_ARTICLE_NOTICEBIBLIOOEUVRE">
+  <!--[ Notice biblio ]-->
+  <IF COND="[#NOTICEBIBLIOOEUVRE]">
+    <h2 class="section-header">[@REFERENCE_OEUVRE]</h2>
+    <div class="article__oeuvre">
+      [#NOTICEBIBLIOOEUVRE|cleanCallNotes]
+    </div>
+  </IF>
+</DEFMACRO>
+
+/**
  * Section résumés.
  */
 <DEFMACRO NAME="PDFGEN_ARTICLE_RESUMES">
@@ -335,25 +346,28 @@
     <section class="article__abstract">
       <IF COND="[#RESUME|substr_count('<r2r:ml')] GT 1">
         <h2 class="section-header">[@RESUMES]</h2>
-      <ELSE/>
+      <ELSE />
         <h2 class="section-header">[@RESUME]</h2>
       </IF>
+
       <div class="article__abstract-contents">
-        <IF COND="[#RESUME] LIKE /<r2r:ml lang=\" ([a-z]+)\"/">
-          <LET VAR="lang_exists">[#SITELANG|in_array([#MATCHES.1])]</LET>
+        <IF COND="[#RESUME] LIKE /<r2r:ml lang=\"([a-z]+)\"/">
           <LOOP NAME="foreach" ARRAY="[#MATCHES.1]">
-            <div class="article__abstract-text hyphenate" lang="[#VALUE]" xml:lang="[#VALUE]">
-              <h3 class="article__abstract-title">[#VALUE|humanlang]</h3>
-              [#RESUME:#VALUE]
+            <div class="article__abstract-item">
+              <h3 class="section-header--small">[#VALUE|humanlang]</h3>
+              <div class="article__abstract-text hyphenate" lang="[#VALUE]" xml:lang="[#VALUE]">
+                [#RESUME:#VALUE]
+              </div>
             </div>
           </LOOP>
         <ELSE/>
-          [#TAB_TEXTE]
+          [#RESUME]
         </IF>
       </div>
     </section>
   </IF>
 </DEFMACRO>
+
 
 /**
  * Section indexes liés au document.
@@ -384,10 +398,10 @@
                 <LET VAR="entrydir"><FUNC NAME="PDFGEN_GET_LANG_DIR" LANG="[#MATCHES.1.0]"/></LET>
               </IF>
               <div class="article__index article__index--type-[#ENTRYTYPE]" dir="[#ENTRYDIR]">
-                <h3 class="entries-type"><FUNC NAME="PDFGEN_ML_TITRE" INDEX="true" /></h3>
+                <h3 class="section-header--small"><FUNC NAME="PDFGEN_ML_TITRE" INDEX="true" /></h3>
             </BEFORE>
-            <DOFIRST><a href="[#ID|makeurlwithid]" class="entry">[#G_NAME]</a></DOFIRST>
-            <DO>, <a href="[#ID|makeurlwithid]" class="entry">[#G_NAME]</a></DO>
+            <DOFIRST><span class="entry">[#G_NAME]</span></DOFIRST>
+            <DO>, <span class="entry">[#G_NAME]</span></DO>
             <AFTER>
               </div>
             </AFTER>
