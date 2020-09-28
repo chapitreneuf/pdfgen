@@ -88,15 +88,7 @@
 <DEFMACRO NAME="PDFGEN_HTML_SCRIPTS">
   <!--[ TODO: organiser en plugin lodel sur le modele de checklist : 
       <script src="[#SHAREDIR]/plugins/custom/checklist/node_modules/jquery/dist/jquery.min.js"></script> ]-->
-  <script>
-    function ready(fn) {
-      if (document.readyState != "loading") {
-        fn();
-      } else {
-        document.addEventListener("DOMContentLoaded", fn);
-      }
-    }
-    
+  <script>    
     function runPagedjs() {
       window.PagedPolyfill.preview();
     }
