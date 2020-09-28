@@ -28,16 +28,13 @@ html, body {
 a, a:visited {
   text-decoration: none;
   color: var(--color-grey-dark);
+  text-decoration: underline;
 }
 
-a[href]:after {
-  content: "";
-}
-
-a[href^="http://"]:after, a[href^="https://"]:after {
+a.displayHref:after {
   content: " (" attr(href) ")";
   font-size: 0.8em;
-  text-decoration: underline;
+  text-decoration: none;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -453,6 +450,7 @@ td {
   vertical-align: super;
   margin-left: .2em;
   color: inherit;
+  text-decoration: none;
 }
 
 /* ARTICLE BIBLIOGRAPHY */
@@ -512,4 +510,5 @@ td {
 .FootnoteSymbol {
   margin-right: .5em;
   font-size: .8rem;
+  text-decoration: none;
 }

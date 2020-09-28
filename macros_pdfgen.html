@@ -112,6 +112,17 @@
       }, {});
     }
 
+    // Display links href attribute when relevant
+    function displayHref () {
+      document.querySelectorAll("a[href^='http://'], a[href^='https://']").forEach(function (el) {
+        var text = el.textContent;
+        if (text.match(/https?:\/\//)) return;
+        el.classList.add("displayHref");
+      });
+    }
+
+    displayHref();
+
     window.PagedConfig = {
       auto: false
     };
