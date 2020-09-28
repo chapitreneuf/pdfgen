@@ -11,6 +11,10 @@ class pdfgen extends Plugins {
 	public function preview (&$context)	{
 		if ($context['view']['tpl'] != 'pdfgen') return;
 		C::set('view.base_rep.pdfgen', 'pdfgen');
+
+		// Plugin options
+		$pdf_sitelogo = $this->_config['pdf_sitelogo']['value'];
+		C::set('pdf_sitelogo', $pdf_sitelogo);
 	}
 
 	public function viewAction (&$context, &$error) {
