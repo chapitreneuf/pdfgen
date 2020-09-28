@@ -2,8 +2,8 @@
 
 /**
  * Macro principale du générateur de PDF.
- * Initialisation puis routage vers le bon template (pour l'instant support des textes uniquement).
- * Utilisation : ?page=pdfgen&document=999
+ * Initialisation puis routage vers le bon template (support des textes uniquement).
+ * Utilisation : ./?do=_pdfgen_view&document=999
  */
 <DEFMACRO NAME="PDFGEN_MAIN">
 
@@ -70,25 +70,18 @@
  * Styles CSS.
  */
 <DEFMACRO NAME="PDFGEN_HTML_STYLES">
-  <!--[ TODO: organiser en plugin lodel sur le modele de checklist : 
-    <link rel="stylesheet" href="[#SHAREDIR]/plugins/custom/checklist/public/css/checklist-lodel.css"> ]-->
-
   <!-- normalize.css -->
-  <link rel="stylesheet" href="tpl/pdfgen/vendor/normalize.css/normalize.css">
+  <link rel="stylesheet" href="[#SHAREDIR]/plugins/custom/pdfgen/public/vendor/normalize.css/normalize.css">
 
   <!-- Styles du PDF -->
-  <link rel="stylesheet" href="tpl/pdfgen/pdfgen.css">
-
-  <!-- TODO: ajouter une possibilité de surcharge -->
+  <link rel="stylesheet" href="[#SHAREDIR]/plugins/custom/pdfgen/public/css/pdfgen.css">
 </DEFMACRO>
 
 /**
  * Scripts JavaScript.
  */
 <DEFMACRO NAME="PDFGEN_HTML_SCRIPTS">
-  <!--[ TODO: organiser en plugin lodel sur le modele de checklist : 
-      <script src="[#SHAREDIR]/plugins/custom/checklist/node_modules/jquery/dist/jquery.min.js"></script> ]-->
-  <script>    
+  <script>
     function runPagedjs() {
       window.PagedPolyfill.preview();
     }
@@ -147,8 +140,8 @@
     };
   </script>
 
-  <script src="tpl/pdfgen/vendor/hyphenopoly-4.7.0/Hyphenopoly_Loader.js"></script>
-  <script src="tpl/pdfgen/vendor/pagedjs-0.1.42/paged.polyfill.js"></script>
+  <script src="[#SHAREDIR]/plugins/custom/pdfgen/public/vendor/hyphenopoly-4.7.0/Hyphenopoly_Loader.js"></script>
+  <script src="[#SHAREDIR]/plugins/custom/pdfgen/public/vendor/pagedjs-0.1.42/paged.polyfill.js"></script>
 </DEFMACRO>
 
 /**

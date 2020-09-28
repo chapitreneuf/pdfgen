@@ -187,7 +187,7 @@ sup, sub, .footnotecall, .FootnoteSymbol {
 }
 
 .front__url::before {
-  content: url(icons/link-alt.svg);
+  content: url(../icons/link-alt.svg);
   margin-right: 5px;
   display: inline-block;
   transform: scale(0.9) translate(0, 6px);

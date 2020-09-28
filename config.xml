@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LodelPlugin>
+	<title>pdfgen</title>
+	<description>Générateur de PDF pour Lodel.</description>
+	<sql>0</sql>
+	<hookType>class</hookType>
+	<hook>class</hook>
+	<triggers>preview</triggers>
+	<parameters>
+	</parameters>
+</LodelPlugin>
