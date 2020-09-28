@@ -6,7 +6,7 @@
 
 @page {
   size: A4;
-  margin: 15mm 20mm;
+  margin: 15mm 30mm;
 }
 
 /* STANDARD ELEMENTS */
@@ -150,7 +150,7 @@ sup, sub, .footnotecall, .FootnoteSymbol {
 
 .article__title {
   margin: .5rem 0;
-  font-size: 1.8rem;
+  font-size: 1.7rem;
   font-family: var(--font-text);
   line-height: 120%;
   font-weight: normal;
@@ -233,7 +233,7 @@ sup, sub, .footnotecall, .FootnoteSymbol {
   line-height: 150%;
   font-family: var(--font-text);
   margin-top: 2rem;
-  font-size: 1.1rem;
+  font-size: 1rem;
 }
 
 /* Numérotation des paragraphes */
@@ -257,7 +257,7 @@ sup, sub, .footnotecall, .FootnoteSymbol {
   content: counter(p); /* Display the counter */
   position: absolute;
   left: 0;
-  font-size: .9em;
+  font-size: .8em;
   color: var(--color-grey-medium);
   font-family: var(--font-ui);
 }
@@ -313,6 +313,7 @@ h6.texte {
 .remerciements {
   font-size: .9rem;
   line-height: 150%;
+  font-style: italic;
 }
 
 .epigraphe {
@@ -340,7 +341,7 @@ p.citation, p.citationbis, p.citationter {
   border-style: solid;
   margin: 1.2rem 0;
   padding: .3rem 0 .3rem 1.5rem;
-  font-size: 1.05rem;
+  font-size: .95rem;
   line-height: 150%;
 }
 
@@ -357,6 +358,7 @@ p.citationter {
   background-color: var(--color-grey-light);
   padding: 1.5rem;
   margin-top: 1.2rem;
+  margin-left: 3rem;
 }
 
 .encadre + * {
@@ -412,7 +414,7 @@ table p {
 }
 
 td {
-  padding: 1rem;
+  padding: .3rem;
 }
 
 .groupe-illustration {
@@ -487,7 +489,7 @@ td {
   line-height: 150%;
   font-family: var(--font-text);
   margin-top: 2rem;
-  font-size: 1.1rem;
+  font-size: 1rem;
 }
 
 .article__appendix-contents > * {
