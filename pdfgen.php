@@ -37,19 +37,23 @@ class pdfgen extends Plugins {
 	public function getAction (&$context, &$error) {
 		setlocale(LC_ALL, 'C');
 
-		$document = $context['document'];
+		$site_name = $context['siteinfos']['name'];
+
+		$id = $context['document'];
+		$document = DAO::getDAO("entities")->getById($id);
+
 		$lang = isset($context['lang']) ? $context['lang'] : "";
 		$cache_path = getcwd() . DIRECTORY_SEPARATOR . 'CACHE';
 
 		if ( ! is_dir($cache_path) ) {
 			mkdir($cache_path, 0755, TRUE);
                 }
-		$article_url = "${context['siteurl']}/?do=_pdfgen_view&document=${document}&lang=${lang}";
+		$article_url = "${context['siteurl']}/?do=_pdfgen_view&document=${id}&lang=${lang}";
 
 		$cache_key = md5($article_url);
                 $cache_file = $cache_path . DIRECTORY_SEPARATOR . $cache_key;
 
-		if ( ! file_exists( $cache_file ) || filemtime( $cache_file ) < time()) {
+		if ( ! file_exists( $cache_file ) || filemtime( $cache_file ) < strtotime($document->upd)) {
 
 			$client = new Client($this->_config['gotenberg_url']['value']);
 			$request = new URLRequest($article_url);
@@ -63,7 +67,7 @@ class pdfgen extends Plugins {
 		}
 
 		header('Content-Type: application/pdf');
-		header('Content-Disposition: attachment; filename="downloaded.pdf"');
+		header("Content-Disposition: attachment; filename=${site_name}-${id}.pdf");
 		echo file_get_contents($cache_file);
 
 		return "_ajax";
