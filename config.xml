@@ -8,5 +8,6 @@
 	<triggers>preview</triggers>
 	<parameters>
 		<param name="pdf_sitelogo" title="Logo du site" type="file" defaultValue="" required="false" />
+		<param name="gotenberg_url" title="URL du service Gotenberg" type="text" defaultValue="https://" required="true" />
 	</parameters>
 </LodelPlugin>
