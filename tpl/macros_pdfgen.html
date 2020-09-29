@@ -163,8 +163,8 @@
       <MACRO NAME="PDFGEN_ARTICLE_ANNEXE" />
       <MACRO NAME="PDFGEN_ARTICLE_NOTESBASPAGE" />
       <MACRO NAME="PDFGEN_ARTICLE_NOTEFIN" />
-      <FUNC NAME="PDFGEN_ARTICLE_DESCRIPTION_PERSONNES" TYPE="auteur" SECTION_ID="authors-infos" />
-      <FUNC NAME="PDFGEN_ARTICLE_DESCRIPTION_PERSONNES" TYPE="traducteur" SECTION_ID="translators-infos" />
+      <FUNC NAME="PDFGEN_ARTICLE_DESCRIPTION_PERSONNES" TYPE="auteur" />
+      <FUNC NAME="PDFGEN_ARTICLE_DESCRIPTION_PERSONNES" TYPE="traducteur" />
     <ELSE />
       <p>[@AVERTISSEMENT_TEXTE_INTEGRAL] [#DATEPUBLI|formateddate('%B %Y')].</p>
     </IF>
@@ -646,13 +646,12 @@
 /**
  * Section description des auteurs, traducteurs.
  * @param {string} type - Type de personne.
- * @param {string} section_id - Id de la section.
  */
-<DEFFUNC NAME="PDFGEN_ARTICLE_DESCRIPTION_PERSONNES" REQUIRED="type, section_id">
+<DEFFUNC NAME="PDFGEN_ARTICLE_DESCRIPTION_PERSONNES" REQUIRED="type">
   <LOOP NAME="pdfgen_article_description_personnes" 
     SELECT="persons.id" 
     TABLE="relations, persons" 
-    WHERE="id1 = '[%ID]' AND id2 = persons.id AND nature = 'G' AND type = '[#TYPE]'"
+    WHERE="id1 = '[#DOCUMENT]' AND id2 = persons.id AND nature = 'G' AND type = '[#TYPE]'"
     ORDER="degree">
     
     <BEFORE>
@@ -670,9 +669,9 @@
       <LOOP NAME="pdfgen_article_description_personnes_auteur" 
         SELECT="idperson, nomfamille, prenom, description, courriel" 
         TABLE="auteurs" 
-        WHERE="id = '[#ID]' AND iddocument='[%ID]'">
+        WHERE="id = '[#ID]' AND iddocument='[#DOCUMENT]'">
 
-        <h3 class="article__persons-infos-identity">
+        <h3 class="section-header--small article__persons-infos-identity">
           <a href="[#IDPERSON|makeurlwithid]">[#PRENOM] <span class="family-name">[#NOMFAMILLE]</span></a>
         </h3>
         <IF COND="[#DESCRIPTION]">
