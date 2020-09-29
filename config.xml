@@ -7,6 +7,6 @@
 	<hook>class</hook>
 	<triggers>preview</triggers>
 	<parameters>
-		<param name="pdf_sitelogo" title="Logo du site" type="file" />
+		<param name="pdf_sitelogo" title="Logo du site" type="file" defaultValue="" required="false" />
 	</parameters>
 </LodelPlugin>
