@@ -52,6 +52,7 @@
   <head>
     <meta charset="utf-8">
     <title>pdfgen (document [#DOCUMENT]) – [#OPTIONS.METADONNEESSITE.TITRESITE]</title>
+    <MACRO NAME="PDFGEN_DEBUG_MODE" />
     <MACRO NAME="PDFGEN_HTML_STYLES"/>
   </head>
   <body>
@@ -64,6 +65,38 @@
   <MACRO NAME="PDFGEN_HTML_SCRIPTS"/>
   </body>
   </html>
+</DEFMACRO>
+
+/**
+ * Afficher les message de la console sur la page quand debug=1.
+ */
+<DEFMACRO NAME="PDFGEN_DEBUG_MODE">
+  <IF COND="[#DEBUG]">
+    <pre id="log-container" style="background-color: #eee; padding: 10px;">Console:</pre>
+    
+    <script>
+      window.onerror = function (msg, url, lineNo, columnNo, error) {
+        console.error(msg + " (" + url + " " + lineNo + ":" + columnNo + ")");
+        return false;
+      }
+
+      var pre = document.getElementById("log-container");
+
+      var getLogFunc = function (level) {
+        var defaultFunc = console[level].bind(console);
+        return function () {
+          defaultFunc.apply(console, arguments);
+          var msg = Array.from(arguments).join(" ");
+          pre.textContent = pre.textContent + "\n[" + level + "] " + msg;
+        };
+      }
+
+      console.log = getLogFunc("log");
+      console.error = getLogFunc("error");
+      console.warn = getLogFunc("warn");
+      console.debug = getLogFunc("debug");
+    </script>
+  </IF>
 </DEFMACRO>
 
 /**
