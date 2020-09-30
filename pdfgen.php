@@ -43,12 +43,14 @@ class pdfgen extends Plugins {
 		$document = DAO::getDAO("entities")->getById($id);
 
 		$lang = isset($context['lang']) ? $context['lang'] : "";
+		$debug = isset($context['debug']) ? $context['debug'] : "";
+
 		$cache_path = getcwd() . DIRECTORY_SEPARATOR . 'CACHE';
 
 		if ( ! is_dir($cache_path) ) {
 			mkdir($cache_path, 0755, TRUE);
                 }
-		$article_url = "${context['siteurl']}/?do=_pdfgen_view&document=${id}&lang=${lang}";
+		$article_url = "${context['siteurl']}/?do=_pdfgen_view&document=${id}&lang=${lang}&debug=${debug}";
 
 		$cache_key = md5($article_url);
                 $cache_file = $cache_path . DIRECTORY_SEPARATOR . $cache_key;
