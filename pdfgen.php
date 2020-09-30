@@ -1,6 +1,6 @@
 <?php
 
-require_once 'share/plugins/custom/pdfgen/vendor/autoload.php';
+require_once C::get('sharedir', 'cfg') . DIRECTORY_SEPARATOR . 'plugins/custom/pdfgen/vendor/autoload.php';
 
 use TheCodingMachine\Gotenberg\Client;
 use TheCodingMachine\Gotenberg\ClientException;
@@ -41,6 +41,7 @@ class pdfgen extends Plugins {
 
 		$id = $context['document'];
 		$document = DAO::getDAO("entities")->getById($id);
+		$clearcache = C::get('editor', 'lodeluser') && isset($context['clearcache']) ? true : false;
 
 		$lang = isset($context['lang']) ? $context['lang'] : "";
 		$debug = isset($context['debug']) ? $context['debug'] : "";
@@ -55,7 +56,7 @@ class pdfgen extends Plugins {
 		$cache_key = md5($article_url);
                 $cache_file = $cache_path . DIRECTORY_SEPARATOR . $cache_key;
 
-		if ( ! file_exists( $cache_file ) || filemtime( $cache_file ) < strtotime($document->upd)) {
+		if ( $clearcache || ! file_exists( $cache_file ) || filemtime( $cache_file ) < strtotime($document->upd)) {
 
 			$client = new Client($this->_config['gotenberg_url']['value']);
 			$request = new URLRequest($article_url);
