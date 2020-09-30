@@ -263,12 +263,8 @@
  */
 <DEFMACRO NAME="PDFGEN_TOP">
   <div class="site flex">
-    <!--[ Logo de la revue à renseigner dans les options du plugin ]-->
-    <IF COND="[#PDF_SITELOGO]">
-      <div class="col-0">
-        <img class="site__logo" src="[#PDF_SITELOGO]" />
-      </div>
-    </IF>
+    <!--[ Logo de la revue. Le chemin est : tpl/pdf_logo.png ]-->
+    <img class="site__logo" src="tpl/pdf_logo.png" alt="" onerror="this.remove()" />
 
     <div class="col">
       <!--[ Titre de la revue ]-->
