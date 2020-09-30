@@ -2,8 +2,8 @@
 
 /**
  * Macro principale du générateur de PDF.
- * Initialisation puis routage vers le bon template (pour l'instant support des textes uniquement).
- * Utilisation : ?page=pdfgen&document=999
+ * Initialisation puis routage vers le bon template (support des textes uniquement).
+ * Utilisation : ./?do=_pdfgen_view&document=999
  */
 <DEFMACRO NAME="PDFGEN_MAIN">
 
@@ -52,6 +52,7 @@
   <head>
     <meta charset="utf-8">
     <title>pdfgen (document [#DOCUMENT]) – [#OPTIONS.METADONNEESSITE.TITRESITE]</title>
+    <MACRO NAME="PDFGEN_DEBUG_MODE" />
     <MACRO NAME="PDFGEN_HTML_STYLES"/>
   </head>
   <body>
@@ -67,28 +68,53 @@
 </DEFMACRO>
 
 /**
+ * Afficher les message de la console sur la page quand debug=1.
+ */
+<DEFMACRO NAME="PDFGEN_DEBUG_MODE">
+  <IF COND="[#DEBUG]">
+    <pre id="log-container" style="background-color: #eee; padding: 10px;">Console:</pre>
+    
+    <script>
+      window.onerror = function (msg, url, lineNo, columnNo, error) {
+        console.error(msg + " (" + url + " " + lineNo + ":" + columnNo + ")");
+        return false;
+      }
+
+      var pre = document.getElementById("log-container");
+
+      var getLogFunc = function (level) {
+        var defaultFunc = console[level].bind(console);
+        return function () {
+          defaultFunc.apply(console, arguments);
+          var msg = Array.from(arguments).join(" ");
+          pre.textContent = pre.textContent + "\n[" + level + "] " + msg;
+        };
+      }
+
+      console.log = getLogFunc("log");
+      console.error = getLogFunc("error");
+      console.warn = getLogFunc("warn");
+      console.debug = getLogFunc("debug");
+    </script>
+  </IF>
+</DEFMACRO>
+
+/**
  * Styles CSS.
  */
 <DEFMACRO NAME="PDFGEN_HTML_STYLES">
-  <!--[ TODO: organiser en plugin lodel sur le modele de checklist : 
-    <link rel="stylesheet" href="[#SHAREDIR]/plugins/custom/checklist/public/css/checklist-lodel.css"> ]-->
-
   <!-- normalize.css -->
-  <link rel="stylesheet" href="tpl/pdfgen/vendor/normalize.css/normalize.css">
+  <link rel="stylesheet" href="[#SHAREDIR]/plugins/custom/pdfgen/public/vendor/normalize.css/normalize.css">
 
   <!-- Styles du PDF -->
-  <link rel="stylesheet" href="tpl/pdfgen/pdfgen.css">
-
-  <!-- TODO: ajouter une possibilité de surcharge -->
+  <link rel="stylesheet" href="[#SHAREDIR]/plugins/custom/pdfgen/public/css/pdfgen.css">
 </DEFMACRO>
 
 /**
  * Scripts JavaScript.
  */
 <DEFMACRO NAME="PDFGEN_HTML_SCRIPTS">
-  <!--[ TODO: organiser en plugin lodel sur le modele de checklist : 
-      <script src="[#SHAREDIR]/plugins/custom/checklist/node_modules/jquery/dist/jquery.min.js"></script> ]-->
-  <script>    
+  <script>
     function runPagedjs() {
       window.PagedPolyfill.preview();
     }
@@ -147,8 +173,8 @@
     };
   </script>
 
-  <script src="tpl/pdfgen/vendor/hyphenopoly-4.7.0/Hyphenopoly_Loader.js"></script>
-  <script src="tpl/pdfgen/vendor/pagedjs-0.1.42/paged.polyfill.js"></script>
+  <script src="[#SHAREDIR]/plugins/custom/pdfgen/public/vendor/hyphenopoly-4.7.0/Hyphenopoly_Loader.js"></script>
+  <script src="[#SHAREDIR]/plugins/custom/pdfgen/public/vendor/pagedjs-0.1.42/paged.polyfill.js"></script>
 </DEFMACRO>
 
 /**
@@ -170,8 +196,8 @@
       <MACRO NAME="PDFGEN_ARTICLE_ANNEXE" />
       <MACRO NAME="PDFGEN_ARTICLE_NOTESBASPAGE" />
       <MACRO NAME="PDFGEN_ARTICLE_NOTEFIN" />
-      <FUNC NAME="PDFGEN_ARTICLE_DESCRIPTION_PERSONNES" TYPE="auteur" SECTION_ID="authors-infos" />
-      <FUNC NAME="PDFGEN_ARTICLE_DESCRIPTION_PERSONNES" TYPE="traducteur" SECTION_ID="translators-infos" />
+      <FUNC NAME="PDFGEN_ARTICLE_DESCRIPTION_PERSONNES" TYPE="auteur" />
+      <FUNC NAME="PDFGEN_ARTICLE_DESCRIPTION_PERSONNES" TYPE="traducteur" />
     <ELSE />
       <p>[@AVERTISSEMENT_TEXTE_INTEGRAL] [#DATEPUBLI|formateddate('%B %Y')].</p>
     </IF>
@@ -237,12 +263,12 @@
  */
 <DEFMACRO NAME="PDFGEN_TOP">
   <div class="site flex">
-    <div class="col-0">
-      <!--[ Logo de la revue
-            Par défaut le chemin est : tpl/pdf_logo.png 
-            TODO: ajouter une option de plugin pour personnaliser le chemin. ]-->
-      <img class="site__logo" src="tpl/pdf_logo.png" alt="" />
-    </div>
+    <!--[ Logo de la revue à renseigner dans les options du plugin ]-->
+    <IF COND="[#PDF_SITELOGO]">
+      <div class="col-0">
+        <img class="site__logo" src="[#PDF_SITELOGO]" />
+      </div>
+    </IF>
 
     <div class="col">
       <!--[ Titre de la revue ]-->
@@ -653,13 +679,12 @@
 /**
  * Section description des auteurs, traducteurs.
  * @param {string} type - Type de personne.
- * @param {string} section_id - Id de la section.
  */
-<DEFFUNC NAME="PDFGEN_ARTICLE_DESCRIPTION_PERSONNES" REQUIRED="type, section_id">
+<DEFFUNC NAME="PDFGEN_ARTICLE_DESCRIPTION_PERSONNES" REQUIRED="type">
   <LOOP NAME="pdfgen_article_description_personnes" 
     SELECT="persons.id" 
     TABLE="relations, persons" 
-    WHERE="id1 = '[%ID]' AND id2 = persons.id AND nature = 'G' AND type = '[#TYPE]'"
+    WHERE="id1 = '[#DOCUMENT]' AND id2 = persons.id AND nature = 'G' AND type = '[#TYPE]'"
     ORDER="degree">
     
     <BEFORE>
@@ -677,9 +702,9 @@
       <LOOP NAME="pdfgen_article_description_personnes_auteur" 
         SELECT="idperson, nomfamille, prenom, description, courriel" 
         TABLE="auteurs" 
-        WHERE="id = '[#ID]' AND iddocument='[%ID]'">
+        WHERE="id = '[#ID]' AND iddocument='[#DOCUMENT]'">
 
-        <h3 class="article__persons-infos-identity">
+        <h3 class="section-header--small article__persons-infos-identity">
           <a href="[#IDPERSON|makeurlwithid]">[#PRENOM] <span class="family-name">[#NOMFAMILLE]</span></a>
         </h3>
         <IF COND="[#DESCRIPTION]">
