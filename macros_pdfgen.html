@@ -659,7 +659,7 @@
   <LOOP NAME="pdfgen_article_description_personnes" 
     SELECT="persons.id" 
     TABLE="relations, persons" 
-    WHERE="id1 = '[#DOCUMENT]' AND id2 = persons.id AND nature = 'G' AND type = '[#TYPE]'"
+    WHERE="id1 = '[%ID]' AND id2 = persons.id AND nature = 'G' AND type = '[#TYPE]'"
     ORDER="degree">
     
     <BEFORE>
@@ -677,9 +677,9 @@
       <LOOP NAME="pdfgen_article_description_personnes_auteur" 
         SELECT="idperson, nomfamille, prenom, description, courriel" 
         TABLE="auteurs" 
-        WHERE="id = '[#ID]' AND iddocument='[#DOCUMENT]'">
+        WHERE="id = '[#ID]' AND iddocument='[%ID]'">
 
-        <h3 class="article__persons-infos-identity section-header--small">
+        <h3 class="article__persons-infos-identity">
           <a href="[#IDPERSON|makeurlwithid]">[#PRENOM] <span class="family-name">[#NOMFAMILLE]</span></a>
         </h3>
         <IF COND="[#DESCRIPTION]">
