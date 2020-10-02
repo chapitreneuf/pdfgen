@@ -208,6 +208,14 @@
  * Initialisation de la page article.
  */
 <DEFMACRO NAME="PDFGEN_ARTICLE_INIT">
+  <!--[ Prefixe DOI ]-->
+	<!--[ Par défaut on utilise le champ des options [#OPTIONS.EXTRA.DOI_PREFIXE] ]-->
+	<IF COND="[#OPTIONS.EXTRA.DOI_PREFIXE]">
+		<LET VAR="prefixedoi" GLOBAL="1">[#OPTIONS.EXTRA.DOI_PREFIXE]</LET>
+	<ELSE/> <!--[ Retrocompatibilité Nova 1.2 ]-->
+		<LET VAR="prefixedoi" GLOBAL="1">[#OPTIONS.NOVA.PREFIXEDOI]</LET>
+	</IF>
+
   <!--[ Détecter les entrées d'index et créer une globale %HASENTRIES ]-->
   <LOOP NAME="hasentries" TABLE="relations, entries, entrytypes" SELECT="COUNT(entries.id)" WHERE="nature = 'E' AND id1 = [#ID] AND id2 = entries.id AND class != 'indexavances'">
     <IF COND="[#NBRESULTATS] GT 0">
@@ -235,25 +243,30 @@
     <!--[ Header article ]-->
     <MACRO NAME="PDFGEN_ARTICLE_HEADER" />
 
-    <!--[ URL ]-->
-    <p class="front__url">[#SITEINFOS.URL]/[#ID|makeurlwithid]</p>
+    <div class="front__section">
+      <!--[ URL ]-->
+      <p class="front__url">[#SITEINFOS.URL]/[#ID|makeurlwithid]</p>
 
-    <!--[ DOI ]-->
-    <!--[ FIXME: ne peut pas fonctionner, car dépend de macros_custom.html qui n'existe pas forcément (dépend de la maquette) ]-->
-    <IF COND="[%PREFIXEDOI] AND [#TYPE] EQ 'article'">
-      <p class="article__doi">DOI&nbsp;: [%PREFIXEDOI][#ID]</p>
-    </IF>
+      <!--[ DOI ]-->
+      <IF COND="[%PREFIXEDOI] AND [#TYPE] EQ 'article'">
+        <p class="article__doi"><strong>DOI&nbsp;:</strong> [%PREFIXEDOI][#ID]</p>
+      </IF>
+    </div>
 
     <!--[ Pour citer ]-->
-    <h2 class="section-header--small">[@REFERENCE_ELECTRONIQUE]</h3>
-    <p class="article__reference">
-      <MACRO NAME="PDFGEN_ARTICLE_REFERENCE_ELECTRONIQUE" />
-    </p>
+    <div class="front__section">
+      <h2 class="section-header--small">[@REFERENCE_ELECTRONIQUE]</h3>
+      <p class="article__reference">
+        <MACRO NAME="PDFGEN_ARTICLE_REFERENCE_ELECTRONIQUE" />
+      </p>
+    </div>
 
     <!--[ Droits d'auteur ]-->
     <IF COND="[#OPTIONS.METADONNEESSITE.DROITSAUTEUR]">
-      <h2 class="section-header--small">[@LICENCE]</h3>
-      <p class="article__licence">[#OPTIONS.METADONNEESSITE.DROITSAUTEUR]</p>
+      <div class="front__section">
+        <h2 class="section-header--small">[@LICENCE]</h3>
+        <p class="article__licence">[#OPTIONS.METADONNEESSITE.DROITSAUTEUR]</p>
+      </div>
     </IF>
   </section>
 </DEFMACRO>
