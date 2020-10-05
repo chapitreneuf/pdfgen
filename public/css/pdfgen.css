@@ -6,15 +6,18 @@
 
 @page {
   size: A4;
-  margin: 15mm 30mm;
+  margin: 30mm 30mm 15mm 30mm;
 
-  @top-center {
-    content: string(title)
+  @top-left {
+    content: string(title);
+    color: var(--color-grey-medium);
+    font-family: var(--font-ui);
+    font-size: 0.8em;
   }
 }
 
 @page:blank {
-  @top-center { 
+  @top-left { 
     content: none; 
   }
 }
@@ -24,7 +27,9 @@
 }
 
 @page frontLayout {
-  @top-center { 
+  margin: 15mm 30mm 15mm 30mm;
+
+  @top-left { 
     content: none; 
   }
 }
@@ -34,7 +39,9 @@
 }
 
 @page mainLayout:first {
-  @top-center { 
+  margin: 15mm 30mm 15mm 30mm;
+
+  @top-left { 
     content: none; 
   }
 }
