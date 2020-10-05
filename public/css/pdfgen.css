@@ -81,6 +81,7 @@ a.displayHref:after {
 h1, h2, h3, h4, h5, h6, .section-header, .section-header--small {
   line-height: 125%;
   break-after: avoid;
+  break-inside: avoid;
 }
 
 h1 a, h2 a, h3 a, h4 a, h5 a, h6 a {
@@ -280,8 +281,7 @@ sup, sub, .footnotecall, .FootnoteSymbol {
   position: relative;
 }
 
-/* Fix pour l'impression avec Firefox */
-.article__text-contents > :not(table) {
+.article__text-contents > :not(table):not(.groupe-illustration):not(.titreillustration):not(.imageillustration):not(.legendeillustration):not(.creditillustration) {
   position: relative;
   padding-left: 3rem;
   margin-top: .7rem;
@@ -466,6 +466,7 @@ td {
 .titreillustration, .legendeillustration, .creditillustration {
   font-family: var(--font-ui);
   margin: .5rem 0;
+  break-inside: avoid;
 }
 
 .titreillustration {
@@ -476,12 +477,12 @@ td {
 }
 
 .imageillustration, table {
-  margin-bottom: 2.5rem;;
+  margin-bottom: 2.5rem;
 }
 
 .legendeillustration, .creditillustration {
   line-height: 130%;
-  font-size: 1rem;
+  font-size: .9rem;
   margin: -2rem 0 2rem;
 }
 
