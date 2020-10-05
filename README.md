@@ -6,6 +6,21 @@ TODO
 
 Le générateur de PDF utilise [les variables de traduction de la maquette Nova](https://github.com/edinum/nova/tree/master/translations). Pour utiliser le générateur avec tout autre maquette il faudra manuellement ajouter ces variables au site via le menu "Administrer les traductions du site" du panneau d'administration de Lodel.
 
+## Utilisation dans les templates
+
+Quand le plugin est actif et configuré, on peut récupérer le lien vers le PDF automatique dans les templates avec la variable LodelScript `[#PDFGEN_URL]`.
+
+```html
+	<!--[ Si un PDF fac-similé est lié à l'article, on pointe vers ce fichier ]-->
+	<IF COND="[#ALTERFICHIER]">
+		<a role="button" href="[#ID|makeurlwithid]?file=1">Télécharger le PDF</a>
+
+	<!--[ Sinon on vérifie que le générateur est actif et si oui on pointe vers le PDF automatique ]-->
+	<ELSEIF COND="[#PDFGEN_URL]" />
+		<a role="button" href="[#PDFGEN_URL]">Télécharger le PDF</a>
+	</IF>
+```
+
 ## FAQ
 
 ### Ajouter un logo en haut de page

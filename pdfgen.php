@@ -21,6 +21,11 @@ class pdfgen extends Plugins {
 	}
 
 	public function preview (&$context)	{
+		// Set [#PDFGEN_URL] if pdfgen is ready
+		if ($this->_config['gotenberg_url']) {
+			C::set('pdfgen_url', "${context['siteurl']}/?do=_pdfgen_get&document=${context['id']}&lang=${context['sitelang']}");
+		}
+
 		if ($context['view']['tpl'] != 'pdfgen') return;
 		C::set('view.base_rep.pdfgen', 'pdfgen');
 
