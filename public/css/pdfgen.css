@@ -7,6 +7,40 @@
 @page {
   size: A4;
   margin: 15mm 30mm;
+
+  @top-center {
+    content: string(title)
+  }
+}
+
+@page:blank {
+  @top-center { 
+    content: none; 
+  }
+}
+
+.front {
+  page: frontLayout;
+}
+
+@page frontLayout {
+  @top-center { 
+    content: none; 
+  }
+}
+
+.main {
+  page: mainLayout;
+}
+
+@page mainLayout:first {
+  @top-center { 
+    content: none; 
+  }
+}
+
+.article__title {
+  string-set: title content(text);
 }
 
 /* STANDARD ELEMENTS */
