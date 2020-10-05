@@ -13,7 +13,7 @@ Quand le plugin est actif et configuré, on peut récupérer le lien vers le PDF
 ```html
 	<!--[ Si un PDF fac-similé est lié à l'article, on pointe vers ce fichier ]-->
 	<IF COND="[#ALTERFICHIER]">
-		<a role="button" href="[#ID|makeurlwithid]?file=1">Télécharger le PDF</a>
+		<a role="button" href="[#ID|makeurlwithid|query_string('file', '1')]">Télécharger le PDF</a>
 
 	<!--[ Sinon on vérifie que le générateur est actif et si oui on pointe vers le PDF automatique ]-->
 	<ELSEIF COND="[#PDFGEN_URL]" />
