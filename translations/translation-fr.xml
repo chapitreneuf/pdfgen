@@ -1,0 +1,43 @@
+<lodeltranslations>
+<translations>
+<row><lang>fr</lang>
+<title>Français</title>
+<textgroups>site</textgroups>
+<translators>Thomas Brouard</translators>
+<modificationdate>0000-00-00</modificationdate>
+<creationdate>0000-00-00</creationdate>
+<texts>
+<contents name="pdfgen_and" textgroup="site" status="2">et</contents>
+<contents name="pdfgen_annexe" textgroup="site" status="2">Annexe</contents>
+<contents name="pdfgen_auteur" textgroup="site" status="2">Auteur</contents>
+<contents name="pdfgen_auteurs" textgroup="site" status="2">Auteurs</contents>
+<contents name="pdfgen_avertissement_texte_integral" textgroup="site" status="2">Ce document sera publié en ligne en texte intégral en</contents>
+<contents name="pdfgen_bibliographie" textgroup="site" status="2">Bibliographie</contents>
+<contents name="pdfgen_consulte_le" textgroup="site" status="2">consulté le</contents>
+<contents name="pdfgen_dedicace" textgroup="site" status="2">Dédicace</contents>
+<contents name="pdfgen_document" textgroup="site" status="2">Document</contents>
+<contents name="pdfgen_en_ligne" textgroup="site" status="2">En ligne</contents>
+<contents name="pdfgen_errata" textgroup="site" status="2">Errata</contents>
+<contents name="pdfgen_index" textgroup="site" status="2">Index</contents>
+<contents name="pdfgen_licence" textgroup="site" status="2">Droits d'auteur</contents>
+<contents name="pdfgen_mis_en_ligne_le" textgroup="site" status="2">mis en ligne le</contents>
+<contents name="pdfgen_ndla" textgroup="site" status="2">Notes de l’auteur</contents>
+<contents name="pdfgen_ndlr" textgroup="site" status="2">Notes de la rédaction</contents>
+<contents name="pdfgen_notefin" textgroup="site" status="2">Note de fin</contents>
+<contents name="pdfgen_notes" textgroup="site" status="2">Notes</contents>
+<contents name="pdfgen_publisher" textgroup="site" status="2">Éditeur</contents>
+<contents name="pdfgen_reference_electronique" textgroup="site" status="2">Référence électronique</contents>
+<contents name="pdfgen_reference_oeuvre" textgroup="site" status="2">Référence(s) :</contents>
+<contents name="pdfgen_resume" textgroup="site" status="2">Résumé</contents>
+<contents name="pdfgen_resumes" textgroup="site" status="2">Résumés</contents>
+<contents name="pdfgen_texte" textgroup="site" status="2">Texte</contents>
+<contents name="pdfgen_texte_extrait" textgroup="site" status="2">Extrait</contents>
+<contents name="pdfgen_texte_integral" textgroup="site" status="2">Texte</contents>
+<contents name="pdfgen_toc" textgroup="site" status="2">Plan</contents>
+<contents name="pdfgen_traducteur" textgroup="site" status="2">Traducteur</contents>
+<contents name="pdfgen_traducteurs" textgroup="site" status="2">Traducteurs</contents>
+<contents name="pdfgen_traduction_de" textgroup="site" status="2">Traduction de</contents>
+</texts>
+</row>
+</translations>
+</lodeltranslations>

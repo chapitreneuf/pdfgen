@@ -4,7 +4,7 @@
 
 TODO
 
-Le générateur de PDF utilise [les variables de traduction de la maquette Nova](https://github.com/edinum/nova/tree/master/translations). Pour utiliser le générateur avec tout autre maquette il faudra manuellement ajouter ces variables au site via le menu "Administrer les traductions du site" du panneau d'administration de Lodel.
+* Variables de traduction : importer les fichiers `translations/translation-xx.xml` fournis dans ce dépôt via le panneau d'administration du site.
 
 ## Utilisation dans les templates
 

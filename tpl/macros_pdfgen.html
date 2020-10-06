@@ -196,7 +196,7 @@
         <MACRO NAME="PDFGEN_ARTICLE_NOTESBASPAGE" />
         <MACRO NAME="PDFGEN_ARTICLE_NOTEFIN" />
       <ELSE />
-        <p>[@AVERTISSEMENT_TEXTE_INTEGRAL] [#DATEPUBLI|formateddate('%B %Y')].</p>
+        <p>[@PDFGEN_AVERTISSEMENT_TEXTE_INTEGRAL] [#DATEPUBLI|formateddate('%B %Y')].</p>
       </IF>
       <MACRO NAME="PDFGEN_ARTICLE_RESUMES" />
       <MACRO NAME="PDFGEN_ARTICLE_MOTSCLES" />
@@ -257,7 +257,7 @@
 
     <!--[ Pour citer ]-->
     <div class="front__section">
-      <h2 class="section-header--small">[@REFERENCE_ELECTRONIQUE]</h3>
+      <h2 class="section-header--small">[@PDFGEN_REFERENCE_ELECTRONIQUE]</h3>
       <p class="article__reference">
         <MACRO NAME="PDFGEN_ARTICLE_REFERENCE_ELECTRONIQUE" />
       </p>
@@ -266,7 +266,7 @@
     <!--[ Droits d'auteur ]-->
     <IF COND="[#OPTIONS.METADONNEESSITE.DROITSAUTEUR]">
       <div class="front__section">
-        <h2 class="section-header--small">[@LICENCE]</h3>
+        <h2 class="section-header--small">[@PDFGEN_LICENCE]</h3>
         <p class="article__licence">[#OPTIONS.METADONNEESSITE.DROITSAUTEUR]</p>
       </div>
     </IF>
@@ -296,7 +296,7 @@
       
       <!--[ Editeur ]-->
       <IF COND="[#OPTIONS.METADONNEESSITE.EDITEUR]">
-        <p class="site__publisher">[@PUBLISHER]&nbsp;: [#OPTIONS.METADONNEESSITE.EDITEUR]</p>
+        <p class="site__publisher">[@PDFGEN_PUBLISHER]&nbsp;: [#OPTIONS.METADONNEESSITE.EDITEUR]</p>
       </IF>
 
       <!--[ Numéro parent ]-->
@@ -357,7 +357,7 @@
     <FUNC NAME="PDFGEN_LISTER_PERSONNES" TYPE="auteur" WRAP_ID="article-author" WRAP_CLASS="article__author"/>
 
     <!--[ Traducteurs ]-->
-    <FUNC NAME="PDFGEN_LISTER_PERSONNES" TYPE="traducteur" WRAP_ID="article-translator" WRAP_CLASS="article__translator" PREPEND="[@TRADUCTION_DE] "/>
+    <FUNC NAME="PDFGEN_LISTER_PERSONNES" TYPE="traducteur" WRAP_ID="article-translator" WRAP_CLASS="article__translator" PREPEND="[@PDFGEN_TRADUCTION_DE] "/>
   </header>
 </DEFMACRO>
 
@@ -365,7 +365,7 @@
  * Référence électronique.
  */
 <DEFMACRO NAME="PDFGEN_ARTICLE_REFERENCE_ELECTRONIQUE">
-  [%LISTE_AUTEURS]«&nbsp;[#TITRE|removenotes]&nbsp;», <FUNC NAME="PDFGEN_PARU_DANS" CITATION="1" /><IF COND="[#NUMERODOCUMENT]">, [@DOCUMENT|strtolower] [#NUMERODOCUMENT]</IF>, [@MIS_EN_LIGNE_LE] [#DATEPUBLI|humandate], [@CONSULTE_LE] <?php echo strftime('%d %B %Y');?>. URL&nbsp;: [#SITEINFOS.URL]/[#ID|makeurlwithid]
+  [%LISTE_AUTEURS]«&nbsp;[#TITRE|removenotes]&nbsp;», <FUNC NAME="PDFGEN_PARU_DANS" CITATION="1" /><IF COND="[#NUMERODOCUMENT]">, [@PDFGEN_DOCUMENT|strtolower] [#NUMERODOCUMENT]</IF>, [@PDFGEN_MIS_EN_LIGNE_LE] [#DATEPUBLI|humandate], [@PDFGEN_CONSULTE_LE] <?php echo strftime('%d %B %Y');?>. URL&nbsp;: [#SITEINFOS.URL]/[#ID|makeurlwithid]
 </DEFMACRO>
 
 /**
@@ -374,7 +374,7 @@
 <DEFMACRO NAME="PDFGEN_ARTICLE_NOTICEBIBLIOOEUVRE">
   <!--[ Notice biblio ]-->
   <IF COND="[#NOTICEBIBLIOOEUVRE]">
-    <h2 class="section-header">[@REFERENCE_OEUVRE]</h2>
+    <h2 class="section-header">[@PDFGEN_REFERENCE_OEUVRE]</h2>
     <div class="article__oeuvre">
       [#NOTICEBIBLIOOEUVRE|cleanCallNotes]
     </div>
@@ -388,9 +388,9 @@
   <IF COND="[#RESUME]">
     <section class="article__abstract">
       <IF COND="[#RESUME|substr_count('<r2r:ml')] GT 1">
-        <h2 class="section-header">[@RESUMES]</h2>
+        <h2 class="section-header">[@PDFGEN_RESUMES]</h2>
       <ELSE />
-        <h2 class="section-header">[@RESUME]</h2>
+        <h2 class="section-header">[@PDFGEN_RESUME]</h2>
       </IF>
 
       <div class="article__abstract-contents">
@@ -426,7 +426,7 @@
 
         <BEFORE>
           <div class="article__entries-title">
-            <h2 class="section-header">[@INDEX]</h2>
+            <h2 class="section-header">[@PDFGEN_INDEX]</h2>
           </div>
           <div class="article__entries-content">
         </BEFORE>
@@ -471,7 +471,7 @@
     <LOOP NAME="toc" TEXT="[#TEXTE]">
       <BEFORE>
         <section class="article__toc">
-          <h2 class="section-header">[@TOC]</h2>
+          <h2 class="section-header">[@PDFGEN_TOC]</h2>
           <div class="article__toc-contents">
             <ul>
       </BEFORE>
@@ -517,7 +517,7 @@
   <!--[ Errata ]-->
   <IF COND="[#ADDENDUM]">
     <section class="article__errata">
-      <h2 class="section-header">[@ERRATA]</h2>
+      <h2 class="section-header">[@PDFGEN_ERRATA]</h2>
       <div class="article__errata-contents">
         [#ADDENDUM|cleanCallNotes|tocss]
       </div>
@@ -527,7 +527,7 @@
   <!--[ Dédicace ]-->
   <IF COND="[#DEDICACE]">
     <section class="article__dedication">
-      <h2 class="section-header">[@DEDICACE]</h2>
+      <h2 class="section-header">[@PDFGEN_DEDICACE]</h2>
       <div class="article__dedication-contents">
         [#DEDICACE|cleanCallNotes|tocss]
       </div>
@@ -537,7 +537,7 @@
   <!--[ NDLR ]-->
   <IF COND="[#NDLR]">
     <section class="article__ndlr">
-      <h2 class="section-header">[@NDLR]</h2>
+      <h2 class="section-header">[@PDFGEN_NDLR]</h2>
       <div class="article__ndlr-contents">
         [#NDLR|cleanCallNotes|tocss]
       </div>
@@ -547,7 +547,7 @@
   <!--[ NDLA ]-->
   <IF COND="[#NDLA]">
     <section class="article__ndla">
-      <h2 class="section-header">[@NDLA]</h2>
+      <h2 class="section-header">[@PDFGEN_NDLA]</h2>
       <div class="article__ndla-contents">
         [#NDLA|cleanCallNotes|tocss]
       </div>
@@ -562,11 +562,11 @@
   <IF COND="[#TEXTE]">
     <section class="article__text">
       <IF COND="[#TYPE] EQ 'informations' OR [#TYPE] EQ 'actualite'">
-        <LET VAR="text_section_title">[@TEXTE]</LET>
+        <LET VAR="text_section_title">[@PDFGEN_TEXTE]</LET>
       <ELSEIF COND="[#TEXTE_ACCESSIBLE]" />
-        <LET VAR="text_section_title">[@TEXTE_INTEGRAL]</LET>
+        <LET VAR="text_section_title">[@PDFGEN_TEXTE_INTEGRAL]</LET>
       <ELSE />
-        <LET VAR="text_section_title">[@TEXTE_EXTRAIT]</LET>
+        <LET VAR="text_section_title">[@PDFGEN_TEXTE_EXTRAIT]</LET>
       </IF>
       <h2 class="section-header">[#TEXT_SECTION_TITLE]</h2>
 
@@ -640,7 +640,7 @@
 <DEFMACRO NAME="PDFGEN_ARTICLE_BIBLIOGRAPHIE">
   <IF COND="[#BIBLIOGRAPHIE] AND [#TEXTE_ACCESSIBLE]">
     <section class="article__biblio">
-      <h2 class="section-header">[@BIBLIOGRAPHIE]</h2>
+      <h2 class="section-header">[@PDFGEN_BIBLIOGRAPHIE]</h2>
       <div class="article__biblio-contents">
         [(#BIBLIOGRAPHIE|cleanCallNotes|tocss('heading')|illustrations(800, 'bibliographie')|media)]
       </div>
@@ -655,7 +655,7 @@
   <!--[ Annexe ]-->
   <IF COND="[#ANNEXE] AND [#TEXTE_ACCESSIBLE]">
     <section class="article__appendix">
-      <h2 class="section-header">[@ANNEXE]</h2>
+      <h2 class="section-header">[@PDFGEN_ANNEXE]</h2>
       <div class="article__appendix-contents hyphenate" lang="[#LANGUE]">
         [#ANNEXE|cleanCallNotes|tocss('heading')|illustrations(800, 'annexe')|media]
       </div>
@@ -669,7 +669,7 @@
 <DEFMACRO NAME="PDFGEN_ARTICLE_NOTESBASPAGE">
   <IF COND="[#NOTESBASPAGE] AND [#TEXTE_ACCESSIBLE]">
     <section class="article__footnotes">
-      <h2 class="section-header">[@NOTES]</h2>
+      <h2 class="section-header">[@PDFGEN_NOTES]</h2>
       <div class="article__footnotes-contents hyphenate" lang="[#LANGUE]" xml:lang="[#LANGUE]">
         [#NOTESBASPAGE]
       </div>
@@ -683,7 +683,7 @@
 <DEFMACRO NAME="PDFGEN_ARTICLE_NOTEFIN">
   <IF COND="[#NOTEFIN] AND [#TEXTE_ACCESSIBLE]">
     <section class="article__endnotes">
-      <h2 class="section-header">[@NOTEFIN]</h2>
+      <h2 class="section-header">[@PDFGEN_NOTEFIN]</h2>
       <div class="article__endnotes-contents hyphenate" lang="[#LANGUE]" xml:lang="[#LANGUE]">
         [#NOTEFIN]
       </div>
@@ -705,9 +705,9 @@
     <BEFORE>
       <section class="article__persons-infos">
         <IF COND="[#TYPE] EQ 'traducteur'">
-          <LET VAR="TITRE_SECTION"><IF COND="[#NBRESULTATS] GT 1">[@TRADUCTEURS]<ELSE/>[@TRADUCTEUR]</IF></LET>
+          <LET VAR="TITRE_SECTION"><IF COND="[#NBRESULTATS] GT 1">[@PDFGEN_TRADUCTEURS]<ELSE/>[@PDFGEN_TRADUCTEUR]</IF></LET>
         <ELSE />
-          <LET VAR="TITRE_SECTION"><IF COND="[#NBRESULTATS] GT 1">[@AUTEURS]<ELSE/>[@AUTEUR]</IF></LET>
+          <LET VAR="TITRE_SECTION"><IF COND="[#NBRESULTATS] GT 1">[@PDFGEN_AUTEURS]<ELSE/>[@PDFGEN_AUTEUR]</IF></LET>
         </IF>
         <h2 class="section-header">[#TITRE_SECTION]</h2>
         <div class="article__persons-infos-contents">
@@ -771,7 +771,7 @@
       <span<IF COND="[#G_FIRSTNAME|text_is_rtl]"> dir="rtl"</IF>>[#LIEN_DEBUT][#G_FIRSTNAME] <span class="family-name">[#G_FAMILYNAME]</span>[#LIEN_FIN]</span>
     </DOFIRST>
     <DO>, <span<IF COND="[#G_FIRSTNAME|text_is_rtl]"> dir="rtl"</IF>>[#LIEN_DEBUT][#G_FIRSTNAME] <span class="family-name">[#G_FAMILYNAME]</span>[#LIEN_FIN]</span></DO>
-    <DOLAST> [@AND] <span<IF COND="[#G_FIRSTNAME|text_is_rtl]"> dir="rtl"</IF>>[#LIEN_DEBUT][#G_FIRSTNAME] <span class="family-name">[#G_FAMILYNAME]</span>[#LIEN_FIN]</span></DOLAST>
+    <DOLAST> [@PDFGEN_AND] <span<IF COND="[#G_FIRSTNAME|text_is_rtl]"> dir="rtl"</IF>>[#LIEN_DEBUT][#G_FIRSTNAME] <span class="family-name">[#G_FAMILYNAME]</span>[#LIEN_FIN]</span></DOLAST>
     <AFTER>
       [#APPEND]
       <IF COND="[#WRAP_ID] OR [#WRAP_CLASS]">
@@ -789,7 +789,7 @@
 */
 <DEFFUNC NAME="PDFGEN_PARU_DANS" OPTIONAL="citation">
   <em>[#OPTIONS.METADONNEESSITE.TITRESITE]</em>
-  <IF COND="[#CITATION]"> [[@EN_LIGNE]]</IF>
+  <IF COND="[#CITATION]"> [[@PDFGEN_EN_LIGNE]]</IF>
 
   <LOOP NAME="pdfgen_paru_dans" TABLE="relations, publications" SELECT="id,titre,numero,datepublipapier,datepubli,periode"
     WHERE="id2 = '[#ID]' AND type IN ('numero', 'rubrique') AND nature = 'P' AND id1 = publications.identity"
