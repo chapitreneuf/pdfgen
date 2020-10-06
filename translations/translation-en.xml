@@ -7,36 +7,36 @@
 <modificationdate>0000-00-00</modificationdate>
 <creationdate>0000-00-00</creationdate>
 <texts>
-<contents name="pdfgen_and" textgroup="site" status="2">and</contents>
-<contents name="pdfgen_annexe" textgroup="site" status="2">Appendix</contents>
-<contents name="pdfgen_auteur" textgroup="site" status="2">Author</contents>
-<contents name="pdfgen_auteurs" textgroup="site" status="2">Authors</contents>
-<contents name="pdfgen_avertissement_texte_integral" textgroup="site" status="2">Full text document will be published online on</contents>
-<contents name="pdfgen_bibliographie" textgroup="site" status="2">Bibliography</contents>
-<contents name="pdfgen_consulte_le" textgroup="site" status="2">connection on</contents>
-<contents name="pdfgen_dedicace" textgroup="site" status="2">Dedication</contents>
-<contents name="pdfgen_document" textgroup="site" status="2">Document</contents>
-<contents name="pdfgen_en_ligne" textgroup="site" status="2">Online</contents>
-<contents name="pdfgen_errata" textgroup="site" status="2">Errata</contents>
-<contents name="pdfgen_index" textgroup="site" status="2">Index</contents>
-<contents name="pdfgen_licence" textgroup="site" status="2">Copyright</contents>
-<contents name="pdfgen_mis_en_ligne_le" textgroup="site" status="2">Online since</contents>
-<contents name="pdfgen_ndla" textgroup="site" status="2">Author's notes</contents>
-<contents name="pdfgen_ndlr" textgroup="site" status="2">Editor's notes</contents>
-<contents name="pdfgen_notefin" textgroup="site" status="2">Endnote</contents>
-<contents name="pdfgen_notes" textgroup="site" status="2">Notes</contents>
-<contents name="pdfgen_publisher" textgroup="site" status="2">Publisher</contents>
-<contents name="pdfgen_reference_electronique" textgroup="site" status="2">Electronic reference</contents>
-<contents name="pdfgen_reference_oeuvre" textgroup="site" status="2">Bibliographical reference</contents>
-<contents name="pdfgen_resume" textgroup="site" status="2">Abstract</contents>
-<contents name="pdfgen_resumes" textgroup="site" status="2">Abstracts</contents>
-<contents name="pdfgen_texte" textgroup="site" status="2">Text</contents>
-<contents name="pdfgen_texte_extrait" textgroup="site" status="2">Excerpt</contents>
-<contents name="pdfgen_texte_integral" textgroup="site" status="2">Text</contents>
-<contents name="pdfgen_toc" textgroup="site" status="2">Outline</contents>
-<contents name="pdfgen_traducteur" textgroup="site" status="2">Translator</contents>
-<contents name="pdfgen_traducteurs" textgroup="site" status="2">Translators</contents>
-<contents name="pdfgen_traduction_de" textgroup="site" status="2">Translated by</contents>
+<contents name="and" textgroup="pdfgen" status="2">and</contents>
+<contents name="annexe" textgroup="pdfgen" status="2">Appendix</contents>
+<contents name="auteur" textgroup="pdfgen" status="2">Author</contents>
+<contents name="auteurs" textgroup="pdfgen" status="2">Authors</contents>
+<contents name="avertissement_texte_integral" textgroup="pdfgen" status="2">Full text document will be published online on</contents>
+<contents name="bibliographie" textgroup="pdfgen" status="2">Bibliography</contents>
+<contents name="consulte_le" textgroup="pdfgen" status="2">connection on</contents>
+<contents name="dedicace" textgroup="pdfgen" status="2">Dedication</contents>
+<contents name="document" textgroup="pdfgen" status="2">Document</contents>
+<contents name="en_ligne" textgroup="pdfgen" status="2">Online</contents>
+<contents name="errata" textgroup="pdfgen" status="2">Errata</contents>
+<contents name="index" textgroup="pdfgen" status="2">Index</contents>
+<contents name="licence" textgroup="pdfgen" status="2">Copyright</contents>
+<contents name="mis_en_ligne_le" textgroup="pdfgen" status="2">Online since</contents>
+<contents name="ndla" textgroup="pdfgen" status="2">Author's notes</contents>
+<contents name="ndlr" textgroup="pdfgen" status="2">Editor's notes</contents>
+<contents name="notefin" textgroup="pdfgen" status="2">Endnote</contents>
+<contents name="notes" textgroup="pdfgen" status="2">Notes</contents>
+<contents name="publisher" textgroup="pdfgen" status="2">Publisher</contents>
+<contents name="reference_electronique" textgroup="pdfgen" status="2">Electronic reference</contents>
+<contents name="reference_oeuvre" textgroup="pdfgen" status="2">Bibliographical reference</contents>
+<contents name="resume" textgroup="pdfgen" status="2">Abstract</contents>
+<contents name="resumes" textgroup="pdfgen" status="2">Abstracts</contents>
+<contents name="texte" textgroup="pdfgen" status="2">Text</contents>
+<contents name="texte_extrait" textgroup="pdfgen" status="2">Excerpt</contents>
+<contents name="texte_integral" textgroup="pdfgen" status="2">Text</contents>
+<contents name="toc" textgroup="pdfgen" status="2">Outline</contents>
+<contents name="traducteur" textgroup="pdfgen" status="2">Translator</contents>
+<contents name="traducteurs" textgroup="pdfgen" status="2">Translators</contents>
+<contents name="traduction_de" textgroup="pdfgen" status="2">Translated by</contents>
 </texts>
 </row>
 </translations>
