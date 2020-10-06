@@ -4,7 +4,7 @@
 
 TODO
 
-* Variables de traduction : importer les fichiers `translations/translation-xx.xml` fournis dans ce dépôt via le panneau d'administration du site.
+* Variables de traduction : importer les fichiers `translations/translation-xx.xml` fournis dans ce dépôt **via le panneau d'administration générale de Lodel dont l'URL est de la forme `lodeladmin/index.php?do=list&lo=translations`** (à ne pas confondre avec le panneau d'administration du site). Ainsi les traductions du plugin sont importées une seule fois pour tous les sites.
 
 ## Utilisation dans les templates
 
