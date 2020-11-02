@@ -513,7 +513,6 @@ td {
   columns: 2;
   column-gap: 2rem;
   text-align: justify;
-  word-break: break-all;
 }
 
 .article__biblio-contents p:not(:first-child) {
