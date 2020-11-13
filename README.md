@@ -12,16 +12,21 @@
 
 Seul le fichier `docker-compose.yml` est nécessaire, vous pouvez le mettre où vous le souhaitez.
 Vous pouvez modifier le port exposé, ainsi que les identifiants de connexion au convertisseur dans ce fichier, en modifiant la section `ports` du proxy, ainsi que les variables d'environnement `BASIC_AUTH_USER` et `BASIC_AUTH_PASS`.
-Pour plus d'informations, vous pouvez vous référer à la documentation de [configuration de Docker Compose](https://docs.docker.com/compose/compose-file/).
+Pour plus d'informations, se référer à la documentation de [configuration de Docker Compose](https://docs.docker.com/compose/compose-file/).
 
-Une fois les modifications faites, vous pouvez lancer le service en lançant la commande:
+Une fois les modifications faites, lancer le service avec la commande :
+
 ```bash
 docker-compose up
 ```
 
+### Importer les variables de traduction
+
+Importez les fichiers `translations/translation-xx.xml` fournis dans ce dépôt **via le panneau d'administration générale de Lodel dont l'URL est de la forme `lodeladmin/index.php?do=list&lo=translations`** (à ne pas confondre avec le panneau d'administration du site). Ainsi les traductions du plugin sont importées une seule fois pour tous les sites.
+
 ### Installer le plugin Lodel
 
-Dans le répertoire `share/plugins/custom/` de votre installation, clonez le dépôt:
+Dans le répertoire `share/plugins/custom/` de votre installation, clonez le dépôt :
 
 ```bash
 git clone https://github.com/edinum/pdfgen.git
@@ -29,18 +34,18 @@ git clone https://github.com/edinum/pdfgen.git
 
 Accédez à l'administration des plugins de votre installation lodel (`https://votreinstallation/lodeladmin/index.php?do=list&lo=mainplugins`) et activez le plugin pdfgen.
 
-Et enfin, sur chaque site où vous souhaitez activer le plugin, allez dans l'administration des plugin du site, puis activez le plugin.
-Une fois activé, accédez à la configuration de celui-ci, définissez un logo (Attention, un bug de lodel peut empêcher l'envoi de celui-ci, une PR a été déposée), puis saisissez l'URL du convertisseur, dans le format ci-dessous, en fonction de la configuration que vous avez saisi dans le fichier de configuration de Docker Compose que vous avez défini précédemment
+Enfin sur chaque site où vous souhaitez utiliser le générateur activez le plugin depuis l'administration des plugin du site. Une fois le plugin activé, accédez à sa configuration et saisissez l'URL du convertisseur, dans le format ci-dessous. L'URL doit correspondre à la configuration saisie précédement dans le fichier de configuration de Docker Compose :
+
 ```
 http://login:password@domaine:port
 ```
 
-Dès à présent, vous devriez être capables d'accéder aux PDF de vos articles via une URL du type:
-https://domaine/[#SITENAME]/?do=_pdfgen_get&document=[#ID]&lang=[#LANG]
+Dès à présent, vous devriez être capable d'accéder aux PDF de vos articles via une URL du type :
+`https://domaine/[#SITENAME]/?do=_pdfgen_get&document=[#ID]&lang=[#LANG]`
 
-## Variables de traduction
+### Ajouter un logo en haut de page
 
-* Variables de traduction : importer les fichiers `translations/translation-xx.xml` fournis dans ce dépôt **via le panneau d'administration générale de Lodel dont l'URL est de la forme `lodeladmin/index.php?do=list&lo=translations`** (à ne pas confondre avec le panneau d'administration du site). Ainsi les traductions du plugin sont importées une seule fois pour tous les sites.
+Pour ajouter le logo du site en haut de la page des PDF, insérez une image `pdf_logo.png` dans le dossier `tpl/` du site.
 
 ## Utilisation dans les templates
 
@@ -56,12 +61,6 @@ Quand le plugin est actif et configuré, on peut récupérer le lien vers le PDF
 		<a role="button" href="[#PDFGEN_URL]">Télécharger le PDF</a>
 	</IF>
 ```
-
-## FAQ
-
-### Ajouter un logo en haut de page
-
-Le logo doit être nommé `pdf_logo.png` et inséré dans le dossier `tpl/` du site.
 
 ## Crédits et financement
 
