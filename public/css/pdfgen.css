@@ -72,10 +72,15 @@ a, a:visited {
   text-decoration: underline;
 }
 
-a.displayHref:after {
+a.url-visible {
+  word-break: break-all;
+}
+
+a.url-hidden:after {
   content: " (" attr(href) ")";
   font-size: 0.8em;
   text-decoration: none;
+  word-break: break-all;
 }
 
 h1, h2, h3, h4, h5, h6 {

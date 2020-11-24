@@ -25,8 +25,11 @@ function getRequiredLangs(selector) {
 function displayHref () {
 	document.querySelectorAll("a[href^='http://'], a[href^='https://']").forEach(function (el) {
 		var text = el.textContent;
-		if (text.match(/https?:\/\//)) return;
-		el.classList.add("displayHref");
+		if (text.match(/^(https?:\/\/|www\.)/)) {
+			el.classList.add("url-visible");
+		} else {
+			el.classList.add("url-hidden");
+		}
 	});
 }
 
