@@ -73,29 +73,7 @@
 <DEFMACRO NAME="PDFGEN_DEBUG_MODE">
 	<IF COND="[#DEBUG]">
 		<pre id="log-container" style="background-color: #eee; padding: 10px;">Console:</pre>
-		
-		<script>
-			window.onerror = function (msg, url, lineNo, columnNo, error) {
-				console.error(msg + " (" + url + " " + lineNo + ":" + columnNo + ")");
-				return false;
-			}
-
-			var pre = document.getElementById("log-container");
-
-			var getLogFunc = function (level) {
-				var defaultFunc = console[level].bind(console);
-				return function () {
-					defaultFunc.apply(console, arguments);
-					var msg = Array.from(arguments).join(" ");
-					pre.textContent = pre.textContent + "\n[" + level + "] " + msg;
-				};
-			}
-
-			console.log = getLogFunc("log");
-			console.error = getLogFunc("error");
-			console.warn = getLogFunc("warn");
-			console.debug = getLogFunc("debug");
-		</script>
+		<script src="[#SHAREDIR]/plugins/custom/pdfgen/public/js/debug.js"></script>
 	</IF>
 </DEFMACRO>
 
@@ -114,67 +92,9 @@
  * Scripts JavaScript.
  */
 <DEFMACRO NAME="PDFGEN_HTML_SCRIPTS">
-	<script>
-		function runPagedjs() {
-			window.PagedPolyfill.preview();
-		}
-
-		function getRequiredLangs(selector) {
-			return Array.from(document.querySelectorAll(selector)).reduce(function (obj, el) {
-				var lang = el.getAttribute("lang");
-
-				// Fix document: xml:lang -> lang
-				if (!lang) {
-					var xmlLang = el.getAttribute("xml:lang");
-					if (!xmlLang) return obj;
-					el.setAttribute("lang", xmlLang);
-					lang = xmlLang;
-				}
-
-				if (obj[lang]) return obj;
-				// Chrome doesn't support hyphenation yet, so we "FORCEHYPHENOPOLY" anyway.
-				obj[lang] = "FORCEHYPHENOPOLY";
-				return obj;
-			}, {});
-		}
-
-		// Display links href attribute when relevant
-		function displayHref () {
-			document.querySelectorAll("a[href^='http://'], a[href^='https://']").forEach(function (el) {
-				var text = el.textContent;
-				if (text.match(/https?:\/\//)) return;
-				el.classList.add("displayHref");
-			});
-		}
-
-		displayHref();
-
-		window.PagedConfig = {
-			auto: false
-		};
-
-		var Hyphenopoly = {
-			require: getRequiredLangs(".hyphenate[lang], .hyphenate [lang], .hyphenate[xml\\:lang], .hyphenate [xml\\:lang]"),
-			fallbacks: {
-				"en": "en-gb"
-			},
-			setup: {
-				dontHyphenateClass: "code",
-				selectors: {
-					".hyphenate": {}
-				}
-			},
-			handleEvent: {
-				// Run Paged.js after Hyphenopoly
-				"hyphenopolyEnd": runPagedjs,
-				// Event triggered when browser-native CSS hyphenation is available
-				"tearDown": runPagedjs
-			}
-		};
-	</script>
-
 	<script src="[#SHAREDIR]/plugins/custom/pdfgen/public/vendor/hyphenopoly-4.7.0/Hyphenopoly_Loader.js"></script>
 	<script src="[#SHAREDIR]/plugins/custom/pdfgen/public/vendor/pagedjs-0.1.42/paged.polyfill.js"></script>
+	<script src="[#SHAREDIR]/plugins/custom/pdfgen/public/js/pdfgen.js"></script>
 </DEFMACRO>
 
 /**
