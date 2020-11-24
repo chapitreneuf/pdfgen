@@ -155,6 +155,12 @@ sup, sub, .footnotecall, .FootnoteSymbol {
   -webkit-hyphens: auto;
 }
 
+.br {
+  display: block;
+  text-align-last: left;
+  break-inside: avoid;
+}
+
 /* ARTICLE FRONT AND HEADER */
 /* ======================== */
 

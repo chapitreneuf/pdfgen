@@ -35,7 +35,38 @@ function displayHref () {
 	});
 }
 
+// Paged.js workaround to avoid text justification before line breaks : replace br elements with span.br
+function fixBrInText() {
+	var brs = document.querySelectorAll(".main br");
+	var parents = [];
+	var alreadyFound = function(el) {
+		return parents.some(function(p) {
+			return el.isSameNode(p);
+		});
+	};
+
+	Array.prototype.forEach.call(brs, function(el){
+		var parent = el.parentNode;
+		if (alreadyFound(parent)) return;
+		parents.push(parent);
+	});
+
+	parents.forEach(function(el) {
+		var html = el.innerHTML;
+		var parts = html.split(/<br[^>]*>/gm);
+		if (parts.length === 0) return;
+		var newHtml = parts.reduce(function(res, text, index) {
+			if (index === parts.length - 1) {
+				return res + text;
+			}
+			return res + "<span class='br'>" + text + "</span>";
+		}, "");
+		el.innerHTML = newHtml;
+	});
+}
+
 displayHref();
+fixBrInText();
 
 window.PagedConfig = {
 	auto: false
