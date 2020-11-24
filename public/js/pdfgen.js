@@ -1,3 +1,5 @@
+// IMPORTANT: this script must be loaded before Hyphenopoly
+
 function runPagedjs() {
 	window.PagedPolyfill.preview();
 }

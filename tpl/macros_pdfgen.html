@@ -53,6 +53,7 @@
 		<meta charset="utf-8">
 		<title>pdfgen (document [#DOCUMENT]) – [#OPTIONS.METADONNEESSITE.TITRESITE]</title>
 		<MACRO NAME="PDFGEN_DEBUG_MODE" />
+		<MACRO NAME="PDFGEN_HTML_PRELOAD"/>
 		<MACRO NAME="PDFGEN_HTML_STYLES"/>
 	</head>
 	<body>
@@ -78,6 +79,13 @@
 </DEFMACRO>
 
 /**
+ * Préchargement du script d'initialisation.
+ */
+<DEFMACRO NAME="PDFGEN_HTML_PRELOAD">
+	<link rel="preload" href="[#SHAREDIR]/plugins/custom/pdfgen/public/js/pdfgen.js" as="script" type="text/javascript"/>
+</DEFMACRO>
+
+/**
  * Styles CSS.
  */
 <DEFMACRO NAME="PDFGEN_HTML_STYLES">
@@ -92,9 +100,9 @@
  * Scripts JavaScript.
  */
 <DEFMACRO NAME="PDFGEN_HTML_SCRIPTS">
-	<script src="[#SHAREDIR]/plugins/custom/pdfgen/public/vendor/hyphenopoly-4.7.0/Hyphenopoly_Loader.js"></script>
-	<script src="[#SHAREDIR]/plugins/custom/pdfgen/public/vendor/pagedjs-0.1.42/paged.polyfill.js"></script>
 	<script src="[#SHAREDIR]/plugins/custom/pdfgen/public/js/pdfgen.js"></script>
+	<script src="[#SHAREDIR]/plugins/custom/pdfgen/public/vendor/pagedjs-0.1.42/paged.polyfill.js"></script>
+	<script src="[#SHAREDIR]/plugins/custom/pdfgen/public/vendor/hyphenopoly-4.7.0/Hyphenopoly_Loader.js"></script>
 </DEFMACRO>
 
 /**
