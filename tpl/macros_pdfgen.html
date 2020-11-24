@@ -569,7 +569,7 @@
 	<IF COND="[#BIBLIOGRAPHIE] AND [#TEXTE_ACCESSIBLE]">
 		<section class="article__biblio">
 			<h2 class="section-header">[@PDFGEN.BIBLIOGRAPHIE]</h2>
-			<div class="article__biblio-contents">
+			<div class="article__biblio-contents hyphenate">
 				[(#BIBLIOGRAPHIE|cleanCallNotes|tocss('heading')|illustrations(800, 'bibliographie')|media)]
 			</div>
 		</section>
