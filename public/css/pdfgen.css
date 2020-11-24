@@ -78,6 +78,10 @@ a.displayHref:after {
   text-decoration: none;
 }
 
+h1, h2, h3, h4, h5, h6 {
+  text-align: left;
+}
+
 h1, h2, h3, h4, h5, h6, .section-header, .section-header--small {
   line-height: 125%;
   break-after: avoid;
@@ -512,11 +516,18 @@ td {
   display: block;
   columns: 2;
   column-gap: 2rem;
+}
+
+.article__biblio-contents p {
   text-align: justify;
 }
 
 .article__biblio-contents p:not(:first-child) {
   margin-top: .5rem;
+}
+
+.article__biblio-contents > h1:first-child {
+  margin-top: 0;
 }
 
 /* APPENDIX */
