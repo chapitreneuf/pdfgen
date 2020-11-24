@@ -745,20 +745,13 @@
  * Identifiants de l'auteur dans d'autres bases.
  */
 <DEFMACRO NAME="ARTICLE_AUTEUR_IDNO">
-	<IF COND="[#IDREF] OR [#ORCID] OR [#HAL] OR [#ISNI] OR [#ARK]">
-		<div class="article__person-idnos">
-			<h4 class="article__person-idnos-title">[@PDFGEN.RESSOURCES_AUTEUR_AUTRES_BASES]</h4>
-			<ul class="article__person-idnos-list">
-				<FUNC NAME="ARTICLE_AUTEUR_IDNO_ITEM" TYPE="IDREF" URL="https://www.idref.fr/[#IDREF]" CONDITION="[#IDREF]" />
-				<FUNC NAME="ARTICLE_AUTEUR_IDNO_ITEM" TYPE="ORCID" URL="http://orcid.org/[#ORCID]" CONDITION="[#ORCID]" />
-				<FUNC NAME="ARTICLE_AUTEUR_IDNO_ITEM" TYPE="HAL" URL="https://cv.archives-ouvertes.fr/[#HAL]" CONDITION="[#HAL]" />
-				<FUNC NAME="ARTICLE_AUTEUR_IDNO_ITEM" TYPE="ISNI" URL="http://www.isni.org/[#ISNI]" CONDITION="[#ISNI]" />
-				<!--[ BNF: https://www.bnf.fr/fr/lidentifiant-ark-archival-resource-key ]-->
-				<IF COND="[#ARK] LIKE /(?<=\/cb)[^\/%.-]{8}(?=.?$)/">
-					<FUNC NAME="ARTICLE_AUTEUR_IDNO_ITEM" TYPE="BNF" CONDITION="1" URL="https://data.bnf.fr/fr/[#MATCHES.0.0]" />
-				</IF>
-			</ul>
-		</div>
+	<FUNC NAME="ARTICLE_AUTEUR_IDNO_ITEM" TYPE="IDREF" URL="https://www.idref.fr/[#IDREF]" CONDITION="[#IDREF]" />
+	<FUNC NAME="ARTICLE_AUTEUR_IDNO_ITEM" TYPE="ORCID" URL="http://orcid.org/[#ORCID]" CONDITION="[#ORCID]" />
+	<FUNC NAME="ARTICLE_AUTEUR_IDNO_ITEM" TYPE="HAL" URL="https://cv.archives-ouvertes.fr/[#HAL]" CONDITION="[#HAL]" />
+	<FUNC NAME="ARTICLE_AUTEUR_IDNO_ITEM" TYPE="ISNI" URL="http://www.isni.org/[#ISNI]" CONDITION="[#ISNI]" />
+	<!--[ BNF: https://www.bnf.fr/fr/lidentifiant-ark-archival-resource-key ]-->
+	<IF COND="[#ARK] LIKE /(?<=\/cb)[^\/%.-]{8}(?=.?$)/">
+		<FUNC NAME="ARTICLE_AUTEUR_IDNO_ITEM" TYPE="BNF" CONDITION="1" URL="https://data.bnf.fr/fr/[#MATCHES.0.0]" />
 	</IF>
 </DEFMACRO>
 
@@ -770,9 +763,9 @@
 */
 <DEFFUNC NAME="ARTICLE_AUTEUR_IDNO_ITEM" REQUIRED="type, url" OPTIONAL="condition">
 	<IF COND="[#CONDITION]">
-		<li class="article__person-idno">
+		<p class="article__person-idno">
 			[#TYPE]&nbsp;: [#URL]
-		</li>
+		</p>
 	</IF>
 </DEFFUNC>
 
