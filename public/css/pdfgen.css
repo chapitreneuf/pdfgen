@@ -459,6 +459,14 @@ table {
   line-height: 125%;
 }
 
+table.example {
+  margin: 1.2rem 0 1.2rem 3rem;
+}
+
+table.example + table.example {
+  margin-top: 0;
+}
+
 table p {
   padding: 0;
 }
