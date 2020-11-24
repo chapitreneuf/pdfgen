@@ -28,6 +28,7 @@
 <contents name="publisher" textgroup="pdfgen" status="2">Publisher</contents>
 <contents name="reference_electronique" textgroup="pdfgen" status="2">Electronic reference</contents>
 <contents name="reference_oeuvre" textgroup="pdfgen" status="2">Bibliographical reference</contents>
+<contents name="ressources_auteur_autres_bases" textgroup="pdfgen" status="2">Author resources in other databases</contents>
 <contents name="resume" textgroup="pdfgen" status="2">Abstract</contents>
 <contents name="resumes" textgroup="pdfgen" status="2">Abstracts</contents>
 <contents name="texte" textgroup="pdfgen" status="2">Text</contents>
