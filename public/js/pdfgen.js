@@ -47,7 +47,8 @@ function fixBrInText() {
 
 	Array.prototype.forEach.call(brs, function(el){
 		var parent = el.parentNode;
-		if (alreadyFound(parent)) return;
+		var textAlign = getComputedStyle(parent)["textAlign"];
+		if (textAlign !== "justify" || alreadyFound(parent)) return;
 		parents.push(parent);
 	});
 
