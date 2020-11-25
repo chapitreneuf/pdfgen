@@ -459,7 +459,6 @@ p.citationter {
 table {
   border-collapse: collapse;
   border-spacing: 0;
-  break-inside: avoid;
   font-size: .8em;
   margin: 1.5em auto;
   line-height: 125%;
