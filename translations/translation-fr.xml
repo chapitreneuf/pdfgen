@@ -16,6 +16,7 @@
 <contents name="consulte_le" textgroup="pdfgen" status="2">consulté le</contents>
 <contents name="dedicace" textgroup="pdfgen" status="2">Dédicace</contents>
 <contents name="document" textgroup="pdfgen" status="2">Document</contents>
+<contents name="document_not_found" textgroup="pdfgen" status="2">Impossible de générer le document demandé. Vérifiez que l'article est bien publié en ligne.</contents>
 <contents name="en_ligne" textgroup="pdfgen" status="2">En ligne</contents>
 <contents name="errata" textgroup="pdfgen" status="2">Errata</contents>
 <contents name="index" textgroup="pdfgen" status="2">Index</contents>

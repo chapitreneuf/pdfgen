@@ -16,6 +16,7 @@
 <contents name="consulte_le" textgroup="pdfgen" status="2">connection on</contents>
 <contents name="dedicace" textgroup="pdfgen" status="2">Dedication</contents>
 <contents name="document" textgroup="pdfgen" status="2">Document</contents>
+<contents name="document_not_found" textgroup="pdfgen" status="2">Could not create the requested document. Please make sure the article is published.</contents>
 <contents name="en_ligne" textgroup="pdfgen" status="2">Online</contents>
 <contents name="errata" textgroup="pdfgen" status="2">Errata</contents>
 <contents name="index" textgroup="pdfgen" status="2">Index</contents>
