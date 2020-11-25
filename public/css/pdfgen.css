@@ -320,7 +320,7 @@ sup, sub, .footnotecall, .FootnoteSymbol {
 }
 
 /* Justification */
-p.remerciements, p.texte, p.paragraphesansretrait, p.epigraphe, p.question, p.reponse, p.encadre, p.annexe, p.legendeillustration, p.creditillustration, p.crditsillustration, p.notesbaspage, p.notefin {
+p.remerciements, p.texte, p.paragraphesansretrait, p.epigraphe, p.question, p.reponse, p.encadre, p.annexe, p.notesbaspage, p.notefin {
   text-align: justify;
 }
 
@@ -489,23 +489,32 @@ td {
   font-family: var(--font-ui);
   margin: .5rem 0;
   break-inside: avoid;
+  text-align: center;
 }
 
 .titreillustration {
   margin-top: 2rem;
+  margin-bottom: 1rem;
   font-weight: bold;
-  text-align: left;
   break-after: avoid;
 }
 
 .imageillustration, table {
-  margin-bottom: 2.5rem;
+  margin-bottom: 2rem;
+}
+
+.imageillustration {
+  text-align: center;
+}
+
+.imageillustration img {
+  display: inline;
 }
 
 .legendeillustration, .creditillustration {
   line-height: 130%;
   font-size: .9rem;
-  margin: -2rem 0 2rem;
+  margin: -1.5rem 0 2rem;
 }
 
 .creditillustration {
