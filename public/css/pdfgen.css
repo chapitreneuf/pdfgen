@@ -278,6 +278,10 @@ sup, sub, .footnotecall, .FootnoteSymbol {
   padding-left: 0;
 }
 
+.toc__link {
+  text-decoration: none;
+}
+
 
 /* ARTICLE MAIN CONTENTS */
 /* ===================== */
