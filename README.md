@@ -40,8 +40,18 @@ Enfin sur chaque site où vous souhaitez utiliser le générateur activez le plu
 http://login:password@domaine:port
 ```
 
-Dès à présent, vous devriez être capable d'accéder aux PDF de vos articles via une URL du type :
-`https://domaine/[#SITENAME]/?do=_pdfgen_get&document=[#ID]&lang=[#LANG]`
+## URLS
+
+Une fois activé, le plugin rend accessible les URLs suivantes :
+
+* Récupération du PDF : `/?do=_pdfgen_get&document=[#ID]&lang=[#LANG]`
+* Affichage de la version HTML intermédiaire : `/?do=_pdfgen_view&document=[#ID]&lang=[#LANG]`
+
+L'attribut `[#LANG]` détermine la langue des variables de traductions. Il est recommandé de toujours utiliser la langue principale du site.
+
+Le PDF généré est mis en cache par le générateur et automatiquement recalculé lorsque les données du document sont modifiées. Il est toujours possible de forcer la régénération avec l'argument `clearcache` :
+
+`/?do=_pdfgen_get&document=[#ID]&lang=[#LANG]&clearcache=1`
 
 ### Ajouter un logo en haut de page
 
