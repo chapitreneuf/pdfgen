@@ -40,6 +40,10 @@ Enfin sur chaque site où vous souhaitez utiliser le générateur activez le plu
 http://login:password@domaine:port
 ```
 
+### Ajouter un logo en haut de page
+
+Pour ajouter le logo du site en haut de la page des PDF, insérez une image `pdf_logo.png` dans le dossier `tpl/` du site.
+
 ## URLS
 
 Une fois activé, le plugin rend accessible les URLs suivantes :
@@ -52,10 +56,6 @@ L'attribut `[#LANG]` détermine la langue des variables de traductions. Il est r
 Le PDF généré est mis en cache par le générateur et automatiquement recalculé lorsque les données du document sont modifiées. Il est toujours possible de forcer la régénération avec l'argument `clearcache` :
 
 `/?do=_pdfgen_get&document=[#ID]&lang=[#LANG]&clearcache=1`
-
-### Ajouter un logo en haut de page
-
-Pour ajouter le logo du site en haut de la page des PDF, insérez une image `pdf_logo.png` dans le dossier `tpl/` du site.
 
 ## Utilisation dans les templates
 
