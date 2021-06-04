@@ -104,6 +104,7 @@ p {
 img {
   display: block;
   max-width: 100%;
+  max-height: calc((var(--pagedjs-pagebox-height) - var(--pagedjs-margin-top) - var(--pagedjs-margin-bottom)) * .5) !important;
 }
 
 tr, td, img {
@@ -485,14 +486,12 @@ td {
 }
 
 .groupe-illustration {
-  break-inside: avoid;
   margin: 2rem 0;
 }
 
 .titreillustration, .legendeillustration, .creditillustration {
   font-family: var(--font-ui);
   margin: .5rem 0;
-  break-inside: avoid;
   text-align: center;
 }
 
