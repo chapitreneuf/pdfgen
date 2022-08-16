@@ -95,6 +95,9 @@
 
 	<!-- Styles du PDF -->
 	<link rel="stylesheet" href="[#SHAREDIR]/plugins/custom/pdfgen/public/css/pdfgen.css">
+
+	<!--[ Hook pour l'insertion de CSS ]-->
+	<MACRO NAME="PDFGEN_CUSTOM_CSS"/>
 </DEFMACRO>
 
 /**
@@ -104,6 +107,21 @@
 	<script src="[#SHAREDIR]/plugins/custom/pdfgen/public/js/pdfgen.js"></script>
 	<script src="[#SHAREDIR]/plugins/custom/pdfgen/public/vendor/pagedjs/paged.polyfill.js"></script>
 	<script src="[#SHAREDIR]/plugins/custom/pdfgen/public/vendor/hyphenopoly/Hyphenopoly_Loader.js"></script>
+
+	<!--[ Hook pour l'insertion de JS ]-->
+	<MACRO NAME="PDFGEN_CUSTOM_JS"/>
+</DEFMACRO>
+
+/**
+ * Hook pour l'insertion de CSS dans le head, à redéclarer dans macros_custom.html.
+ */
+<DEFMACRO NAME="PDFGEN_CUSTOM_CSS">
+</DEFMACRO>
+
+/**
+ * Hook pour l'insertion de JS dans le head, à redéclarer dans macros_custom.html.
+ */
+<DEFMACRO NAME="PDFGEN_CUSTOM_JS">
 </DEFMACRO>
 
 /**
