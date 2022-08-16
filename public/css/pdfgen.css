@@ -46,7 +46,7 @@
   }
 }
 
-.article__title {
+.main-title {
   string-set: title content(text);
 }
 

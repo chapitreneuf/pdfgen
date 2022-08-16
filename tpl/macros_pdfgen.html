@@ -276,23 +276,23 @@
 	<header class="article__header">
 		<!--[ Numéro de document ]-->
 		<IF COND="[#NUMERODOCUMENT] AND [#NUMERODOCUMENT] NE '0'">
-			<p class="article__number">#[#NUMERODOCUMENT]</p>
+			<p class="main-number article__number">#[#NUMERODOCUMENT]</p>
 		</IF>
 		<!--[ Sous-titre du document ]-->
 		<IF COND="[#SURTITRE]">
-			<p class="article__subhead">[#SURTITRE|removenotes]</p>
+			<p class="main-subhead article__subhead">[#SURTITRE|removenotes]</p>
 		</IF>
 		<!--[ Titre du document ]-->
-		<h1 class="article__title">[#TITRE|removenotes]</h1>
+		<h1 class="main-title article__title">[#TITRE|removenotes]</h1>
 
 		<!--[ Sous-titre du document ]-->
 		<IF COND="[#SOUSTITRE]">
-			<p class="article__subtitle">[#SOUSTITRE|removenotes]</p>
+			<p class="main-subtitle article__subtitle">[#SOUSTITRE|removenotes]</p>
 		</IF>
 
 		<!--[ Titres alternatifs ]-->
 		<IF COND="[#ALTERTITRE]">
-			<div class="article__altertitle">
+			<div class="main-altertitle article__altertitle">
 				<LET VAR="value">[#ALTERTITRE]</LET>
 				<LOOP NAME="mltext">
 					<p xml:lang="[#LANG]" lang="[#LANG]">[#VALUE|removenotes]</p>
