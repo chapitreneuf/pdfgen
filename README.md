@@ -72,6 +72,10 @@ Quand le plugin est actif et configuré, on peut récupérer le lien vers le PDF
 	</IF>
 ```
 
+## Personnalisation
+
+Il est possible de personnaliser les templates du PDF en redéclarant les macros de macros_pdfgen.html dans tpl/macros_custom.html.
+
 ## Crédits et financement
 
 Ce projet a été développé par le [collectif Edinum](https://edinum.org) pour les Bibliothèques universitaires de l'Université Jean Moulin Lyon 3. Il a été financé par l'Université Jean Moulin Lyon 3. 
