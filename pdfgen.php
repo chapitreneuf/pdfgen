@@ -42,7 +42,7 @@ class pdfgen extends Plugins {
 
 		$id = $context['document'];
 		$document = DAO::getDAO("entities")->getById($id);
-		$clearcache = C::get('editor', 'lodeluser') && isset($context['clearcache']) ? true : false;
+		$clearcache = $this->_config['cache_disabled']['value'] || (C::get('editor', 'lodeluser') && isset($context['clearcache'])) ? true : false;
 
 		$lang = isset($context['lang']) ? $context['lang'] : "";
 		$debug = isset($context['debug']) ? $context['debug'] : "";
