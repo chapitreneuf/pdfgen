@@ -1,12 +1,14 @@
 # Générateur de PDF pour Lodel
 
+![pdfgen latest version](https://img.shields.io/github/v/tag/edinum/pdfgen?color=blue&style=flat-square) [![License](https://img.shields.io/github/license/edinum/pdfgen?color=blue&style=flat-square)](https://github.com/edinum/pdfgen/blob/master/LICENSE)
+
 ## Installation
 
 ### Prérequis
 
- * Lodel 1.0
- * Docker CE
- * Docker Compose
+* Lodel 1.0
+* Docker CE
+* Docker Compose
 
 ### Lancer le convertisseur
 
@@ -62,19 +64,21 @@ Le PDF généré est mis en cache par le générateur et automatiquement recalcu
 Quand le plugin est actif et configuré, on peut récupérer le lien vers le PDF automatique dans les templates avec la variable LodelScript `[#PDFGEN_URL]`.
 
 ```html
-	<!--[ Si un PDF fac-similé est lié à l'article, on pointe vers ce fichier ]-->
-	<IF COND="[#ALTERFICHIER]">
-		<a role="button" href="[#ID|makeurlwithid|query_string('file', '1')]">Télécharger le PDF</a>
+<!--[ Si un PDF fac-similé est lié à l'article, on pointe vers ce fichier ]-->
+<IF COND="[#ALTERFICHIER]">
+  <a role="button" href="[#ID|makeurlwithid|query_string('file', '1')]">Télécharger le PDF</a>
 
-	<!--[ Sinon on vérifie que le générateur est actif et si oui on pointe vers le PDF automatique ]-->
-	<ELSEIF COND="[#PDFGEN_URL]" />
-		<a role="button" href="[#PDFGEN_URL]">Télécharger le PDF</a>
-	</IF>
+<!--[ Sinon on vérifie que le générateur est actif et si oui on pointe vers le PDF automatique ]-->
+<ELSEIF COND="[#PDFGEN_URL]" />
+  <a role="button" href="[#PDFGEN_URL]">Télécharger le PDF</a>
+</IF>
 ```
 
 ## Personnalisation
 
 Il est possible de personnaliser les templates du PDF en redéclarant les macros de macros_pdfgen.html dans tpl/macros_custom.html.
+
+Les macros `HEAD_CUSTOM_JS` et `HEAD_CUSTOM_CSS` à déclarer dans tpl/macros_custom.html permettent d'ajouter respectivement des scripts et des styles à la page.
 
 ## Crédits et financement
 
