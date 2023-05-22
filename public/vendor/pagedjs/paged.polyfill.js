@@ -1,12 +1,12 @@
 /**
- * @license Paged.js v0.2.0 | MIT | https://gitlab.pagedmedia.org/tools/pagedjs
+ * @license Paged.js v0.4.1 | MIT | https://gitlab.pagedmedia.org/tools/pagedjs
  */
 
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
 	typeof define === 'function' && define.amd ? define(factory) :
 	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.PagedPolyfill = factory());
-}(this, (function () { 'use strict';
+})(this, (function () { 'use strict';
 
 	var eventEmitter = {exports: {}};
 
@@ -374,11 +374,12 @@
 				if(executing && typeof executing["then"] === "function") {
 					// Task is a function that returns a promise
 					promises.push(executing);
+				} else {
+					// Otherwise Task resolves immediately, add resolved promise with result
+					promises.push(new Promise((resolve, reject) => {
+						resolve(executing);
+					}));
 				}
-				// Otherwise Task resolves immediately, add resolved promise with result
-				promises.push(new Promise((resolve, reject) => {
-					resolve(executing);
-				}));
 			});
 
 
@@ -599,7 +600,7 @@
 		return node && node.nodeType === 3;
 	}
 
-	function *walk$2(start, limiter) {
+	function* walk$2(start, limiter) {
 		let node = start;
 
 		while (node) {
@@ -697,7 +698,7 @@
 		let after = elementAfter(node, limiter);
 
 		while (after && after.dataset.undisplayed) {
-			after = elementAfter(after);
+			after = elementAfter(after, limiter);
 		}
 
 		return after;
@@ -707,7 +708,7 @@
 		let before = elementBefore(node, limiter);
 
 		while (before && before.dataset.undisplayed) {
-			before = elementBefore(before);
+			before = elementBefore(before, limiter);
 		}
 
 		return before;
@@ -765,7 +766,7 @@
 		for (var i = 0; i < ancestors.length; i++) {
 			ancestor = ancestors[i];
 			parent = ancestor.cloneNode(false);
-
+		
 			parent.setAttribute("data-split-from", parent.getAttribute("data-ref"));
 			// ancestor.setAttribute("data-split-to", parent.getAttribute("data-ref"));
 
@@ -791,12 +792,23 @@
 				fragment.appendChild(parent);
 			}
 			added.push(parent);
+
+			// rebuild table rows
+			if (parent.nodeName === "TD" && ancestor.parentElement.contains(ancestor)) {
+				let td = ancestor;
+				let prev = parent;
+				while ((td = td.previousElementSibling)) {
+					let sib = td.cloneNode(false);
+					parent.parentElement.insertBefore(sib, prev);
+					prev = sib;
+				}
+				
+			}
 		}
 
 		added = undefined;
 		return fragment;
 	}
-
 	/*
 	export function split(bound, cutElement, breakAfter) {
 			let needsRemoval = [];
@@ -887,8 +899,20 @@
 		if (node.dataset && node.dataset.undisplayed) {
 			return false;
 		}
-		const previousSignificantNodePage = previousSignificantNode.dataset ? previousSignificantNode.dataset.page : undefined;
-		const currentNodePage = node.dataset ? node.dataset.page : undefined;
+		let previousSignificantNodePage = previousSignificantNode.dataset ? previousSignificantNode.dataset.page : undefined;
+		if (typeof previousSignificantNodePage === "undefined") {
+			const nodeWithNamedPage = getNodeWithNamedPage(previousSignificantNode);
+			if (nodeWithNamedPage) {
+				previousSignificantNodePage = nodeWithNamedPage.dataset.page;
+			}
+		}
+		let currentNodePage = node.dataset ? node.dataset.page : undefined;
+		if (typeof currentNodePage === "undefined") {
+			const nodeWithNamedPage = getNodeWithNamedPage(node, previousSignificantNode);
+			if (nodeWithNamedPage) {
+				currentNodePage = nodeWithNamedPage.dataset.page;
+			}
+		}
 		return currentNodePage !== previousSignificantNodePage;
 	}
 
@@ -899,7 +923,7 @@
 		let currentLetter;
 
 		let range;
-		const significantWhitespaces = node.parentElement && node.parentElement.nodeName === 'PRE';
+		const significantWhitespaces = node.parentElement && node.parentElement.nodeName === "PRE";
 
 		while (currentOffset < max) {
 			currentLetter = currentText[currentOffset];
@@ -1001,7 +1025,7 @@
 			case "BLOCKQUOTE":
 			case "PRE":
 			case "LI":
-			case "TR":
+			case "TD":
 			case "DT":
 			case "DD":
 			case "VIDEO":
@@ -1019,13 +1043,17 @@
 		return n.cloneNode(deep);
 	}
 
-	function findElement(node, doc) {
+	function findElement(node, doc, forceQuery) {
 		const ref = node.getAttribute("data-ref");
-		return findRef(ref, doc);
+		return findRef(ref, doc, forceQuery);
 	}
 
-	function findRef(ref, doc) {
-		return doc.querySelector(`[data-ref='${ref}']`);
+	function findRef(ref, doc, forceQuery) {
+		if (!forceQuery && doc.indexOfRefs && doc.indexOfRefs[ref]) {
+			return doc.indexOfRefs[ref];
+		} else {
+			return doc.querySelector(`[data-ref='${ref}']`);
+		}
 	}
 
 	function validNode(node) {
@@ -1156,6 +1184,23 @@
 		return null;
 	}
 
+	function getNodeWithNamedPage(node, limiter) {
+		if (node && node.dataset && node.dataset.page) {
+			return node;
+		}
+		if (node.parentNode) {
+			while ((node = node.parentNode)) {
+				if (limiter && node === limiter) {
+					return;
+				}
+				if (node.dataset && node.dataset.page) {
+					return node;
+				}
+			}
+		}
+		return null;
+	}
+
 	function breakInsideAvoidParentNode(node) {
 		while ((node = node.parentNode)) {
 			if (node && node.dataset && node.dataset.breakInside === "avoid") {
@@ -1225,7 +1270,7 @@
 	}
 
 	/**
-	 * Layout
+	 * BreakToken
 	 * @class
 	 */
 	class BreakToken {
@@ -1248,6 +1293,30 @@
 				return false;
 			}
 			return true;
+		}
+
+		toJSON(hash) {
+			let node;
+			let index = 0;
+			if (!this.node) {
+				return {};
+			}
+			if (isElement(this.node) && this.node.dataset.ref) {
+				node = this.node.dataset.ref;
+			} else if (hash) {
+				node = this.node.parentElement.dataset.ref;
+			}
+
+			if (this.node.parentElement) {
+				const children = Array.from(this.node.parentElement.childNodes);
+				index = children.indexOf(this.node);
+			}
+
+			return JSON.stringify({
+				"node": node,
+				"index" : index,
+				"offset": this.offset
+			});
 		}
 
 	}
@@ -1283,6 +1352,15 @@
 			this.element = element;
 
 			this.bounds = this.element.getBoundingClientRect();
+			this.parentBounds = this.element.offsetParent.getBoundingClientRect();
+			let gap = parseFloat(window.getComputedStyle(this.element).columnGap);
+		
+			if (gap) {
+				let leftMargin = this.bounds.left - this.parentBounds.left;
+				this.gap =  gap - leftMargin;	
+			} else {
+				this.gap = 0;
+			}
 
 			if (hooks) {
 				this.hooks = hooks;
@@ -1339,13 +1417,16 @@
 						console.warn("Unable to layout item: ", prevNode);
 						return new RenderResult(undefined, new OverflowContentError("Unable to layout item", [prevNode]));
 					}
+
+					this.rebuildTableFromBreakToken(newBreakToken, wrapper);
+
 					return new RenderResult(newBreakToken);
 				}
 
 				this.hooks && this.hooks.layoutNode.trigger(node);
 
 				// Check if the rendered element has a break set
-				if (hasRenderedContent && this.shouldBreak(node)) {
+				if (hasRenderedContent && this.shouldBreak(node, start)) {
 					this.hooks && this.hooks.layout.trigger(wrapper, this);
 
 					let imgs = wrapper.querySelectorAll("img");
@@ -1357,16 +1438,34 @@
 
 					if (!newBreakToken) {
 						newBreakToken = this.breakAt(node);
+					} else {
+						this.rebuildTableFromBreakToken(newBreakToken, wrapper);
 					}
 
 					if (newBreakToken && newBreakToken.equals(prevBreakToken)) {
 						console.warn("Unable to layout item: ", node);
-						return new RenderResult(undefined, new OverflowContentError("Unable to layout item", [node]));
+						let after = newBreakToken.node && nodeAfter(newBreakToken.node);
+						if (after) {
+							newBreakToken = new BreakToken(after);
+						} else {
+							return new RenderResult(undefined, new OverflowContentError("Unable to layout item", [node]));
+						}
 					}
 
 					length = 0;
 
 					break;
+				}
+
+				if (node.dataset && node.dataset.page) {
+					let named = node.dataset.page;
+					let page = this.element.closest(".pagedjs_page");
+					page.classList.add("pagedjs_named_page");
+					page.classList.add("pagedjs_" + named + "_page");
+
+					if (!node.dataset.splitFrom) {
+						page.classList.add("pagedjs_" + named + "_first_page");
+					}
 				}
 
 				// Should the Node be a shallow or deep clone
@@ -1393,6 +1492,8 @@
 
 					if (!newBreakToken) {
 						newBreakToken = this.breakAt(node);
+					} else {
+						this.rebuildTableFromBreakToken(newBreakToken, wrapper);
 					}
 
 					length = 0;
@@ -1413,13 +1514,19 @@
 
 					newBreakToken = this.findBreakToken(wrapper, source, bounds, prevBreakToken);
 
-					if (newBreakToken && newBreakToken.equals(prevBreakToken)) {
-						console.warn("Unable to layout item: ", node);
-						return new RenderResult(undefined, new OverflowContentError("Unable to layout item", [node]));
-					}
-
 					if (newBreakToken) {
 						length = 0;
+						this.rebuildTableFromBreakToken(newBreakToken, wrapper);
+					}
+
+					if (newBreakToken && newBreakToken.equals(prevBreakToken)) {
+						console.warn("Unable to layout item: ", node);
+						let after = newBreakToken.node && nodeAfter(newBreakToken.node);
+						if (after) {
+							newBreakToken = new BreakToken(after);
+						} else {
+							return new RenderResult(undefined, new OverflowContentError("Unable to layout item", [node]));
+						}
 					}
 				}
 
@@ -1443,17 +1550,17 @@
 			return newBreakToken;
 		}
 
-		shouldBreak(node) {
-			let previousSibling = previousSignificantNode(node);
+		shouldBreak(node, limiter) {
+			let previousNode = nodeBefore(node, limiter);
 			let parentNode = node.parentNode;
-			let parentBreakBefore = needsBreakBefore(node) && parentNode && !previousSibling && needsBreakBefore(parentNode);
+			let parentBreakBefore = needsBreakBefore(node) && parentNode && !previousNode && needsBreakBefore(parentNode);
 			let doubleBreakBefore;
 
 			if (parentBreakBefore) {
 				doubleBreakBefore = node.dataset.breakBefore === parentNode.dataset.breakBefore;
 			}
 
-			return !doubleBreakBefore && needsBreakBefore(node) || needsPreviousBreakAfter(node) || needsPageBreak(node, previousSibling);
+			return !doubleBreakBefore && needsBreakBefore(node) || needsPreviousBreakAfter(node) || needsPageBreak(node, previousNode);
 		}
 
 		forceBreak() {
@@ -1504,6 +1611,13 @@
 				dest.appendChild(clone);
 			}
 
+			if (clone.dataset && clone.dataset.ref) {
+				if (!dest.indexOfRefs) {
+					dest.indexOfRefs = {};
+				}
+				dest.indexOfRefs[clone.dataset.ref] = clone;
+			}
+
 			let nodeHooks = this.hooks.renderNode.triggerSync(clone, node, this);
 			nodeHooks.forEach((newNode) => {
 				if (typeof newNode != "undefined") {
@@ -1512,6 +1626,23 @@
 			});
 
 			return clone;
+		}
+
+		rebuildTableFromBreakToken(breakToken, dest) {
+			if (!breakToken || !breakToken.node) {
+				return;
+			}
+			let node = breakToken.node;
+			let td = isElement(node) ? node.closest("td") : node.parentElement.closest("td");
+			if (td) {
+				let rendered = findElement(td, dest, true);
+				if (!rendered) {
+					return;
+				}
+				while ((td = td.nextElementSibling)) {
+					this.append(td, dest, null, true);
+				}
+			}
 		}
 
 		async waitForImages(imgs) {
@@ -1693,16 +1824,20 @@
 
 		hasOverflow(element, bounds = this.bounds) {
 			let constrainingElement = element && element.parentNode; // this gets the element, instead of the wrapper for the width workaround
-			let {width} = element.getBoundingClientRect();
+			let {width, height} = element.getBoundingClientRect();
 			let scrollWidth = constrainingElement ? constrainingElement.scrollWidth : 0;
-			return Math.max(Math.floor(width), scrollWidth) > Math.round(bounds.width);
+			let scrollHeight = constrainingElement ? constrainingElement.scrollHeight : 0;
+			return Math.max(Math.floor(width), scrollWidth) > Math.round(bounds.width) ||
+				Math.max(Math.floor(height), scrollHeight) > Math.round(bounds.height);
 		}
 
-		findOverflow(rendered, bounds = this.bounds) {
+		findOverflow(rendered, bounds = this.bounds, gap = this.gap) {
 			if (!this.hasOverflow(rendered, bounds)) return;
 
-			let start = Math.round(bounds.left);
-			let end = Math.round(bounds.right);
+			let start = Math.floor(bounds.left);
+			let end = Math.round(bounds.right + gap);
+			let vStart = Math.round(bounds.top);
+			let vEnd = Math.round(bounds.bottom);
 			let range;
 
 			let walker = walk$2(rendered.firstChild, rendered);
@@ -1722,8 +1857,10 @@
 					let pos = getBoundingClientRect(node);
 					let left = Math.round(pos.left);
 					let right = Math.floor(pos.right);
+					let top = Math.round(pos.top);
+					let bottom = Math.floor(pos.bottom);
 
-					if (!range && left >= end) {
+					if (!range && (left >= end || top >= vEnd)) {
 						// Check if it is a float
 						let isFloat = false;
 
@@ -1731,7 +1868,8 @@
 						const insideTableCell = parentOf(node, "TD", rendered);
 						if (insideTableCell && window.getComputedStyle(insideTableCell)["break-inside"] === "avoid") {
 							// breaking inside a table cell produces unexpected result, as a workaround, we forcibly avoid break inside in a cell.
-							prev = insideTableCell;
+							// But we take the whole row, not just the cell that is causing the break.
+							prev = insideTableCell.parentElement;
 						} else if (isElement(node)) {
 							let styles = window.getComputedStyle(node);
 							isFloat = styles.getPropertyValue("float") !== "none";
@@ -1748,25 +1886,33 @@
 							tableRow = parentOf(node, "TR", rendered);
 						}
 						if (tableRow) {
+							// honor break-inside="avoid" in parent tbody/thead
+							let container = tableRow.parentElement;
+							if (["TBODY", "THEAD"].includes(container.nodeName)) {
+								let styles = window.getComputedStyle(container);
+								if (styles.getPropertyValue("break-inside") === "avoid") prev = container;
+							}
+
 							// Check if the node is inside a row with a rowspan
 							const table = parentOf(tableRow, "TABLE", rendered);
-							if (table) {
+							const rowspan = table.querySelector("[colspan]");
+							if (table && rowspan) {
 								let columnCount = 0;
 								for (const cell of Array.from(table.rows[0].cells)) {
-									columnCount += parseInt(cell.getAttribute("COLSPAN") || "1");
+									columnCount += parseInt(cell.getAttribute("colspan") || "1");
 								}
 								if (tableRow.cells.length !== columnCount) {
-									let previousRow = tableRow.previousSibling;
+									let previousRow = tableRow.previousElementSibling;
 									let previousRowColumnCount;
 									while (previousRow !== null) {
 										previousRowColumnCount = 0;
 										for (const cell of Array.from(previousRow.cells)) {
-											previousRowColumnCount += parseInt(cell.getAttribute("COLSPAN") || "1");
+											previousRowColumnCount += parseInt(cell.getAttribute("colspan") || "1");
 										}
 										if (previousRowColumnCount === columnCount) {
 											break;
 										}
-										previousRow = previousRow.previousSibling;
+										previousRow = previousRow.previousElementSibling;
 									}
 									if (previousRowColumnCount === columnCount) {
 										prev = previousRow;
@@ -1802,16 +1948,20 @@
 						let rects = getClientRects(node);
 						let rect;
 						left = 0;
+						top = 0;
 						for (var i = 0; i != rects.length; i++) {
 							rect = rects[i];
 							if (rect.width > 0 && (!left || rect.left > left)) {
 								left = rect.left;
 							}
+							if (rect.height > 0 && (!top || rect.top > top)) {
+								top = rect.top;
+							}
 						}
 
-						if (left >= end) {
+						if (left >= end || top >= vEnd) {
 							range = document.createRange();
-							offset = this.textBreak(node, start, end);
+							offset = this.textBreak(node, start, end, vStart, vEnd);
 							if (!offset) {
 								range = undefined;
 							} else {
@@ -1822,7 +1972,7 @@
 					}
 
 					// Skip children
-					if (skip || right <= end) {
+					if (skip || (right <= end && bottom <= vEnd)) {
 						next = nodeAfter(node, rendered);
 						if (next) {
 							walker = walk$2(next, rendered);
@@ -1841,7 +1991,7 @@
 
 		}
 
-		findEndToken(rendered, source, bounds = this.bounds) {
+		findEndToken(rendered, source) {
 			if (rendered.childNodes.length === 0) {
 				return;
 			}
@@ -1883,10 +2033,12 @@
 			return this.breakAt(after);
 		}
 
-		textBreak(node, start, end) {
+		textBreak(node, start, end, vStart, vEnd) {
 			let wordwalker = words(node);
 			let left = 0;
 			let right = 0;
+			let top = 0;
+			let bottom = 0;
 			let word, next, done, pos;
 			let offset;
 			while (!done) {
@@ -1902,13 +2054,15 @@
 
 				left = Math.floor(pos.left);
 				right = Math.floor(pos.right);
+				top = Math.floor(pos.top);
+				bottom = Math.floor(pos.bottom);
 
-				if (left >= end) {
+				if (left >= end || top >= vEnd) {
 					offset = word.startOffset;
 					break;
 				}
 
-				if (right > end) {
+				if (right > end || bottom > vEnd) {
 					let letterwalker = letters(word);
 					let letter, nextLetter, doneLetter;
 
@@ -1923,8 +2077,9 @@
 
 						pos = getBoundingClientRect(letter);
 						left = Math.floor(pos.left);
+						top = Math.floor(pos.top);
 
-						if (left >= end) {
+						if (left >= end || top >= vEnd) {
 							offset = letter.startOffset;
 							done = true;
 
@@ -1984,7 +2139,7 @@
 	 * @class
 	 */
 	class Page {
-		constructor(pagesArea, pageTemplate, blank, hooks) {
+		constructor(pagesArea, pageTemplate, blank, hooks, options) {
 			this.pagesArea = pagesArea;
 			this.pageTemplate = pageTemplate;
 			this.blank = blank;
@@ -1993,6 +2148,8 @@
 			this.height = undefined;
 
 			this.hooks = hooks;
+
+			this.settings = options || {};
 
 			// this.element = this.create(this.pageTemplate);
 		}
@@ -2021,7 +2178,7 @@
 
 
 			area.style.columnWidth = Math.round(size.width) + "px";
-			area.style.columnGap = "calc(var(--pagedjs-margin-right) + var(--pagedjs-margin-left))";
+			area.style.columnGap = "calc(var(--pagedjs-margin-right) + var(--pagedjs-margin-left) + var(--pagedjs-bleed-right) + var(--pagedjs-bleed-left) + var(--pagedjs-column-gap-offset))";
 			// area.style.overflow = "scroll";
 
 			this.width = Math.round(size.width);
@@ -2103,7 +2260,12 @@
 
 			this.startToken = breakToken;
 
-			this.layoutMethod = new Layout(this.area, this.hooks, maxChars);
+			let settings = this.settings;
+			if (!settings.maxChars && maxChars) {
+				settings.maxChars = maxChars;
+			}
+
+			this.layoutMethod = new Layout(this.area, this.hooks, settings);
 
 			let renderResult = await this.layoutMethod.renderTo(this.wrapper, contents, breakToken);
 			let newBreakToken = renderResult.breakToken;
@@ -2633,6 +2795,7 @@
 			this.hooks.afterOverflowRemoved = new Hook(this);
 			this.hooks.onBreakToken = new Hook();
 			this.hooks.afterPageLayout = new Hook(this);
+			this.hooks.finalizePage = new Hook(this);
 			this.hooks.afterRendered = new Hook(this);
 
 			this.pages = [];
@@ -2739,7 +2902,7 @@
 		// }
 
 		async render(parsed, startAt) {
-			let renderer = this.layout(parsed, startAt, this.settings);
+			let renderer = this.layout(parsed, startAt);
 
 			let done = false;
 			let result;
@@ -2839,12 +3002,14 @@
 				this.emit("page", page);
 				// await this.hooks.layout.trigger(page.element, page, undefined, this);
 				await this.hooks.afterPageLayout.trigger(page.element, page, undefined, this);
+				await this.hooks.finalizePage.trigger(page.element, page, undefined, this);
 				this.emit("renderedPage", page);
 			}
 		}
 
 		async *layout(content, startAt) {
 			let breakToken = startAt || false;
+			let tokens = [];
 
 			while (breakToken !== undefined && (true)) {
 
@@ -2862,7 +3027,20 @@
 				// Layout content in the page, starting from the breakToken
 				breakToken = await page.layout(content, breakToken, this.maxChars);
 
+				if (breakToken) {
+					let newToken = breakToken.toJSON(true);
+					if (tokens.lastIndexOf(newToken) > -1) {
+						// loop
+						let err = new OverflowContentError("Layout repeated", [breakToken.node]);
+						console.error("Layout repeated at: ", breakToken.node);
+						return err;
+					} else {
+						tokens.push(newToken);
+					}
+				}
+
 				await this.hooks.afterPageLayout.trigger(page.element, page, breakToken, this);
+				await this.hooks.finalizePage.trigger(page.element, page, undefined, this);
 				this.emit("renderedPage", page);
 
 				this.recoredCharLength(page.wrapper.textContent.length);
@@ -2913,7 +3091,7 @@
 		addPage(blank) {
 			let lastPage = this.pages[this.pages.length - 1];
 			// Create a new page from the template
-			let page = new Page(this.pagesArea, this.pageTemplate, blank, this.hooks);
+			let page = new Page(this.pagesArea, this.pageTemplate, blank, this.hooks, this.settings);
 
 			this.pages.push(page);
 
@@ -3033,6 +3211,7 @@
 			}
 
 			await this.hooks.afterPageLayout.trigger(page.element, page, undefined, this);
+			await this.hooks.finalizePage.trigger(page.element, page, undefined, this);
 			this.emit("renderedPage", page);
 		}
 
@@ -26031,44 +26210,48 @@
 	    node: node
 	};
 
-	var name = "css-tree";
-	var version = "1.1.3";
-	var description = "A tool set for CSS: fast detailed parser (CSS → AST), walker (AST traversal), generator (AST → CSS) and lexer (validation and matching) based on specs and browser implementations";
-	var author = "Roman Dvornov <rdvornov@gmail.com> (https://github.com/lahmatiy)";
-	var license = "MIT";
-	var repository = "csstree/csstree";
-	var keywords = [
-		"css",
-		"ast",
-		"tokenizer",
-		"parser",
-		"walker",
-		"lexer",
-		"generator",
-		"utils",
-		"syntax",
-		"validation"
+	var _args = [
+		[
+			"css-tree@1.1.3",
+			"/home/gitlab-runner/builds/BQJy2NwB/0/pagedjs/pagedjs"
+		]
 	];
-	var main = "lib/index.js";
-	var unpkg = "dist/csstree.min.js";
-	var jsdelivr = "dist/csstree.min.js";
-	var scripts = {
-		build: "rollup --config",
-		lint: "eslint data lib scripts test && node scripts/review-syntax-patch --lint && node scripts/update-docs --lint",
-		"lint-and-test": "npm run lint && npm test",
-		"update:docs": "node scripts/update-docs",
-		"review:syntax-patch": "node scripts/review-syntax-patch",
-		test: "mocha --reporter progress",
-		coverage: "nyc npm test",
-		travis: "nyc npm run lint-and-test && npm run coveralls",
-		coveralls: "nyc report --reporter=text-lcov | coveralls",
-		prepublishOnly: "npm run build",
-		hydrogen: "node --trace-hydrogen --trace-phase=Z --trace-deopt --code-comments --hydrogen-track-positions --redirect-code-traces --redirect-code-traces-to=code.asm --trace_hydrogen_file=code.cfg --print-opt-code bin/parse --stat -o /dev/null"
+	var _from = "css-tree@1.1.3";
+	var _id = "css-tree@1.1.3";
+	var _inBundle = false;
+	var _integrity = "sha512-tRpdppF7TRazZrjJ6v3stzv93qxRcSsFmW6cX0Zm2NVKpxE1WV1HblnghVv9TreireHkqI/VDEsfolRF1p6y7Q==";
+	var _location = "/css-tree";
+	var _phantomChildren = {
+	};
+	var _requested = {
+		type: "version",
+		registry: true,
+		raw: "css-tree@1.1.3",
+		name: "css-tree",
+		escapedName: "css-tree",
+		rawSpec: "1.1.3",
+		saveSpec: null,
+		fetchSpec: "1.1.3"
+	};
+	var _requiredBy = [
+		"/"
+	];
+	var _resolved = "https://registry.npmjs.org/css-tree/-/css-tree-1.1.3.tgz";
+	var _spec = "1.1.3";
+	var _where = "/home/gitlab-runner/builds/BQJy2NwB/0/pagedjs/pagedjs";
+	var author = {
+		name: "Roman Dvornov",
+		email: "rdvornov@gmail.com",
+		url: "https://github.com/lahmatiy"
+	};
+	var bugs = {
+		url: "https://github.com/csstree/csstree/issues"
 	};
 	var dependencies = {
 		"mdn-data": "2.0.14",
 		"source-map": "^0.6.1"
 	};
+	var description = "A tool set for CSS: fast detailed parser (CSS → AST), walker (AST traversal), generator (AST → CSS) and lexer (validation and matching) based on specs and browser implementations";
 	var devDependencies = {
 		"@rollup/plugin-commonjs": "^11.0.2",
 		"@rollup/plugin-json": "^4.0.2",
@@ -26089,22 +26272,72 @@
 		"dist",
 		"lib"
 	];
+	var homepage = "https://github.com/csstree/csstree#readme";
+	var jsdelivr = "dist/csstree.min.js";
+	var keywords = [
+		"css",
+		"ast",
+		"tokenizer",
+		"parser",
+		"walker",
+		"lexer",
+		"generator",
+		"utils",
+		"syntax",
+		"validation"
+	];
+	var license = "MIT";
+	var main = "lib/index.js";
+	var name = "css-tree";
+	var repository = {
+		type: "git",
+		url: "git+https://github.com/csstree/csstree.git"
+	};
+	var scripts = {
+		build: "rollup --config",
+		coverage: "nyc npm test",
+		coveralls: "nyc report --reporter=text-lcov | coveralls",
+		hydrogen: "node --trace-hydrogen --trace-phase=Z --trace-deopt --code-comments --hydrogen-track-positions --redirect-code-traces --redirect-code-traces-to=code.asm --trace_hydrogen_file=code.cfg --print-opt-code bin/parse --stat -o /dev/null",
+		lint: "eslint data lib scripts test && node scripts/review-syntax-patch --lint && node scripts/update-docs --lint",
+		"lint-and-test": "npm run lint && npm test",
+		prepublishOnly: "npm run build",
+		"review:syntax-patch": "node scripts/review-syntax-patch",
+		test: "mocha --reporter progress",
+		travis: "nyc npm run lint-and-test && npm run coveralls",
+		"update:docs": "node scripts/update-docs"
+	};
+	var unpkg = "dist/csstree.min.js";
+	var version = "1.1.3";
 	var require$$4 = {
-		name: name,
-		version: version,
-		description: description,
+		_args: _args,
+		_from: _from,
+		_id: _id,
+		_inBundle: _inBundle,
+		_integrity: _integrity,
+		_location: _location,
+		_phantomChildren: _phantomChildren,
+		_requested: _requested,
+		_requiredBy: _requiredBy,
+		_resolved: _resolved,
+		_spec: _spec,
+		_where: _where,
 		author: author,
-		license: license,
-		repository: repository,
-		keywords: keywords,
-		main: main,
-		unpkg: unpkg,
-		jsdelivr: jsdelivr,
-		scripts: scripts,
+		bugs: bugs,
 		dependencies: dependencies,
+		description: description,
 		devDependencies: devDependencies,
 		engines: engines,
-		files: files
+		files: files,
+		homepage: homepage,
+		jsdelivr: jsdelivr,
+		keywords: keywords,
+		license: license,
+		main: main,
+		name: name,
+		repository: repository,
+		scripts: scripts,
+		unpkg: unpkg,
+		version: version
 	};
 
 	function merge() {
@@ -26201,9 +26434,10 @@
 
 		insertRule(rule) {
 			let inserted = this.ast.children.appendData(rule);
-			inserted.forEach((item) => {
-				this.declarations(item);
-			});
+
+			this.declarations(rule);
+
+			return inserted;
 		}
 
 		urls(ast) {
@@ -26244,7 +26478,6 @@
 			lib.walk(ast, {
 				visit: "Rule",
 				enter: (ruleNode, ruleItem, rulelist) => {
-					// console.log("rule", ruleNode);
 
 					this.hooks.onRule.trigger(ruleNode, ruleItem, rulelist);
 					this.declarations(ruleNode, ruleItem, rulelist);
@@ -26258,7 +26491,6 @@
 			lib.walk(ruleNode, {
 				visit: "Declaration",
 				enter: (declarationNode, dItem, dList) => {
-					// console.log(declarationNode);
 
 					this.hooks.onDeclaration.trigger(declarationNode, dItem, dList, {ruleNode, ruleItem, rulelist});
 
@@ -26485,6 +26717,7 @@
 	--pagedjs-page-count: 0;
 	--pagedjs-page-counter-increment: 1;
 	--pagedjs-footnotes-count: 0;
+	--pagedjs-column-gap-offset: 1000px;
 }
 
 @page {
@@ -26827,6 +27060,10 @@
 	column-fill: auto;
 }
 
+.pagedjs_pagebox > .pagedjs_area > .pagedjs_page_content > div {
+	height: inherit;
+}
+
 .pagedjs_pagebox > .pagedjs_area > .pagedjs_footnote_area {
 	position: relative;
 	overflow: hidden;
@@ -26879,11 +27116,18 @@
 	counter-reset: unset;
 }
 
-[data-footnote-marker]:not([data-split-from]) {
-	counter-increment: footnote-marker;
+[data-footnote-marker] {
 	text-indent: 0;
 	display: list-item;
 	list-style-position: inside;
+}
+
+[data-footnote-marker][data-split-from] {
+	list-style: none;
+}
+
+[data-footnote-marker]:not([data-split-from]) {
+	counter-increment: footnote-marker;
 }
 
 [data-footnote-marker]::marker {
@@ -27094,6 +27338,8 @@
 	html {
 		width: 100%;
 		height: 100%;
+		-webkit-print-color-adjust: exact;
+		print-color-adjust: exact;
 	}
 	body {
 		margin: 0;
@@ -27503,7 +27749,8 @@
 				backgroundOrigin: undefined,
 				block: {},
 				marks: undefined,
-				notes: undefined
+				notes: undefined,
+				added: false
 			};
 		}
 
@@ -27531,6 +27778,8 @@
 				page = this.pages[selector];
 				marginalia = this.replaceMarginalia(node);
 				needsMerge = true;
+				// Mark page for getting classes added again
+				page.added = false;
 			} else {
 				page = this.pageModel(selector);
 				marginalia = this.replaceMarginalia(node);
@@ -27650,9 +27899,11 @@
 		*/
 
 		afterTreeWalk(ast, sheet) {
+			let dirtyPage = "*" in this.pages && this.pages["*"].added === false;
+
 			this.addPageClasses(this.pages, ast, sheet);
 
-			if ("*" in this.pages) {
+			if (dirtyPage) {
 				let width = this.pages["*"].width;
 				let height = this.pages["*"].height;
 				let format = this.pages["*"].format;
@@ -28098,41 +28349,48 @@
 
 		addPageClasses(pages, ast, sheet) {
 			// First add * page
-			if ("*" in pages) {
+			if ("*" in pages && pages["*"].added === false) {
 				let p = this.createPage(pages["*"], ast.children, sheet);
 				sheet.insertRule(p);
+				pages["*"].added = true;
 			}
 			// Add :left & :right
-			if (":left" in pages) {
+			if (":left" in pages && pages[":left"].added === false) {
 				let left = this.createPage(pages[":left"], ast.children, sheet);
 				sheet.insertRule(left);
+				pages[":left"].added = true;
 			}
-			if (":right" in pages) {
+			if (":right" in pages && pages[":right"].added === false) {
 				let right = this.createPage(pages[":right"], ast.children, sheet);
 				sheet.insertRule(right);
+				pages[":right"].added = true;
 			}
 			// Add :first & :blank
-			if (":first" in pages) {
+			if (":first" in pages && pages[":first"].added === false) {
 				let first = this.createPage(pages[":first"], ast.children, sheet);
 				sheet.insertRule(first);
+				pages[":first"].added = true;
 			}
-			if (":blank" in pages) {
+			if (":blank" in pages && pages[":blank"].added === false) {
 				let blank = this.createPage(pages[":blank"], ast.children, sheet);
 				sheet.insertRule(blank);
+				pages[":blank"].added = true;
 			}
 			// Add nth pages
 			for (let pg in pages) {
-				if (pages[pg].nth) {
+				if (pages[pg].nth && pages[pg].added === false) {
 					let nth = this.createPage(pages[pg], ast.children, sheet);
 					sheet.insertRule(nth);
+					pages[pg].added = true;
 				}
 			}
 
 			// Add named pages
 			for (let pg in pages) {
-				if (pages[pg].name) {
+				if (pages[pg].name && pages[pg].added === false) {
 					let named = this.createPage(pages[pg], ast.children, sheet);
 					sheet.insertRule(named);
+					pages[pg].added = true;
 				}
 			}
 
@@ -29116,15 +29374,20 @@
 		}
 
 		addPageAttributes(page, start, pages) {
-			let named = start.dataset.page;
+			let namedPages = [start.dataset.page];
 
-			if (named) {
-				page.name = named;
-				page.element.classList.add("pagedjs_named_page");
-				page.element.classList.add("pagedjs_" + named + "_page");
+			if (namedPages && namedPages.length) {
+				for (const named of namedPages) {
+					if (!named) {
+						continue;
+					}
+					page.name = named;
+					page.element.classList.add("pagedjs_named_page");
+					page.element.classList.add("pagedjs_" + named + "_page");
 
-				if (!start.dataset.splitFrom) {
-					page.element.classList.add("pagedjs_" + named + "_first_page");
+					if (!start.dataset.splitFrom) {
+						page.element.classList.add("pagedjs_" + named + "_first_page");
+					}
 				}
 			}
 		}
@@ -29170,7 +29433,7 @@
 			// page.element.querySelector('.paged_area').style.color = red;
 		}
 
-		afterPageLayout(fragment, page, breakToken, chunker) {
+		finalizePage(fragment, page, breakToken, chunker) {
 			for (let m in this.marginalia) {
 				let margin = this.marginalia[m];
 				let sels = m.split(" ");
@@ -29804,21 +30067,45 @@
 		onAtMedia(node, item, list) {
 			let media = this.getMediaName(node);
 			let rules;
-
-			if (media === "print") {
+			if (media.includes("print")) {
 				rules = node.block.children;
 
-				// Remove rules from the @media block
-				node.block.children = new lib.List();
+				// Append rules to the end of main rules list
+				// TODO: this isn't working right, needs to check what is in the prelude
+				/*
+				rules.forEach((selectList) => {
+					if (selectList.prelude) {
+						selectList.prelude.children.forEach((rule) => {
+
+							rule.children.prependData({
+								type: "Combinator",
+								name: " "
+							});
+		
+							rule.children.prependData({
+								type: "ClassSelector",
+								name: "pagedjs_page"
+							});
+						});	
+					}
+				});
+
+				list.insertList(rules, item);
+				*/
 
 				// Append rules to the end of main rules list
 				list.appendList(rules);
+
+				// Remove rules from the @media block
+				list.remove(item);
+			} else if (!media.includes("all") && !media.includes("pagedjs-ignore")) {
+				list.remove(item);
 			}
 
 		}
 
 		getMediaName(node) {
-			let media = "";
+			let media = [];
 
 			if (typeof node.prelude === "undefined" ||
 					node.prelude.type !== "AtrulePrelude" ) {
@@ -29828,7 +30115,7 @@
 			lib.walk(node.prelude, {
 				visit: "Identifier",
 				enter: (identNode, iItem, iList) => {
-					media = identNode.name;
+					media.push(identNode.name);
 				}
 			});
 			return media;
@@ -30270,11 +30557,8 @@
 		afterPageLayout(pageElement, page, breakToken, chunker) {
 			var orderedLists = pageElement.getElementsByTagName("ol");
 			for (var list of orderedLists) {
-				if (list.hasChildNodes()) {
+				if (list.firstElementChild) {
 					list.start = list.firstElementChild.dataset.itemNum;
-				}
-				else {
-					list.parentNode.removeChild(list);
 				}
 			}
 		}
@@ -30679,7 +30963,7 @@
 
 				if (node.dataset.note === "footnote") {
 					notes = [node];
-				} else if (node.dataset.hasNotes) {
+				} else if (node.dataset.hasNotes || node.querySelectorAll("[data-note='footnote']")) {
 					notes = node.querySelectorAll("[data-note='footnote']");
 				}
 
@@ -30883,7 +31167,7 @@
 			noteInnerContent.style.columnGap = "calc(var(--pagedjs-margin-right) + var(--pagedjs-margin-left))";
 
 			// Get overflow
-			let layout = new Layout(noteArea);
+			let layout = new Layout(noteArea, undefined, chunker.settings);
 			let overflow = layout.findOverflow(noteInnerContent, noteContentBounds);
 
 			if (overflow) {
@@ -31042,9 +31326,9 @@
 	}
 
 	var pagedMediaHandlers = [
+		PrintMedia,
 		AtPage,
 		Breaks,
-		PrintMedia,
 		Splits,
 		Counters,
 		Lists,
@@ -31200,7 +31484,7 @@
 
 			switch (parts.length) {
 				case 4:
-					if (parts[3] === "pagedjs_first_page") {
+					if (/^pagedjs_[\w-]+_first_page$/.test(parts[3])) {
 						weight = 7;
 					} else if (parts[3] === "pagedjs_left_page" || parts[3] === "pagedjs_right_page") {
 						weight = 6;
@@ -31301,7 +31585,7 @@
 
 			this.stringSetSelectors = {};
 			this.type;
-			// pageLastString = last string variable defined on the page 
+			// pageLastString = last string variable defined on the page
 			this.pageLastString;
 
 		}
@@ -31310,21 +31594,35 @@
 			if (declaration.property === "string-set") {
 				let selector = lib.generate(rule.ruleNode.prelude);
 
-				let identifier = declaration.value.children.first().name;
+				let identifiers = [];
+				let functions = [];
+				let values = [];
 
-				let value;
-				lib.walk(declaration, {
-					visit: "Function",
-					enter: (node, item, list) => {
-						value = lib.generate(node);
+				declaration.value.children.forEach((child) => {
+					if (child.type === "Identifier") {
+						identifiers.push(child.name);
+					}
+					if (child.type === "Function") {
+						functions.push(child.name);
+						child.children.forEach((subchild) => {
+							if (subchild.type === "Identifier") {
+								values.push(subchild.name);
+							}
+						});
 					}
 				});
 
-				this.stringSetSelectors[identifier] = {
-					identifier,
-					value,
-					selector
-				};
+				identifiers.forEach((identifier, index) => {
+					let func = functions[index];
+					let value = values[index];
+					this.stringSetSelectors[identifier] = {
+						identifier,
+						func,
+						value,
+						selector
+					};
+				});
+
 			}
 		}
 
@@ -31364,11 +31662,13 @@
 			{
 				this.pageLastString = {};
 			}
-		
+
 			
 			for (let name of Object.keys(this.stringSetSelectors)) {
 		
 				let set = this.stringSetSelectors[name];
+				let value = set.value;
+				let func = set.func;
 				let selected = fragment.querySelectorAll(set.selector);
 
 				// Get the last found string for the current identifier
@@ -31386,18 +31686,36 @@
 
 					selected.forEach((sel) => {
 						// push each content into the array to define in the variable the first and the last element of the page.
-						this.pageLastString[name] = selected[selected.length - 1].textContent;
-					
+						if (func === "content") {
+							this.pageLastString[name] = selected[selected.length - 1].textContent;
+						}
+
+						if (func === "attr") {
+							this.pageLastString[name] = selected[selected.length - 1].getAttribute(value) || "";
+						}
+
 					});	
 
 					/* FIRST */
 		
-					varFirst = selected[0].textContent;
+					if (func === "content") {
+						varFirst = selected[0].textContent;
+					}
+
+					if (func === "attr") {
+						varFirst = selected[0].getAttribute(value) || "";
+					}
 
 
 					/* LAST */
 
-					varLast = selected[selected.length - 1].textContent;
+					if (func === "content") {
+						varLast = selected[selected.length - 1].textContent;
+					}
+
+					if (func === "attr") {
+						varLast = selected[selected.length - 1].getAttribute(value) || "";
+					}
 
 
 					/* START */
@@ -31507,7 +31825,7 @@
 		afterPageLayout(fragment, page, breakToken, chunker) {
 			Object.keys(this.counterTargets).forEach((name) => {
 				let target = this.counterTargets[name];
-				let split = target.selector.split("::");
+				let split = target.selector.split(/::?/g);
 				let query = split[0];
 
 				let queried = chunker.pagesArea.querySelectorAll(query + ":not([data-" + target.variable + "])");
@@ -32600,9 +32918,9 @@
 
 		removeStyles(doc=document) {
 			// Get all stylesheets
-			const stylesheets = Array.from(doc.querySelectorAll("link[rel='stylesheet']"));
+			const stylesheets = Array.from(doc.querySelectorAll("link[rel='stylesheet']:not([data-pagedjs-ignore], [media~='screen'])"));
 			// Get inline styles
-			const inlineStyles = Array.from(doc.querySelectorAll("style:not([data-pagedjs-inserted-styles])"));
+			const inlineStyles = Array.from(doc.querySelectorAll("style:not([data-pagedjs-inserted-styles], [data-pagedjs-ignore], [media~='screen'])"));
 			const elements = [...stylesheets, ...inlineStyles];
 			return elements
 				// preserve order
@@ -32676,6 +32994,7 @@
 		Polisher: Polisher,
 		Previewer: Previewer,
 		Handler: Handler,
+		registeredHandlers: registeredHandlers,
 		registerHandlers: registerHandlers,
 		initializeHandlers: initializeHandlers
 	});
@@ -32725,4 +33044,4 @@
 
 	return previewer;
 
-})));
+}));
