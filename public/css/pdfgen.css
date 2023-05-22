@@ -301,7 +301,7 @@ sup, sub, .footnotecall, .FootnoteSymbol {
   position: relative;
 }
 
-.article__text-contents > :not(table):not(.groupe-illustration):not(.titreillustration):not(.imageillustration):not(.legendeillustration):not(.creditillustration) {
+.article__text-contents > :not(table):not(ul):not(ol):not(.groupe-illustration):not(.titreillustration):not(.imageillustration):not(.legendeillustration):not(.creditillustration) {
   position: relative;
   padding-left: 3rem;
   margin-top: .7rem;
@@ -321,6 +321,8 @@ sup, sub, .footnotecall, .FootnoteSymbol {
 }
 
 .article__text-contents > ul.texte, .article__text-contents > ol.texte {
+  position: relative;
+  margin-top: .7rem;
   padding-left: 5rem;
 }
 
