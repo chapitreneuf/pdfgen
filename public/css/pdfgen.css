@@ -167,12 +167,13 @@ sup, sub, .footnotecall, .FootnoteSymbol {
   margin-left: 1rem;
 }
 
-.hyphenate {
+/* Commented to keep a consistant behavior accross browsers */
+/* .hyphenate {
   hyphens: auto;
   -ms-hyphens: auto;
   -moz-hyphens: auto;
   -webkit-hyphens: auto;
-}
+} */
 
 .br {
   display: block;
