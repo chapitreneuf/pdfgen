@@ -1,6 +1,6 @@
 {
   "name": "hyphenopoly",
-  "version": "4.7.0",
+  "version": "4.12.0",
   "description": "Hyphenation for node and Polyfill for client-side hyphenation.",
   "keywords": [
     "hyphenation",
@@ -14,7 +14,7 @@
     "wasm",
     "Webassembly"
   ],
-  "homepage": "https://github.com/mnater/Hyphenopoly",
+  "homepage": "https://mnater.github.io/Hyphenopoly/",
   "bugs": "https://github.com/mnater/Hyphenopoly/issues",
   "license": "MIT",
   "author": {
@@ -40,21 +40,21 @@
     "type": "git",
     "url": "https://github.com/mnater/Hyphenopoly"
   },
-  "dependencies": {},
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^3.8.0",
-    "@typescript-eslint/parser": "^3.8.0",
-    "all-contributors-cli": "^6.17.0",
-    "assemblyscript": "^0.14.7",
+    "@typescript-eslint/eslint-plugin": "^4.28.4",
+    "@typescript-eslint/parser": "^4.28.4",
+    "all-contributors-cli": "^6.20.0",
+    "assemblyscript": "^0.19.7",
     "characterset": "^1.3.0",
-    "eslint": "^7.6.0",
+    "eslint": "^7.31.0",
     "eslint-plugin-security": "^1.4.0",
-    "remark-cli": "^8.0.1",
-    "remark-lint-no-consecutive-blank-lines": "^2.0.1",
-    "remark-preset-lint-recommended": "^4.0.1",
-    "tap": "^14.10.8",
-    "terser": "^5.0.0",
-    "yaml": "^1.10.0"
+    "remark-cli": "^9.0.0",
+    "remark-lint-no-consecutive-blank-lines": "^3.0.0",
+    "remark-preset-lint-recommended": "^5.0.0",
+    "tap": "^15.0.9",
+    "terser": "^5.7.1",
+    "typescript": "^4.3.5",
+    "yaml": "^1.10.2"
   },
   "remarkConfig": {
     "plugins": [
@@ -68,7 +68,8 @@
     "postinstall3rdparty": "cd ./third-party/binaryen/ && cmake . && make",
     "createWasmForLang": "sh ./tools/createWasmForLang.sh en-us",
     "createAllWasm": "sh ./tools/createAllWasm.sh",
-    "test": "tap test/*.js --no-esm",
+    "pretest": "npm run lint",
+    "test": "tap --branches=95 test/*.js",
     "testsuite": "open http://127.0.0.1/~mnater/Hyphenopoly/testsuite/ && open http://127.0.0.1/~mnater/Hyphenopoly/min/testsuite/",
     "lint": "eslint Hyphenopoly_Loader.js Hyphenopoly.js hyphenopoly.module.js test/*.js src/*.ts && remark -q *.md && remark -q */*.md",
     "prepare": "sh ./tools/minify.sh",

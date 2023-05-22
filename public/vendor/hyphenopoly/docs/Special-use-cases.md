@@ -6,6 +6,7 @@
 4.  [Hyphenate depending on media queries](#hyphenate-depending-on-media-queries)
 5.  [Set .focus() while Hyphenopoly is running](#set-focus-while-hyphenopoly-is-running)
 6.  [Words containing special format characters](#format-chars)
+7.  [Hyphenate HTML-Strings using using hyphenopoly.module.js](#hyphenate-html-strings-using-hyphenopolymodulejs)
 
 **Note: It's not recommended to use `hyphenopoly.module.js` in a browser environment. See e.g. [this guide](./Hyphenators.md#use-case-hyphenopoly-in-react) on how to use Hyphenopoly in react.**
 
@@ -78,32 +79,71 @@ _Note:_ Make sure the directories referenced in `paths` are available.
 
 **Note: A webpacked hyphenopoly.module.js is by far larger then the Hyphenopoly_Loader.js and Hyphenopoly.js scripts which are optimized for usage in browsers.**
 
-Like `browserify` `webpack` will not shim "fs". Thus we have to tell `webpack` to shim the "fs" module with an empty object and configure `hyphenopoly` to use the "http"-loader.
+**Note2: I am not a webpack expert. The following works for Webpack 5.4.0, but may not be the best way to use hyphenopoly.module.js in webpack.**
+
+Like `browserify`, `webpack` will not shim "fs". Thus we have to tell `webpack` to shim the "fs" module with an empty object and how to polyfill other node-specific functions. And we configure `hyphenopoly` to use the "https"-loader.
 
 webpack.config.js
 
 ```javascript
 module.exports = {
-  node: {
-    fs: "empty" //<- prevent "fs not found"
-  }
+  const path = require("path");
+  const webpack = require("webpack");
+  module.exports = {
+    mode: "production",
+    entry: "./src/index.js",
+    output: {
+      filename: "main.js",
+      path: path.resolve(__dirname, "dist")
+    },
+    node: {
+      global: true
+    },
+    plugins: [
+      new webpack.ProvidePlugin({
+        process: "process/browser",
+        Buffer: ["buffer", "Buffer"],
+      })
+    ],
+    resolve: {
+      fallback: { 
+        "fs": false,
+        "https": require.resolve("https-browserify"),
+        "http": require.resolve("stream-http")
+      }
+    }
+  };
 };
 ```
 
 index.js
 
 ```javascript
+"use strict";
+
 const hyphenopoly = require("hyphenopoly");
 
 const hyphenator = hyphenopoly.config({
-  require: ["de", "en-us"],
-  paths: {
-    maindir: "../node_modules/hyphenopoly/",
-    patterndir: "../node_modules/hyphenopoly/patterns/"
-  },
-  hyphen: "•",
-  loader: "http"
+    "require": ["de", "en-us"],
+    "paths": {
+        "maindir": "../node_modules/hyphenopoly/",
+        "patterndir": "../node_modules/hyphenopoly/patterns/"
+    },
+    "hyphen": "•",
+    "loader": "https"
 });
+
+async function addDiv(lang, text) {
+    const hyphenateText = await hyphenator.get(lang);
+    const element = document.createElement('div');
+    element.innerHTML = hyphenateText(text);
+    document.body.appendChild(element);
+}
+
+(async function () {
+    await addDiv("de", "Silbentrennung verbessert den Blocksatz.");
+    await addDiv("en-us", "hyphenation enhances justification.");
+})();
 ```
 
 ## Webpack, using Hyphenopoly_Loader.js {#webpack-hyphenopoly-loader}
@@ -112,44 +152,56 @@ If you’re working in a browser environment you can add the required files, suc
 
 _webpack.config.js_
 ```javascript
+"use strict";
+const path = require("path");
+const TerserPlugin = require("terser-webpack-plugin");
+const HtmlWebpackPlugin = require("html-webpack-plugin");
+const CopyPlugin = require("copy-webpack-plugin");
+const {CleanWebpackPlugin} = require("clean-webpack-plugin");
+const HtmlWebpackInjector = require("html-webpack-injector");
+
 module.exports = {
-  entry: {
-    vendor_head: "./src/vendor_head.js"
-  },
-  plugins: [
-    new CopyPlugin([
-        {
-            "context": "./",
-            "from": "node_modules/hyphenopoly/min/Hyphenopoly.js",
-            "to": "./js/hyphenopoly/",
-            "force": true,
-            "flatten": true
-        },
-        {
-            "context": "./",
-            "from": "node_modules/hyphenopoly/min/patterns/{es,it,de,en-us}.wasm",
-            "to": "./js/hyphenopoly/patterns/",
-            "globOptions": {
-                "extglob": true
-            },
-            "force": true,
-            "flatten": true
-        }
-    ]),
-    new HtmlWebpackPlugin({
-      template: "./src/index.html",
-      favicon: ""
-    }),
-    new HtmlWebpackInjector()
-  ],
-  module: {
-    rules: [
-      {
-        test: /\.html$/i,
-        loader: "html-loader"
-      }
+    "entry": {
+        "main": "./src/index.js",
+        "vendor_head": "./src/vendor_head.js"
+    },
+    "mode": "production",
+    "module": {
+        "rules": [
+            {
+                "loader": "html-loader",
+                "test": /\.html$/i
+            }
+        ]
+    },
+    "optimization": {
+        "minimizer": [new TerserPlugin()],
+        "runtimeChunk": "single"
+    },
+    "output": {
+        "filename": "js/[name].[contenthash].bundle.js",
+        "path": path.resolve(__dirname, "dist")
+    },
+    "performance": {
+        "hints": false
+    },
+    "plugins": [
+        new CleanWebpackPlugin(), new CopyPlugin({
+            "patterns": [
+                {
+                    "context": "./",
+                    "from": "node_modules/hyphenopoly/min/Hyphenopoly.js",
+                    "to": "./js/hyphenopoly/"
+                }, {
+                    "context": "./",
+                    "from": "node_modules/hyphenopoly/min/patterns/{es,it,de,en-us}.wasm",
+                    "to": "./js/hyphenopoly/patterns/[name].[ext]"
+                }
+            ]
+        }), new HtmlWebpackPlugin({
+            "template": "./src/index.html"
+        }), new HtmlWebpackInjector()
     ]
-  }
 };
 ```
 
@@ -157,19 +209,23 @@ Then, inside the vendor_head.js create the proper Hyphenopoly object describing 
 
 _vendor_head.js_
 ```javascript
-var Hyphenopoly = {
-  require: {
-    es: "anticonstitucionalmente", // Required languages
-    it: "precipitevolissimevolmente",
-    de: "Silbentrennungsalgorithmus",
-    "en-us": "antidisestablishmentarianism"
-  },
-  paths: {
-    patterndir: "./js/hyphenopoly/patterns/", // Path to the directory of pattern files
-    maindir: "./js/hyphenopoly/" // Path to the directory where the other ressources are stored
-  }
+"use strict";
+
+const Hyphenopoly = {
+    "require": {
+        "es": "anticonstitucionalmente",
+        "it": "precipitevolissimevolmente",
+        "de": "Silbentrennungsalgorithmus",
+        "en-us": "antidisestablishmentarianism"
+    },
+    "paths": {
+        // Path to the directory of pattern files
+        "patterndir": "./js/hyphenopoly/patterns/",
+        // Path to the directory where the other ressources are stored
+        "maindir": "./js/hyphenopoly/"
+    }
 };
-window.Hyphenopoly = Hyphenopoly; // Make Hyphenopoly object global
+window.Hyphenopoly = Hyphenopoly;
 require("hyphenopoly/Hyphenopoly_Loader");
 ```
 
@@ -290,3 +346,53 @@ Hyphenopoly does NOT hyphenate words that contain one of the following special f
 *   ZERO WIDTH SPACE (\u200B)
 *   ZERO WIDTH NON-JOINER (\u200C)
 *   ZERO WIDTH JOINER (\u200D)
+
+## Hyphenate HTML-Strings using hyphenopoly.module.js
+
+`hyphenopoly.module.js` only hyphenates plain text strings. If the string contains HTML tags, it must first be parsed. The textContent of the nodes may then be hyphenated using hyphenopoly:
+
+````javascript
+const { JSDOM } = require("jsdom")
+
+const hyphenator = require("hyphenopoly").config({
+  sync: true,
+  require: ["de"],
+  defaultLanguage: "de",
+  minWordLength: 6,
+  leftmin: 4,
+  rightmin: 4,
+})
+
+function hyphenateText(text) {
+  if (typeof text === "string") {
+    return hyphenator(text)
+  } else {
+    return undefined
+  }
+}
+
+function hyphenateHtml(html) {
+  if (typeof html === "string") {
+    if (html.trim().startsWith("<")) {
+      const fragment = JSDOM.fragment(html)
+      const hyphenateNode = (node) => {
+        for (node = node.firstChild; node; node = node.nextSibling) {
+          if (node.nodeType == 3) {
+            node.textContent = hyphenator(node.textContent)
+          } else {
+            hyphenateNode(node)
+          }
+        }
+      }
+      hyphenateNode(fragment)
+      return fragment.firstChild["outerHTML"]
+    } else {
+      return hyphenator(html)
+    }
+  } else {
+    return undefined
+  }
+}
+
+module.exports = { text: hyphenateText, html: hyphenateHtml }
+````

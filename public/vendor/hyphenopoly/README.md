@@ -7,7 +7,7 @@ The package consists of the following parts:
 -   _Hyphenopoly_Loader.js_ (~11KB unpacked, ~2KB minified and compressed): feature-checks the client and loads other resources if necessary.
 -   _Hyphenopoly.js_ (~36KB unpacked, ~5KB minified and compressed): does the whole DOM-foo and wraps wasm.
 -   _wasm-Modules_ (sizes differ! e.g. en-us.wasm: ~24KB uncompressed, ~15KB compressed): core hyphenation functions and hyphenation patterns in a space saving binary format (including pattern license).
--   _hyphenopoly.module.js_: the node module
+-   _hyphenopoly.module.js_: the node module to hyphenate plain text strings.
 
 ## Usage (Browser)
 Place all code for Hyphenopoly at the top of the header (immediately after the `<title>` tag) to ensure resources are loaded as early as possible.
@@ -167,16 +167,22 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 <!-- markdownlint-disable -->
 <table>
   <tr>
-    <td align="center"><a href="http://thomasbroadley.com"><img src="https://avatars0.githubusercontent.com/u/8731922?v=4" width="100px;" alt=""/><br /><sub><b>Thomas Broadley</b></sub></a><br /><a href="https://github.com/mnater/Hyphenopoly/commits?author=tbroadley" title="Documentation">📖</a></td>
-    <td align="center"><a href="https://kailueke.gitlab.io/"><img src="https://avatars0.githubusercontent.com/u/1189130?v=4" width="100px;" alt=""/><br /><sub><b>Kai Lüke</b></sub></a><br /><a href="https://github.com/mnater/Hyphenopoly/commits?author=pothos" title="Code">💻</a></td>
-    <td align="center"><a href="http://www.data-factory.net/"><img src="https://avatars2.githubusercontent.com/u/998558?v=4" width="100px;" alt=""/><br /><sub><b>Sebastian Blank</b></sub></a><br /><a href="#example-blankse" title="Examples">💡</a></td>
-    <td align="center"><a href="https://www.ghsvs.de"><img src="https://avatars2.githubusercontent.com/u/20780646?v=4" width="100px;" alt=""/><br /><sub><b>ReLater</b></sub></a><br /><a href="#maintenance-ReLater" title="Maintenance">🚧</a></td>
-    <td align="center"><a href="https://github.com/julian-zatloukal"><img src="https://avatars3.githubusercontent.com/u/58230917?v=4" width="100px;" alt=""/><br /><sub><b>julian-zatloukal</b></sub></a><br /><a href="https://github.com/mnater/Hyphenopoly/commits?author=julian-zatloukal" title="Documentation">📖</a></td>
+    <td align="center"><a href="http://thomasbroadley.com"><img src="https://avatars0.githubusercontent.com/u/8731922?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Thomas Broadley</b></sub></a><br /><a href="https://github.com/mnater/Hyphenopoly/commits?author=tbroadley" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://kailueke.gitlab.io/"><img src="https://avatars0.githubusercontent.com/u/1189130?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Kai Lüke</b></sub></a><br /><a href="https://github.com/mnater/Hyphenopoly/commits?author=pothos" title="Code">💻</a></td>
+    <td align="center"><a href="http://www.data-factory.net/"><img src="https://avatars2.githubusercontent.com/u/998558?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Sebastian Blank</b></sub></a><br /><a href="#example-blankse" title="Examples">💡</a></td>
+    <td align="center"><a href="https://www.ghsvs.de"><img src="https://avatars2.githubusercontent.com/u/20780646?v=4?s=100" width="100px;" alt=""/><br /><sub><b>ReLater</b></sub></a><br /><a href="#maintenance-ReLater" title="Maintenance">🚧</a></td>
+    <td align="center"><a href="https://github.com/julian-zatloukal"><img src="https://avatars3.githubusercontent.com/u/58230917?v=4?s=100" width="100px;" alt=""/><br /><sub><b>julian-zatloukal</b></sub></a><br /><a href="https://github.com/mnater/Hyphenopoly/commits?author=julian-zatloukal" title="Documentation">📖</a></td>
+    <td align="center"><a href="http://www.neoskop.de/"><img src="https://avatars1.githubusercontent.com/u/1702250?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Maik Jablonski</b></sub></a><br /><a href="https://github.com/mnater/Hyphenopoly/commits?author=jablonski" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://github.com/yashha"><img src="https://avatars0.githubusercontent.com/u/4728786?v=4?s=100" width="100px;" alt=""/><br /><sub><b>yashha</b></sub></a><br /><a href="https://github.com/mnater/Hyphenopoly/commits?author=yashha" title="Code">💻</a></td>
+  </tr>
+  <tr>
+    <td align="center"><a href="http://danburzo.ro/"><img src="https://avatars3.githubusercontent.com/u/205375?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Dan Burzo</b></sub></a><br /><a href="https://github.com/mnater/Hyphenopoly/commits?author=danburzo" title="Code">💻</a></td>
   </tr>
 </table>
 
-<!-- markdownlint-enable -->
+<!-- markdownlint-restore -->
 <!-- prettier-ignore-end -->
+
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
 This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!

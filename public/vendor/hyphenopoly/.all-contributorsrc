@@ -54,6 +54,33 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "jablonski",
+      "name": "Maik Jablonski",
+      "avatar_url": "https://avatars1.githubusercontent.com/u/1702250?v=4",
+      "profile": "http://www.neoskop.de/",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "yashha",
+      "name": "yashha",
+      "avatar_url": "https://avatars0.githubusercontent.com/u/4728786?v=4",
+      "profile": "https://github.com/yashha",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "danburzo",
+      "name": "Dan Burzo",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/205375?v=4",
+      "profile": "http://danburzo.ro/",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7
