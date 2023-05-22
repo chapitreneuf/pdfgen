@@ -80,6 +80,7 @@ var Hyphenopoly = {
 	},
 	setup: {
 		dontHyphenateClass: "code",
+		hide: "none",
 		selectors: {
 			".hyphenate": {}
 		}
