@@ -81,8 +81,13 @@ var Hyphenopoly = {
 	setup: {
 		dontHyphenateClass: "code",
 		hide: "none",
+		safeCopy: false,
 		selectors: {
-			".hyphenate": {}
+			".hyphenate": {
+				orphanControl: 3,
+				leftmin: 4,
+				rightmin: 4
+			}
 		}
 	},
 	handleEvent: {
