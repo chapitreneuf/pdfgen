@@ -50,6 +50,24 @@
   string-set: title content(text);
 }
 
+/* Style du numéro de page (masqué par défaut) */
+@page {
+  @bottom-center {
+    color: var(--color-grey-dark);
+    font-size: .9rem;
+  }
+}
+
+@page:first {
+  @bottom-center {
+    content: none;
+  }
+}
+
+.main {
+  counter-reset: page 1;
+}
+
 /* STANDARD ELEMENTS */
 /* ================= */
 

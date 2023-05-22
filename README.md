@@ -80,6 +80,27 @@ Il est possible de personnaliser les templates du PDF en redéclarant les macros
 
 Les macros `PDFGEN_CUSTOM_JS` et `PDFGEN_CUSTOM_CSS` à déclarer dans tpl/macros_custom.html permettent d'ajouter respectivement des scripts et des styles à la page.
 
+Exemple pour remplacer la numérotation des paragraphes par un numéro de page :
+
+```html
+/**
+ * Affichage du numéro de page
+ */
+<DEFMACRO NAME="PDFGEN_CUSTOM_CSS">
+	<style>
+		@page {
+			@bottom-center {
+				content: counter(page);
+			}
+		}
+
+		.article__text-contents > p.texte::before {
+			content: none;
+		}
+	</style>
+</DEFMACRO>
+```
+
 ## Crédits et financement
 
 Ce projet a été développé par le [collectif Edinum](https://edinum.org) pour les Bibliothèques universitaires de l'Université Jean Moulin Lyon 3. Il a été financé par l'Université Jean Moulin Lyon 3. 
