@@ -78,7 +78,7 @@ Quand le plugin est actif et configuré, on peut récupérer le lien vers le PDF
 
 Il est possible de personnaliser les templates du PDF en redéclarant les macros de macros_pdfgen.html dans tpl/macros_custom.html.
 
-Les macros `HEAD_CUSTOM_JS` et `HEAD_CUSTOM_CSS` à déclarer dans tpl/macros_custom.html permettent d'ajouter respectivement des scripts et des styles à la page.
+Les macros `PDFGEN_CUSTOM_JS` et `PDFGEN_CUSTOM_CSS` à déclarer dans tpl/macros_custom.html permettent d'ajouter respectivement des scripts et des styles à la page.
 
 ## Crédits et financement
 
