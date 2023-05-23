@@ -73,7 +73,7 @@ window.PagedConfig = {
 	auto: false
 };
 
-var Hyphenopoly = {
+Hyphenopoly.config({
 	require: getRequiredLangs(".hyphenate[lang], .hyphenate [lang], .hyphenate[xml\\:lang], .hyphenate [xml\\:lang]"),
 	fallbacks: {
 		"en": "en-gb"
@@ -96,4 +96,4 @@ var Hyphenopoly = {
 		// Event triggered when browser-native CSS hyphenation is available
 		"tearDown": runPagedjs
 	}
-};
+});
