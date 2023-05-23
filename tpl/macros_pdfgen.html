@@ -6,15 +6,17 @@
  * Utilisation : ./?do=_pdfgen_view&document=999
  */
 <DEFMACRO NAME="PDFGEN_MAIN">
-
 	<MACRO NAME="PDFGEN_HTML_START"/>
 	
 	<!--[ Recherche du type du document ]-->
 	<MACRO NAME="PDFGEN_INIT_TYPE" />
 
 	<SWITCH TEST="[%TPL_TYPE]">
-		<DO CASE="textes">
+		<DO CASE="article">
 			<MACRO NAME="PDFGEN_ARTICLE_MAIN"/>
+		</DO>
+		<DO CASE="numero">
+			TODO <!--[ <MACRO NAME="PDFGEN_NUMERO_MAIN"/> ]-->
 		</DO>
 		<DO CASE="default">
 			<h1>[@PDFGEN.DOCUMENT] [#DOCUMENT]</h1>
@@ -35,10 +37,10 @@
 				SELECT="id, class, type"
 				WHERE="id = '[#DOCUMENT]' AND class IN ('publications', 'textes') AND entities.idtype = types.id">
 		<DO>
-			<IF COND="[#CLASS] EQ 'textes'">
-				<LET VAR="tpl_type" GLOBAL="1">textes</LET>
-			<ELSE/>
-				<LET VAR="tpl_type" GLOBAL="1">publications</LET>
+			<IF COND="[#CLASS] EQ 'texte'">
+				<LET VAR="tpl_type" GLOBAL="1">article</LET>
+			<ELSEIF COND="[#CLASS] EQ 'publications' AND [#TYPE] EQ 'numero'"/>
+				<LET VAR="tpl_type" GLOBAL="1">numero</LET>
 			</IF>
 		</DO>
 	</LOOP>
