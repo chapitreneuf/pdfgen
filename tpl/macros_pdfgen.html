@@ -127,6 +127,106 @@
 </DEFMACRO>
 
 /**
+ * Page de garde du document.
+ * @param {string} [type] - Type du document : "article" ou "numero".
+ */
+<DEFFUNC NAME="PDFGEN_FRONT" OPTIONAL="type_document">
+	<section class="front">
+		<!--[ Logo et titre du site, publication parente ]-->
+		<MACRO NAME="PDFGEN_TOP" />
+	 
+		<!--[ Header document ]-->
+		<IF COND="[#TYPE_DOCUMENT] EQ 'numero'">
+			<MACRO NAME="PDFGEN_NUMERO_HEADER" />
+		<ELSE/>
+			<MACRO NAME="PDFGEN_ARTICLE_HEADER" />
+		</IF>
+
+		<div class="front__section">
+			<!--[ URL ]-->
+			<p class="front__url">[#SITEINFOS.URL]/[#ID|makeurlwithid]</p>
+
+			<!--[ DOI ]-->
+			<IF COND="[%PREFIXEDOI] AND [#TYPE] EQ 'article'">
+				<p class="article__doi"><strong>DOI&nbsp;:</strong> [%PREFIXEDOI][#ID]</p>
+			</IF>
+		</div>
+
+		<!--[ Pour citer ]-->
+		<div class="front__section">
+			<h2 class="section-header--small">[@PDFGEN.REFERENCE_ELECTRONIQUE]</h2>
+			<p class="article__reference">
+				<MACRO NAME="PDFGEN_REFERENCE_ELECTRONIQUE" />
+			</p>
+		</div>
+
+		<!--[ Droits d'auteur ]-->
+		<IF COND="[#OPTIONS.METADONNEESSITE.DROITSAUTEUR]">
+			<div class="front__section">
+				<h2 class="section-header--small">[@PDFGEN.LICENCE]</h2>
+				<p class="article__licence">[#OPTIONS.METADONNEESSITE.DROITSAUTEUR]</p>
+			</div>
+		</IF>
+	</section>
+</DEFFUNC>
+
+/**
+ * Informations sur le site.
+ */
+<DEFMACRO NAME="PDFGEN_TOP">
+	<div class="site flex">
+		<!--[ Logo de la revue ]-->
+		<!--[ Chercher le logo dans la configuration du plugin. Sinon on utilise le chemin tpl/pdf_logo.png ]-->
+		<IF COND="![#PDF_SITELOGO]">
+			<LET VAR="pdf_sitelogo" >tpl/pdf_logo.png</LET>
+		</IF>
+		<img class="site__logo" src="[#PDF_SITELOGO]" alt="" onerror="this.remove()" />
+
+		<div class="col">
+			<!--[ Titre de la revue ]-->
+			<p class="site__title">[#OPTIONS.METADONNEESSITE.TITRESITE]</p>
+			
+			<!--[ ISSN ]-->
+			<IF COND="[#OPTIONS.METADONNEESSITE.ISSN_ELECTRONIQUE]">
+				<p class="site__issn">ISSN&nbsp;: [#OPTIONS.METADONNEESSITE.ISSN_ELECTRONIQUE]</p>
+			</IF>
+			
+			<!--[ Editeur ]-->
+			<IF COND="[#OPTIONS.METADONNEESSITE.EDITEUR]">
+				<p class="site__publisher">[@PDFGEN.PUBLISHER]&nbsp;: [#OPTIONS.METADONNEESSITE.EDITEUR]</p>
+			</IF>
+
+			<!--[ Numéro parent ]-->
+			<LET VAR="id_numero_parent">[#ID|getParentByType('numero')]</LET>
+			<FUNC NAME="PDFGEN_ISSUE" ID_NUMERO="[#ID_NUMERO_PARENT]" />
+		</div>
+	</div>
+</DEFMACRO>
+
+/**
+ * Informations sur le numéro.
+ * @param {string} [id_numero] - Id du numéro.
+ */
+<DEFFUNC NAME="PDFGEN_ISSUE" REQUIRED="id_numero">
+	<LOOP NAME="pdfgen_article_front_parent" TABLE="publications" WHERE="id='[#ID_NUMERO]'" SELECT="numero, titre, periode, datepublipapier, datepubli, creationdate" />
+		<p class="issue">
+			<span class="issue__number">[#NUMERO]</span>
+			<FUNC NAME="PDFGEN_PERIODE_PUBLI" WRAP_CLASS="issue__date" PREPEND="&nbsp;|&nbsp;" />
+			<IF COND="[#TITRE] AND [#TITRE] NE [#NUMERO]">
+				<br /><span class="issue__title">[#TITRE]</span>
+			</IF>
+		</p>
+	</LOOP>
+</DEFFUNC>
+
+/**
+ * Référence électronique.
+ */
+<DEFMACRO NAME="PDFGEN_REFERENCE_ELECTRONIQUE">
+	[%LISTE_AUTEURS]«&nbsp;[#TITRE|removenotes]&nbsp;», <FUNC NAME="PDFGEN_PARU_DANS" CITATION="1" /><IF COND="[#NUMERODOCUMENT]">, [@PDFGEN.DOCUMENT|strtolower] [#NUMERODOCUMENT]</IF>, [@PDFGEN.MIS_EN_LIGNE_LE] [#DATEPUBLI|humandate], [@PDFGEN.CONSULTE_LE] <?php echo strftime('%d %B %Y');?>. URL&nbsp;: [#SITEINFOS.URL]/[#ID|makeurlwithid]
+</DEFMACRO>
+
+/**
 * Affiche la mention "Paru dans" :
 * - Paru dans TITRESITE, NUMERO | PERIODE
 * - Paru dans TITRESITE, TITRE rubrique, TITRE sous-rubrique
@@ -204,3 +304,78 @@
 		</IF>
 	</IF>
 </DEFFUNC>
+
+/**
+ * Affiche les personnes liées à l'entité en cours.
+ * @param {string} type - Nom du type des personnes.
+ * @param {string} [wrap_class] - Valeur de l'attribut class du second élément DIV conteneur.
+ * @param {string} [prepend] - Texte à afficher avant la liste de personnes.
+ * @param {string} [append] - Texte à afficher après la liste de personnes.
+ * @param {string} [href] - Lien à wrapper.
+ */
+<DEFFUNC NAME="PDFGEN_LISTER_PERSONNES" REQUIRED="type" OPTIONAL="wrap_class, prepend, append, href">
+	<IF COND="[#HREF]">
+		<LET VAR="LIEN_DEBUT"><a href="[#HREF]"></LET>
+		<LET VAR="LIEN_FIN"></a></LET>
+	</IF>
+	<LOOP NAME="pdfgen_lister_personnes" TABLE="relations, persons" SELECT="g_firstname,g_familyname" WHERE="id1 = '[#ID]' AND id2 = persons.id AND nature = 'G' AND type = '[#TYPE]'" ORDER="degree">
+
+		<BEFORE>
+			<IF COND="[#WRAP_ID] OR [#WRAP_CLASS]">
+				<IF COND="[#WRAP_ID]">
+					<LET VAR="id_tag"> id="[#WRAP_ID]"</LET>
+				</IF>
+				<IF COND="[#WRAP_CLASS]">
+					<LET VAR="class_tag"> class="[#WRAP_CLASS]"</LET>
+				</IF>
+				<p[#ID_TAG][#CLASS_TAG]>
+			</IF>
+			[#PREPEND]
+		</BEFORE>
+		<DOFIRST>
+			<span<IF COND="[#G_FIRSTNAME|text_is_rtl]"> dir="rtl"</IF>>[#LIEN_DEBUT][#G_FIRSTNAME] <span class="family-name">[#G_FAMILYNAME]</span>[#LIEN_FIN]</span>
+		</DOFIRST>
+		<DO>, <span<IF COND="[#G_FIRSTNAME|text_is_rtl]"> dir="rtl"</IF>>[#LIEN_DEBUT][#G_FIRSTNAME] <span class="family-name">[#G_FAMILYNAME]</span>[#LIEN_FIN]</span></DO>
+		<DOLAST> [@PDFGEN.AND] <span<IF COND="[#G_FIRSTNAME|text_is_rtl]"> dir="rtl"</IF>>[#LIEN_DEBUT][#G_FIRSTNAME] <span class="family-name">[#G_FAMILYNAME]</span>[#LIEN_FIN]</span></DOLAST>
+		<AFTER>
+			[#APPEND]
+			<IF COND="[#WRAP_ID] OR [#WRAP_CLASS]">
+				</p>
+			</IF>
+		</AFTER>
+	</LOOP>
+</DEFFUNC>
+
+/**
+ * Obtenir la direction d'une langue. Retourne ltr ou rtl.
+ * @param {string} lang - Langue à tester
+ */
+<DEFFUNC NAME="PDFGEN_GET_LANG_DIR" REQUIRED="lang">
+	<IF COND="[#LANG|lang_is_rtl]">rtl<ELSE />ltr</IF>
+</DEFFUNC>
+
+/**
+ * Image d'accroche du document.
+ */
+<DEFMACRO NAME="PDFGEN_IMAGEACCROCHE">
+	<LOOP NAME="pdfgen_article_imageaccroche" 
+		TABLE="fichiers" 
+		WHERE="type = 'imageaccroche' AND idparent = [#ID]" 
+		ORDER="rank" 
+		LIMIT="0,1">
+
+		<IF COND="[#VIGNETTE]">
+			<LET VAR="accroche">[#VIGNETTE|vignette(500)]</LET>
+		<ELSE/>
+			<LET VAR="accroche">[#DOCUMENT|vignette(500)]</LET>
+		</IF>
+		<div class="article__accroche">
+			<a href="[#ID|makeurlwithid]">
+				<img alt="[#TITRE|textebrut]" src="[#ACCROCHE|trim]" />
+			</a>
+			<IF COND="[#CREDITS]">
+				<p class="article__accroche-credits accroche-credits">[#CREDITS]</p>
+			</IF>
+		</div>
+	</LOOP>
+</DEFMACRO>
