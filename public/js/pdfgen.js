@@ -74,8 +74,24 @@ function fixBrInText() {
   });
 }
 
+// Fix article toc anchors in issue
+function fixArticleToc() {
+  const articles = document.querySelectorAll(".document.article");
+  articles.forEach(function(article) {
+    const articleId = article.getAttribute("data-lodel-id");
+    const headings = article.querySelectorAll(":scope h1.texte a, :scope h2.texte a, :scope h3.texte a, :scope h4.texte a, :scope h5.texte a, :scope h6.texte a")
+    let count = 0;
+    headings.forEach(function(a) {
+      count++
+      a.setAttribute("id", `tocto${articleId}-${count}`);
+      a.setAttribute("href", `#tocfrom${articleId}-${count}`);
+    });
+  });
+}
+
 displayHref();
 fixBrInText();
+fixArticleToc();
 
 window.PagedConfig = {
   auto: false

@@ -6,7 +6,7 @@
 <DEFMACRO NAME="PDFGEN_ARTICLE_MAIN">
 	<LOOP NAME="pdfgen_article_main" TABLE="textes" WHERE="id=[#DOCUMENT]">
 		<MACRO NAME="PDFGEN_ARTICLE_INIT" />
-		<div id="article-[#ID]" class="document article">
+		<div id="article-[#ID]" class="document article" data-lodel-id="[#ID]">
 			<IF COND="![%IS_NUMERO]">
 				<FUNC NAME="PDFGEN_FRONT" TYPE_DOCUMENT="article" />
 			</IF>
@@ -209,7 +209,7 @@
 			<DO>
 				<LET VAR="TOC_COUNT" GLOBAL="1">[%TOC_COUNT|lmath('+', '1')]</LET>
 				<LET VAR="ECART">[#NIVEAU|lmath('-', [%TOC_PREV_NIVEAU])]</LET>
-				<LET VAR="LIEN"><a href="#tocto[#TOCID]" class="toc__link" id="tocfrom[#TOCID]">[#TITRE|removenotes]</a></LET>
+				<LET VAR="LIEN"><a href="#tocto[#ID]-[%TOC_COUNT]" class="toc__link" id="tocfrom[#ID]-[%TOC_COUNT]">[#TITRE|removenotes]</a></LET>
 				<IF COND="[#ECART] EQ 0">
 					<IF COND="[%TOC_COUNT] GT 1">
 						</li>
