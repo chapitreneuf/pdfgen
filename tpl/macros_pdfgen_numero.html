@@ -159,7 +159,50 @@
  * Sommaire du numéro.
  */
 <DEFMACRO NAME="PDFGEN_NUMERO_SOMMAIRE">
-	<section id="sommaire" class="sommaire">
+	<LET VAR="id_publi">[#DOCUMENT]</LET>
+	<LET VAR="profondeur">0</LET>
+
+	<section class="sommaire">
+		<LOOP NAME="pdfgen_numero_sommaire"
+			TABLE="entities, types"
+			SELECT="id, class, type"
+			WHERE="idparent = '[#ID]' AND id [#NOT_IN_TRADUCTIONS_PARENT_UNIQUE] AND type NOT IN ('fluxdesyndication','imageaccroche','rubriqueannuelle', 'imageaccrochelibrairie') AND type NOT LIKE '%annexe%' AND entities.idtype = types.id"
+			ORDER="entities.rank">
+	
+			<BEFORE>
+				<IF COND="[#PROFONDEUR] EQ 0">
+					<h2 class="section-header">[@PDFGEN.SOMMAIRE]</h2>
+				</IF>
+				<ul class="toc__contents toc__contents--sommaire">
+			</BEFORE>
+	
+			<DO>
+				<LOOP NAME="pdfgen_numero_sommaire_item" TABLE="#_TP_[#CLASS]" WHERE="identity = '[#ID]'">
+					<LET VAR="publi_dir"><FUNC NAME="PDFGEN_GET_LANG_DIR" LANG="[#LANGUE]"/></LET>
+					<li class="toc__li toc__li--class-[#CLASS]" lang="[#LANGUE]" dir="[#PUBLI_DIR]">
+						<SWITCH TEST="[#CLASS]">
+							<!--[ Publications ]-->
+							<DO CASE="publications">
+								<MACRO NAME="PDFGEN_NUMERO_LI_PUBLICATIONS"/>
+							</DO>
+							<!--[ Textes ]-->
+							<DO CASE="textes">
+								<FUNC NAME="PDFGEN_NUMERO_LI_TEXTE" />
+							</DO>
+						</SWITCH>
+					</li>
+				</LOOP>
+			</DO>
+	
+			<AFTER>
+					<FUNC NAME="PDFGEN_NUMERO_ALIASES" ID_PUBLI="[#ID_PUBLI]" WRAP_TAG="li" />
+				</ul>
+			</AFTER>
+	
+			<ALTERNATIVE>
+				<FUNC NAME="PDFGEN_NUMERO_ALIASES" ID_PUBLI="[#ID_PUBLI]" />
+			</ALTERNATIVE>
+		</LOOP>
 	</section>
 </DEFMACRO>
 
