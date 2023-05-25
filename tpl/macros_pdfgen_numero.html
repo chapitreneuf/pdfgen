@@ -8,7 +8,7 @@
 		<MACRO NAME="PDFGEN_NUMERO_INIT" />
 		<div class="document numero">
 			<FUNC NAME="PDFGEN_FRONT" TYPE_DOCUMENT="numero" />
-			<div class="main">
+			<div class="main numero">
 				<MACRO NAME="PDFGEN_IMAGEACCROCHE" />
 				<MACRO NAME="PDFGEN_NUMERO_HEADER" />
 				<MACRO NAME="PDFGEN_NUMERO_DESCRIPTIONOUVRAGE" />
@@ -31,6 +31,9 @@
 	<IF COND="![#LANG]">
 		<LET VAR="LANG">[#SITELANG]</LET>
 	</IF>
+
+	<!--[ Variable utilisée par les articles pour déterminer si c'est un PDF de numéro complet ]-->
+	<LET VAR="is_numero" GLOBAL="1">1</LET>
 	
 	<!--[ Liste des ID des traductions de textes qui se trouvent dans la même rubrique que l'origial. Permet également de conditionner les boucles relatives aux traductions. ]-->
 	<LOOP NAME="base_init_get_original_with_translation"
@@ -116,7 +119,7 @@
 <DEFMACRO NAME="PDFGEN_NUMERO_INTRODUCTION">
 		<IF COND="[#INTRODUCTION]">
 			<section class="publi__introduction">
-				<h2 class="section-header">[@PDFGEN.NDLR]</h2>
+				<h2 class="section-header">[@PDFGEN.INTRODUCTION]</h2>
 				<IF COND="[#INTRODUCTION:#LANG]">
 					[#INTRODUCTION:#LANG]
 				<ELSEIF COND="[#INTRODUCTION:#LANGUE]"/>
@@ -159,46 +162,48 @@
 	<LET VAR="id_publi">[#DOCUMENT]</LET>
 	<LET VAR="profondeur">0</LET>
 
-	<LOOP NAME="pdfgen_numero_sommaire"
-		TABLE="entities, types"
-		SELECT="id, class, type"
-		WHERE="idparent = '[#ID]' AND id [#NOT_IN_TRADUCTIONS_PARENT_UNIQUE] AND type NOT IN ('fluxdesyndication','imageaccroche','rubriqueannuelle', 'imageaccrochelibrairie') AND type NOT LIKE '%annexe%' AND entities.idtype = types.id"
-		ORDER="entities.rank">
-
-		<BEFORE>
-			<IF COND="[#PROFONDEUR] EQ 0">
-				<h2 class="section-header">[@PDFGEN.SOMMAIRE]</h2>
-			</IF>
-			<ul class="toc__contents toc__contents--sommaire">
-		</BEFORE>
-
-		<DO>
-			<LOOP NAME="pdfgen_numero_sommaire_item" TABLE="#_TP_[#CLASS]" WHERE="identity = '[#ID]'">
-				<LET VAR="publi_dir"><FUNC NAME="PDFGEN_GET_LANG_DIR" LANG="[#LANGUE]"/></LET>
-				<li class="toc__li toc__li--class-[#CLASS]" lang="[#LANGUE]" dir="[#PUBLI_DIR]">
-					<SWITCH TEST="[#CLASS]">
-						<!--[ Publications ]-->
-						<DO CASE="publications">
-							<MACRO NAME="PDFGEN_NUMERO_LI_PUBLICATIONS"/>
-						</DO>
-						<!--[ Textes ]-->
-						<DO CASE="textes">
-							<FUNC NAME="PDFGEN_NUMERO_LI_TEXTE" />
-						</DO>
-					</SWITCH>
-				</li>
-			</LOOP>
-		</DO>
-
-		<AFTER>
-				<FUNC NAME="PDFGEN_NUMERO_ALIASES" ID_PUBLI="[#ID_PUBLI]" WRAP_TAG="li" />
-			</ul>
-		</AFTER>
-
-		<ALTERNATIVE>
-			<FUNC NAME="PDFGEN_NUMERO_ALIASES" ID_PUBLI="[#ID_PUBLI]" />
-		</ALTERNATIVE>
-	</LOOP>
+	<section class="sommaire">
+		<LOOP NAME="pdfgen_numero_sommaire"
+			TABLE="entities, types"
+			SELECT="id, class, type"
+			WHERE="idparent = '[#ID]' AND id [#NOT_IN_TRADUCTIONS_PARENT_UNIQUE] AND type NOT IN ('fluxdesyndication','imageaccroche','rubriqueannuelle', 'imageaccrochelibrairie') AND type NOT LIKE '%annexe%' AND entities.idtype = types.id"
+			ORDER="entities.rank">
+	
+			<BEFORE>
+				<IF COND="[#PROFONDEUR] EQ 0">
+					<h2 class="section-header">[@PDFGEN.SOMMAIRE]</h2>
+				</IF>
+				<ul class="toc__contents toc__contents--sommaire">
+			</BEFORE>
+	
+			<DO>
+				<LOOP NAME="pdfgen_numero_sommaire_item" TABLE="#_TP_[#CLASS]" WHERE="identity = '[#ID]'">
+					<LET VAR="publi_dir"><FUNC NAME="PDFGEN_GET_LANG_DIR" LANG="[#LANGUE]"/></LET>
+					<li class="toc__li toc__li--class-[#CLASS]" lang="[#LANGUE]" dir="[#PUBLI_DIR]">
+						<SWITCH TEST="[#CLASS]">
+							<!--[ Publications ]-->
+							<DO CASE="publications">
+								<MACRO NAME="PDFGEN_NUMERO_LI_PUBLICATIONS"/>
+							</DO>
+							<!--[ Textes ]-->
+							<DO CASE="textes">
+								<FUNC NAME="PDFGEN_NUMERO_LI_TEXTE" />
+							</DO>
+						</SWITCH>
+					</li>
+				</LOOP>
+			</DO>
+	
+			<AFTER>
+					<FUNC NAME="PDFGEN_NUMERO_ALIASES" ID_PUBLI="[#ID_PUBLI]" WRAP_TAG="li" />
+				</ul>
+			</AFTER>
+	
+			<ALTERNATIVE>
+				<FUNC NAME="PDFGEN_NUMERO_ALIASES" ID_PUBLI="[#ID_PUBLI]" />
+			</ALTERNATIVE>
+		</LOOP>
+	</section>
 </DEFMACRO>
 
 /**
@@ -351,20 +356,17 @@
 		ORDER="entities.rank">
 		<DO>
 			<LOOP NAME="pdfgen_numero_articles_item" TABLE="#_TP_[#CLASS]" WHERE="identity = '[#ID]'">
-				<LET VAR="publi_dir"><FUNC NAME="PDFGEN_GET_LANG_DIR" LANG="[#LANGUE]"/></LET>
-				<li class="toc__li toc__li--class-[#CLASS]" lang="[#LANGUE]" dir="[#PUBLI_DIR]">
-					<SWITCH TEST="[#CLASS]">
-						<!--[ Publications ]-->
-						<DO CASE="publications">
-							<LOOP NAME="pdfgen_numero_articles"></LOOP>
-						</DO>
-						<!--[ Textes ]-->
-						<DO CASE="textes">
-							<LET VAR="document">[#ID]</LET>
-							<MACRO NAME="PDFGEN_ARTICLE_MAIN"/>
-						</DO>
-					</SWITCH>
-				</li>
+				<SWITCH TEST="[#CLASS]">
+					<!--[ Publications ]-->
+					<DO CASE="publications">
+						<LOOP NAME="pdfgen_numero_articles"></LOOP>
+					</DO>
+					<!--[ Textes ]-->
+					<DO CASE="textes">
+						<LET VAR="document">[#ID]</LET>
+						<MACRO NAME="PDFGEN_ARTICLE_MAIN"/>
+					</DO>
+				</SWITCH>
 			</LOOP>
 		</DO>
 

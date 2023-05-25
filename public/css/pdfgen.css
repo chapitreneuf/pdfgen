@@ -38,9 +38,25 @@
   page: mainLayout;
 }
 
+.main.article {
+  break-after: page;
+}
+
 @page mainLayout:first {
   margin: 15mm 30mm 15mm 30mm;
 
+  @top-left { 
+    content: none; 
+  }
+}
+
+.sommaire {
+  break-before: page;
+  break-after: page;
+  page: sommaireLayout;
+}
+
+@page sommaireLayout {
   @top-left { 
     content: none; 
   }

@@ -6,9 +6,11 @@
 <DEFMACRO NAME="PDFGEN_ARTICLE_MAIN">
 	<LOOP NAME="pdfgen_article_main" TABLE="textes" WHERE="id=[#DOCUMENT]">
 		<MACRO NAME="PDFGEN_ARTICLE_INIT" />
-		<div class="document article">
-			<FUNC NAME="PDFGEN_FRONT" TYPE_DOCUMENT="article" />
-			<div class="main">
+		<div id="article-[#ID]" class="document article">
+			<IF COND="![%IS_NUMERO]">
+				<FUNC NAME="PDFGEN_FRONT" TYPE_DOCUMENT="article" />
+			</IF>
+			<div class="main article">
 				<MACRO NAME="PDFGEN_ARTICLE_HEADER" />
 				<MACRO NAME="PDFGEN_ARTICLE_NOTICEBIBLIOOEUVRE" />
 				<IF COND="[#TEXTE_ACCESSIBLE]">
