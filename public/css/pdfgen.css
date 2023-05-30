@@ -238,7 +238,7 @@ sup, sub, .footnotecall, .FootnoteSymbol, .endnotecall, .EndnoteSymbol {
   line-height: 125%;
 }
 
-.article__title {
+.main-title {
   margin: .5rem 0;
   font-size: 1.7rem;
   font-family: var(--font-text);
@@ -246,25 +246,25 @@ sup, sub, .footnotecall, .FootnoteSymbol, .endnotecall, .EndnoteSymbol {
   font-weight: normal;
 }
 
-.article__subtitle {
+.main-subtitle {
   font-family: var(--font-text);
   line-height: 120%;
   font-size: 1.3rem;
   margin: .5rem 0;
 }
 
-.article__altertitle {
+.main-altertitle {
   font-family: var(--font-text);
   line-height: 125%;
   font-style: italic;
   color: var(--color-grey-medium);
 }
 
-.article__altertitle em, .article__altertitle i {
+.main-altertitle em, .main-altertitle i {
   font-style: normal;
 }
 
-.article__author {
+.article__author, .publi__director {
   margin: 1rem 0;
   font-weight: bold;
   font-size: 1.05rem;
@@ -394,10 +394,13 @@ h6.texte {
   font-size: 1.1rem;
 }
 
-.article__accroche {
+.accroche {
+  max-width: 300px;
+}
+
+.article .accroche {
   float: left;
   clear: left;
-  max-width: 300px;
   margin: 0 1rem 1rem -4rem;
 }
 
@@ -633,6 +636,32 @@ td {
   margin-right: .5em;
   font-size: .8rem;
   text-decoration: none;
+}
+
+/* NUMERO */
+/* ====== */
+
+.cols {
+  display: flex;
+}
+
+.cols .accroche {
+  max-width: 250px;
+  margin: 1rem 1rem 1rem -4rem;
+}
+
+.publi__descriptionouvrage, .publi__isbn, .publi__urlpublicationediteur, .publi__introduction {
+  margin: .7rem 0;
+}
+
+.publi__urlpublicationediteur a {
+  text-decoration: none;
+  color: inherit;
+}
+
+.publi__urlpublicationediteur a.url-hidden:after {
+  content: " : " attr(href);
+  font-size: inherit;
 }
 
 /* SOMMAIRE */
