@@ -145,7 +145,7 @@ tr, td, img {
   break-inside: avoid;
 }
 
-sup, sub, .footnotecall, .FootnoteSymbol {
+sup, sub, .footnotecall, .FootnoteSymbol, .endnotecall, .EndnoteSymbol {
   line-height: 0;
 }
 
@@ -561,7 +561,7 @@ td {
   color: var(--color-grey-medium);
 }
 
-.footnotecall {
+.footnotecall, .endnotecall {
   font-size: 0.8em;
   vertical-align: super;
   margin-left: .2em;
@@ -629,7 +629,7 @@ td {
   margin-top: .5rem;
 }
 
-.FootnoteSymbol {
+.FootnoteSymbol, .EndnoteSymbol {
   margin-right: .5em;
   font-size: .8rem;
   text-decoration: none;

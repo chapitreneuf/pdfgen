@@ -74,24 +74,33 @@ function fixBrInText() {
   });
 }
 
-// Fix article toc anchors in issue
-function fixArticleToc() {
+// Fix article anchors in issue
+function fixArticleAnchors() {
   const articles = document.querySelectorAll(".document.article");
   articles.forEach(function(article) {
     const articleId = article.getAttribute("data-lodel-id");
-    const headings = article.querySelectorAll(":scope h1.texte a, :scope h2.texte a, :scope h3.texte a, :scope h4.texte a, :scope h5.texte a, :scope h6.texte a")
+    // Fix toc anchors
+    const headings = article.querySelectorAll(":scope h1.texte a, :scope h2.texte a, :scope h3.texte a, :scope h4.texte a, :scope h5.texte a, :scope h6.texte a");
     let count = 0;
     headings.forEach(function(a) {
       count++
       a.setAttribute("id", `tocto${articleId}-${count}`);
       a.setAttribute("href", `#tocfrom${articleId}-${count}`);
     });
+    // Fix notes anchors
+    const links = article.querySelectorAll(":scope .footnotecall, :scope .endnotecall, :scope .FootnoteSymbol, :scope .EndnoteSymbol");
+    links.forEach(function(a) {
+      const id = a.getAttribute("id");
+      const href = a.getAttribute("href");
+      a.setAttribute("id", `${id}-${articleId}`);
+      a.setAttribute("href", `${href}-${articleId}`);
+    });
   });
 }
 
 displayHref();
 fixBrInText();
-fixArticleToc();
+fixArticleAnchors();
 
 window.PagedConfig = {
   auto: false
