@@ -634,3 +634,31 @@ td {
   font-size: .8rem;
   text-decoration: none;
 }
+
+/* SOMMAIRE */
+/* ======== */
+
+.toc__contents {
+  list-style: none;
+  padding: 0;
+}
+
+.toc__li {
+  margin: .6rem 0;
+}
+
+.toc__link > span + span {
+  display: block;
+}
+
+.toc__header {
+  margin: 1rem 0;
+}
+
+.toc__publi-title {
+  margin: 1rem 0 0 0;
+}
+
+.toc__publi-title + .toc__publi-subtitle {
+
+}

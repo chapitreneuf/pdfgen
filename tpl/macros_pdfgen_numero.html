@@ -282,16 +282,16 @@
 		<IF COND="[#LANGUE]">
 			<LET VAR="lang_attr">xml:lang="[#LANGUE]" lang="[#LANGUE]"</LET>
 		</IF>
-		<p class="toc__title" [#LANG_ATTR]>[#TITRE|removenotes]</p>
+		<span class="toc__title" [#LANG_ATTR]>[#TITRE|removenotes]</span>
 
 		<!--[ Sous-titre ]-->
 		<IF COND="[#AFFICHER_SOUSTITRE] AND [#SOUSTITRE]">
-			<p class="toc__subtitle">[#SOUSTITRE|removenotes]</p>
+			<span class="toc__subtitle">[#SOUSTITRE|removenotes]</span>
 		</IF>
 
 		<!--[ Date de publication si publié dans une rubrique électronique ]-->
 		<IF COND="[#AFFICHER_DATEPUBLI]">
-			<p class="toc__datepubli">[#DATEPUBLI|humandate]</p>
+			<span class="toc__datepubli">[#DATEPUBLI|humandate]</span>
 		</IF>
 	</a>
 </DEFFUNC>
