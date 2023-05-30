@@ -223,12 +223,6 @@
 			</IF>
 			<!--[ Directeur de la publication ]-->
 			<FUNC NAME="PDFGEN_LISTER_PERSONNES" TYPE="directeurdelapublication" WRAP_CLASS="toc__director" PREPEND="[@PDFGEN.DIRECTEUR_PUBLICATION] " />
-			<!--[ Introduction ]-->
-			<IF COND="[#INTRODUCTION:#LANG]">
-				<div class="toc__publi_introduction">
-					[#INTRODUCTION:#LANG]
-				</div>
-			</IF>
 		</div>
 		<!--[ Sommaire ]-->
 		<LET VAR="id_publi">[#ID]</LET>
