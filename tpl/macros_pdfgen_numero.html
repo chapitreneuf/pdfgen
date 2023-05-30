@@ -78,7 +78,7 @@
 		</IF>
 
 		<!--[ Directeurs de la publication ]-->
-		<FUNC NAME="PDFGEN_LISTER_PERSONNES" TYPE="directeurdelapublication" WRAP_CLASS="publi__director" PREPEND="[@DIRECTEUR_PUBLICATION] " />
+		<FUNC NAME="PDFGEN_LISTER_PERSONNES" TYPE="directeurdelapublication" WRAP_CLASS="publi__director" PREPEND="[@PDFGEN.DIRECTEUR_PUBLICATION] " />
 	</header>
 </DEFMACRO>
 
@@ -96,7 +96,7 @@
  */
 <DEFMACRO NAME="PDFGEN_NUMERO_ISBN">
 		<IF COND="[#ISBN]">
-			<p class="publi__isbn">[@ISBN]&nbsp;: [#ISBN]</p>
+			<p class="publi__isbn">[@PDFGEN.ISBN]&nbsp;: [#ISBN]</p>
 		</IF>
 </DEFMACRO>
 
@@ -107,7 +107,7 @@
 		<IF COND="[#URLPUBLICATIONEDITEUR]">
 			<p class="publi__urlpublicationediteur">
 				<a rel="external" class="publi__order-button button external" href="[#URLPUBLICATIONEDITEUR|htmlspecialchars(ENT_COMPAT, 'UTF-8')]">
-					[@COMMANDER_NUMERO]
+					[@PDFGEN.COMMANDER_NUMERO]
 				</a>
 			</p>
 		</IF>
@@ -223,7 +223,7 @@
 				</div>
 			</IF>
 			<!--[ Directeur de la publication ]-->
-			<FUNC NAME="PDFGEN_LISTER_PERSONNES" TYPE="directeurdelapublication" WRAP_CLASS="toc__director" PREPEND="[@DIRECTEUR_PUBLICATION] " />
+			<FUNC NAME="PDFGEN_LISTER_PERSONNES" TYPE="directeurdelapublication" WRAP_CLASS="toc__director" PREPEND="[@PDFGEN.DIRECTEUR_PUBLICATION] " />
 			<!--[ Introduction ]-->
 			<IF COND="[#INTRODUCTION:#LANG]">
 				<div class="toc__publi_introduction">
