@@ -168,14 +168,12 @@
 			SELECT="id, class, type"
 			WHERE="idparent = '[#ID]' AND id [#NOT_IN_TRADUCTIONS_PARENT_UNIQUE] AND type NOT IN ('fluxdesyndication','imageaccroche','rubriqueannuelle', 'imageaccrochelibrairie') AND type NOT LIKE '%annexe%' AND entities.idtype = types.id"
 			ORDER="entities.rank">
-	
 			<BEFORE>
 				<IF COND="[#PROFONDEUR] EQ 0">
 					<h2 class="section-header">[@PDFGEN.SOMMAIRE]</h2>
 				</IF>
 				<ul class="toc__contents toc__contents--sommaire">
 			</BEFORE>
-	
 			<DO>
 				<LOOP NAME="pdfgen_numero_sommaire_item" TABLE="#_TP_[#CLASS]" WHERE="identity = '[#ID]'">
 					<LET VAR="publi_dir"><FUNC NAME="PDFGEN_GET_LANG_DIR" LANG="[#LANGUE]"/></LET>
@@ -193,15 +191,9 @@
 					</li>
 				</LOOP>
 			</DO>
-	
 			<AFTER>
-					<FUNC NAME="PDFGEN_NUMERO_ALIASES" ID_PUBLI="[#ID_PUBLI]" WRAP_TAG="li" />
 				</ul>
 			</AFTER>
-	
-			<ALTERNATIVE>
-				<FUNC NAME="PDFGEN_NUMERO_ALIASES" ID_PUBLI="[#ID_PUBLI]" />
-			</ALTERNATIVE>
 		</LOOP>
 	</section>
 </DEFMACRO>
@@ -312,37 +304,6 @@
 </DEFFUNC>
 
 /**
- * Affiche tous les alias liés à une publication.
- * @param {int} id_publi - id de la publication.
- * @param {string} [wrap_tag] - Nom de la balise HTML conteneur.
- */
-<DEFFUNC NAME="PDFGEN_NUMERO_ALIASES" REQUIRED="id_publi" OPTIONAL="wrap_tag">
-	<LOOP NAME="publication_aliases" TABLE="relations, entities, types" SELECT="entities.id, class" WHERE="id1 = entities.id AND id2 = [#ID_PUBLI] AND nature = 'alias' AND entities.idtype = types.id" ORDER="modificationdate DESC">
-		<BEFORE>
-			<IF COND="[#WRAP_TAG]">
-				<[#WRAP_TAG]>
-			</IF>
-			<h2>[@ANNONCE_ALIAS]</h2>
-			<ul class="toc__contents toc__contents--aliases">
-		</BEFORE>
-		<DO>
-			<li class="toc__li toc__li--class-[#CLASS]">
-				<LOOP NAME="publication_aliases_alias" TABLE="#_TP_[#CLASS]" WHERE="identity = [#ID] AND class = 'textes'">
-					<FUNC NAME="PDFGEN_LISTER_PERSONNES" TYPE="auteur" WRAP_CLASS="toc__author" />
-					<FUNC NAME="PDFGEN_NUMERO_LI_DOCUMENT" AFFICHER_TITRES_TRADUITS="1" />
-				</LOOP>
-			</li>
-		</DO>
-		<AFTER>
-			</ul>
-			<IF COND="[#WRAP_TAG]">
-				</[#WRAP_TAG]>
-			</IF>
-		</AFTER>
-	</LOOP>
-</DEFFUNC>
-
-/**
  * Articles du numéro.
  */
 <DEFMACRO NAME="PDFGEN_NUMERO_ARTICLES">
@@ -354,28 +315,18 @@
 		SELECT="id, class, type"
 		WHERE="idparent = '[#ID]' AND id [#NOT_IN_TRADUCTIONS_PARENT_UNIQUE] AND type NOT IN ('fluxdesyndication','imageaccroche','rubriqueannuelle', 'imageaccrochelibrairie') AND type NOT LIKE '%annexe%' AND entities.idtype = types.id"
 		ORDER="entities.rank">
-		<DO>
-			<LOOP NAME="pdfgen_numero_articles_item" TABLE="#_TP_[#CLASS]" WHERE="identity = '[#ID]'">
-				<SWITCH TEST="[#CLASS]">
-					<!--[ Publications ]-->
-					<DO CASE="publications">
-						<LOOP NAME="pdfgen_numero_articles"></LOOP>
-					</DO>
-					<!--[ Textes ]-->
-					<DO CASE="textes">
-						<LET VAR="document">[#ID]</LET>
-						<MACRO NAME="PDFGEN_ARTICLE_MAIN"/>
-					</DO>
-				</SWITCH>
-			</LOOP>
-		</DO>
-
-		<AFTER>
-			TODO: équivalent PDFGEN_NUMERO_ALIASES
-		</AFTER>
-
-		<ALTERNATIVE>
-			TODO: équivalent PDFGEN_NUMERO_ALIASES
-		</ALTERNATIVE>
+		<LOOP NAME="pdfgen_numero_articles_item" TABLE="#_TP_[#CLASS]" WHERE="identity = '[#ID]'">
+			<SWITCH TEST="[#CLASS]">
+				<!--[ Publications ]-->
+				<DO CASE="publications">
+					<LOOP NAME="pdfgen_numero_articles"></LOOP>
+				</DO>
+				<!--[ Textes ]-->
+				<DO CASE="textes">
+					<LET VAR="document">[#ID]</LET>
+					<MACRO NAME="PDFGEN_ARTICLE_MAIN"/>
+				</DO>
+			</SWITCH>
+		</LOOP>
 	</LOOP>
 </DEFMACRO>
