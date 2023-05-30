@@ -250,7 +250,7 @@
 	<!--[ Memoriser l'altertitre de la source ]-->
 	<LET VAR="altertitre_source" GLOBAL="1">[#ALTERTITRE]</LET>
 
-	<LOOP NAME="publication_li_texte_traductions"
+	<LOOP NAME="pdfgen_numero_li_texte"
 		TABLE="textes, relations"
 		SELECT="id, titre, soustitre, altertitre, LEFT(texte,1) AS texte, LEFT(alterfichier,1) AS alterfichier, documentcliquable, datepubli, langue, type, nature, numerodocument"
 		WHERE="id2 = '[#ID]' AND nature = 'traduction' AND id1 = textes.identity"
