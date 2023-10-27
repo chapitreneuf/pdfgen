@@ -572,6 +572,10 @@ td {
   text-decoration: none;
 }
 
+h1 .footnotecall, h1 .endnotecall, h2 .footnotecall, h2 .endnotecall {
+  font-size: 0.6em;
+}
+
 /* ARTICLE BIBLIOGRAPHY */
 /* ==================== */
 
