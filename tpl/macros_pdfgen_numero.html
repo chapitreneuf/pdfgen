@@ -314,6 +314,8 @@
 			<SWITCH TEST="[#CLASS]">
 				<!--[ Publications ]-->
 				<DO CASE="publications">
+					<LET VAR="profondeur">[#PROFONDEUR|lmath('+', 1)]</LET>
+					<MACRO NAME="PDFGEN_NUMERO_SOUSPARTIE"/>
 					<LOOP NAME="pdfgen_numero_articles"></LOOP>
 				</DO>
 				<!--[ Textes ]-->
@@ -323,5 +325,16 @@
 				</DO>
 			</SWITCH>
 		</LOOP>
+	</LOOP>
+</DEFMACRO>
+
+/**
+ * Affichage d'une page de sous-partie.
+ */
+<DEFMACRO NAME="PDFGEN_NUMERO_SOUSPARTIE">
+	<LOOP NAME="pdfgen_numero_souspartie" TABLE="publications" WHERE="id = '[#ID]'" SELECT="titre">
+		<div class="souspartie">
+			<h2 class="souspartie__title souspartie__title--level[#PROFONDEUR]">[#TITRE]</h2>
+		</div>
 	</LOOP>
 </DEFMACRO>
