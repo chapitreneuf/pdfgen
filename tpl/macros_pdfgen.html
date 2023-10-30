@@ -11,6 +11,9 @@
 	<!--[ Recherche du type du document ]-->
 	<MACRO NAME="PDFGEN_INIT_TYPE" />
 
+	<!--[ Personnalisations ]-->
+	<MACRO NAME="PDFGEN_CUSTOM_INIT" />
+
 	<SWITCH TEST="[%TPL_TYPE]">
 		<DO CASE="article">
 			<MACRO NAME="PDFGEN_ARTICLE_MAIN"/>
@@ -112,18 +115,6 @@
 
 	<!--[ Hook pour l'insertion de JS ]-->
 	<MACRO NAME="PDFGEN_CUSTOM_JS"/>
-</DEFMACRO>
-
-/**
- * Hook pour l'insertion de CSS dans le head, à redéclarer dans macros_custom.html.
- */
-<DEFMACRO NAME="PDFGEN_CUSTOM_CSS">
-</DEFMACRO>
-
-/**
- * Hook pour l'insertion de JS dans le head, à redéclarer dans macros_custom.html.
- */
-<DEFMACRO NAME="PDFGEN_CUSTOM_JS">
 </DEFMACRO>
 
 /**
