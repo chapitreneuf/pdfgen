@@ -76,7 +76,6 @@
 
 .titrecourant {
   string-set: title content(text);
-  display: none;
 }
 
 /* Style du numéro de page (masqué par défaut) */
@@ -160,6 +159,10 @@ tr, td, img {
 
 sup, sub, .footnotecall, .FootnoteSymbol, .endnotecall, .EndnoteSymbol {
   line-height: 0;
+}
+
+.hidden {
+  display: none;
 }
 
 .section-header, .section-header--small {

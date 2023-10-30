@@ -6,10 +6,10 @@
 <DEFMACRO NAME="PDFGEN_NUMERO_MAIN">
 	<LOOP NAME="pdfgen_numero_main" TABLE="publications" WHERE="id=[#DOCUMENT]">
 		<MACRO NAME="PDFGEN_NUMERO_INIT" />
-		<MACRO NAME="PDFGEN_NUMERO_TITRECOURANT" />
 		<div id="numero-[#ID]" class="document numero root" data-lodel-id="[#ID]">
 			<MACRO NAME="PDFGEN_NUMERO_COVER" />
 			<div class="main numero">
+				<MACRO NAME="PDFGEN_NUMERO_TITRECOURANT" />
 				<div class="cols">
 					<IF COND="![%HAS_COVER]">
 						<MACRO NAME="PDFGEN_IMAGEACCROCHE" />
@@ -71,7 +71,7 @@
  * Titre courant du numéro.
  */
 <DEFMACRO NAME="PDFGEN_NUMERO_TITRECOURANT">
-	<p class="titrecourant">[#OPTIONS.METADONNEESSITE.TITRESITE], [#NUMERO]<FUNC NAME="PDFGEN_PERIODE_PUBLI" PREPEND="&nbsp;|&nbsp;" /></p>
+	<p class="titrecourant hidden">[#OPTIONS.METADONNEESSITE.TITRESITE], [#NUMERO]<FUNC NAME="PDFGEN_PERIODE_PUBLI" PREPEND="&nbsp;|&nbsp;" /></p>
 </DEFMACRO>
 
 /**
