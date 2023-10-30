@@ -34,7 +34,7 @@
   }
 }
 
-.front {
+.front, .souspartie {
   page: frontLayout;
 }
 
@@ -74,8 +74,9 @@
   }
 }
 
-.main-title {
+.titrecourant {
   string-set: title content(text);
+  display: none;
 }
 
 /* Style du numéro de page (masqué par défaut) */

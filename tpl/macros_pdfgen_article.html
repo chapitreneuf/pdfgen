@@ -114,7 +114,8 @@
 			<p class="main-subhead article__subhead">[#SURTITRE|removenotes]</p>
 		</IF>
 		<!--[ Titre du document ]-->
-		<h1 class="main-title article__title">[#TITRE|removenotes]</h1>
+		<LET VAR="tc_class"><IF COND="![%IS_NUMERO]">titrecourant</IF></LET>
+		<h1 class="main-title article__title [#TC_CLASS]">[#TITRE|removenotes]</h1>
 
 		<!--[ Sous-titre du document ]-->
 		<IF COND="[#SOUSTITRE]">

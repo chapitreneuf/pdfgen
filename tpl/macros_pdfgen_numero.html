@@ -6,7 +6,8 @@
 <DEFMACRO NAME="PDFGEN_NUMERO_MAIN">
 	<LOOP NAME="pdfgen_numero_main" TABLE="publications" WHERE="id=[#DOCUMENT]">
 		<MACRO NAME="PDFGEN_NUMERO_INIT" />
-		<div id="numero-[#ID]" class="document numero" data-lodel-id="[#ID]">
+		<MACRO NAME="PDFGEN_NUMERO_TITRECOURANT" />
+		<div id="numero-[#ID]" class="document numero root" data-lodel-id="[#ID]">
 			<MACRO NAME="PDFGEN_NUMERO_COVER" />
 			<div class="main numero">
 				<div class="cols">
@@ -64,6 +65,13 @@
 
 	<!--[ Usage dans une LOOP : WHERE="id [#NOT_IN_TRADUCTIONS_PARENT_UNIQUE]" ]-->
 	<LET VAR="not_in_traductions_parent_unique"><IF COND="![%RELATIONS_TRADUCTION_PARENT_UNIQUE]">IS NOT NULL<ELSE/>NOT IN ([%RELATIONS_TRADUCTION_PARENT_UNIQUE|implode(',')])</IF></LET>
+</DEFMACRO>
+
+/**
+ * Titre courant du numéro.
+ */
+<DEFMACRO NAME="PDFGEN_NUMERO_TITRECOURANT">
+	<p class="titrecourant">[#OPTIONS.METADONNEESSITE.TITRESITE], [#NUMERO]<FUNC NAME="PDFGEN_PERIODE_PUBLI" PREPEND="&nbsp;|&nbsp;" /></p>
 </DEFMACRO>
 
 /**
