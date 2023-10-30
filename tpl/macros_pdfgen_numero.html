@@ -7,9 +7,12 @@
 	<LOOP NAME="pdfgen_numero_main" TABLE="publications" WHERE="id=[#DOCUMENT]">
 		<MACRO NAME="PDFGEN_NUMERO_INIT" />
 		<div id="numero-[#ID]" class="document numero" data-lodel-id="[#ID]">
+			<MACRO NAME="PDFGEN_NUMERO_COVER" />
 			<div class="main numero">
 				<div class="cols">
-					<MACRO NAME="PDFGEN_IMAGEACCROCHE" />
+					<IF COND="![%HAS_COVER]">
+						<MACRO NAME="PDFGEN_IMAGEACCROCHE" />
+					</IF>
 					<MACRO NAME="PDFGEN_NUMERO_HEADER" />
 				</div>
 				<MACRO NAME="PDFGEN_NUMERO_METADATA" />
@@ -33,6 +36,9 @@
 
 	<!--[ Variable utilisée par les articles pour déterminer si c'est un PDF de numéro complet ]-->
 	<LET VAR="is_numero" GLOBAL="1">1</LET>
+
+	<!--[ Le numéro a-t-il une couverture1 ? On complète cette variable dans PDFGEN_NUMERO_COVER ]-->
+	<LET VAR="has_cover" GLOBAL="1"></LET>
 
 	<!--[ Prefixe DOI ]-->
 	<!--[ Par défaut on utilise le champ des options [#OPTIONS.EXTRA.DOI_PREFIXE] ]-->
@@ -58,6 +64,29 @@
 
 	<!--[ Usage dans une LOOP : WHERE="id [#NOT_IN_TRADUCTIONS_PARENT_UNIQUE]" ]-->
 	<LET VAR="not_in_traductions_parent_unique"><IF COND="![%RELATIONS_TRADUCTION_PARENT_UNIQUE]">IS NOT NULL<ELSE/>NOT IN ([%RELATIONS_TRADUCTION_PARENT_UNIQUE|implode(',')])</IF></LET>
+</DEFMACRO>
+
+/**
+ * Couverture du numéro.
+ */
+<DEFMACRO NAME="PDFGEN_NUMERO_COVER">
+	<LOOP NAME="pdfgen_numero_cover" 
+		TABLE="fichiers" 
+		WHERE="type = 'couverture1' AND idparent = [#ID]" 
+		ORDER="rank" 
+		LIMIT="0,1">
+
+		<IF COND="[#VIGNETTE]">
+			<LET VAR="cover">[#VIGNETTE|vignette(1000)]</LET>
+		<ELSE/>
+			<LET VAR="cover">[#DOCUMENT|vignette(1000)]</LET>
+		</IF>
+		<div class="cover">
+			<img alt="[#TITRE|textebrut]" src="[#COVER|trim]" />
+		</div>
+
+		<LET VAR="has_cover" GLOBAL="1">1</LET>
+	</LOOP>
 </DEFMACRO>
 
 /**
