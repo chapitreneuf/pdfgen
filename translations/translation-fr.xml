@@ -23,6 +23,7 @@
 <contents name="errata" textgroup="pdfgen" status="2">Errata</contents>
 <contents name="historique" textgroup="pdfgen" status="2">Historique</contents>
 <contents name="index" textgroup="pdfgen" status="2">Index</contents>
+<contents name="introduction" textgroup="pdfgen" status="2">Introduction</contents>
 <contents name="isbn" textgroup="pdfgen" status="2">ISBN</contents>
 <contents name="licence" textgroup="pdfgen" status="2">Droits d'auteur</contents>
 <contents name="mis_en_ligne_le" textgroup="pdfgen" status="2">mis en ligne le</contents>

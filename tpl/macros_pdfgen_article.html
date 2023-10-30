@@ -74,11 +74,11 @@
 
 		<div class="front__section">
 			<!--[ URL ]-->
-			<p class="front__url">[#SITEINFOS.URL]/[#ID|makeurlwithid]</p>
+			<p class="url"><a href="[#SITEINFOS.URL]/[#ID|makeurlwithid]">[#SITEINFOS.URL]/[#ID|makeurlwithid]</a></p>
 
 			<!--[ DOI ]-->
 			<IF COND="[%PREFIXEDOI] AND [#TYPE] EQ 'article'">
-				<p class="article__doi"><strong>DOI&nbsp;:</strong> [%PREFIXEDOI][#ID]</p>
+				<p class="doi"><strong>DOI&nbsp;:</strong> [%PREFIXEDOI][#ID]</p>
 			</IF>
 		</div>
 

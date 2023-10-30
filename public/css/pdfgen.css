@@ -274,16 +274,20 @@ sup, sub, .footnotecall, .FootnoteSymbol, .endnotecall, .EndnoteSymbol {
   margin: 1rem 0;
 }
 
-.front__url {
+.url {
   margin: 1rem 0;
   text-decoration: underline;
 }
 
-.front__url::before {
+.url::before {
   content: url(../icons/link-alt.svg);
   margin-right: 5px;
   display: inline-block;
   transform: scale(0.9) translate(0, 6px);
+}
+
+.url a::after {
+  content: none !important;
 }
 
 /* ABSTRACTS AND KEYWORDS */
@@ -654,6 +658,22 @@ h1 .footnotecall, h1 .endnotecall, h2 .footnotecall, h2 .endnotecall {
   margin: 1rem 1rem 1rem -4rem;
 }
 
+.numero__metadata {
+  break-after: page;
+}
+
+.numero .site {
+  border-bottom: 1px solid var(--color-grey-dark);
+}
+
+.numero .site .site__logo {
+  display: none;
+}
+
+.numero .site .col {
+  margin: .5rem 0 1rem;
+}
+
 .publi__descriptionouvrage, .publi__isbn, .publi__urlpublicationediteur, .publi__introduction {
   margin: .7rem 0;
 }
@@ -664,8 +684,7 @@ h1 .footnotecall, h1 .endnotecall, h2 .footnotecall, h2 .endnotecall {
 }
 
 .publi__urlpublicationediteur a.url-hidden:after {
-  content: " : " attr(href);
-  font-size: inherit;
+  content: none;
 }
 
 /* SOMMAIRE */

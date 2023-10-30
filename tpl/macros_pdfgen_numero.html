@@ -12,9 +12,7 @@
 					<MACRO NAME="PDFGEN_IMAGEACCROCHE" />
 					<MACRO NAME="PDFGEN_NUMERO_HEADER" />
 				</div>
-				<MACRO NAME="PDFGEN_NUMERO_DESCRIPTIONOUVRAGE" />
-				<MACRO NAME="PDFGEN_NUMERO_ISBN" />
-				<MACRO NAME="PDFGEN_NUMERO_ORDER" />
+				<MACRO NAME="PDFGEN_NUMERO_METADATA" />
 				<MACRO NAME="PDFGEN_NUMERO_INTRODUCTION" />
 				<MACRO NAME="PDFGEN_NUMERO_NDLR" />
 				<MACRO NAME="PDFGEN_NUMERO_HISTORIQUE" />
@@ -35,6 +33,14 @@
 
 	<!--[ Variable utilisée par les articles pour déterminer si c'est un PDF de numéro complet ]-->
 	<LET VAR="is_numero" GLOBAL="1">1</LET>
+
+	<!--[ Prefixe DOI ]-->
+	<!--[ Par défaut on utilise le champ des options [#OPTIONS.EXTRA.DOI_PREFIXE] ]-->
+	<IF COND="[#OPTIONS.EXTRA.DOI_PREFIXE]">
+		<LET VAR="prefixedoi" GLOBAL="1">[#OPTIONS.EXTRA.DOI_PREFIXE]</LET>
+	<ELSE/> <!--[ Retrocompatibilité Nova 1.2 ]-->
+		<LET VAR="prefixedoi" GLOBAL="1">[#OPTIONS.NOVA.PREFIXEDOI]</LET>
+	</IF>
 	
 	<!--[ Liste des ID des traductions de textes qui se trouvent dans la même rubrique que l'origial. Permet également de conditionner les boucles relatives aux traductions. ]-->
 	<LOOP NAME="base_init_get_original_with_translation"
@@ -59,6 +65,8 @@
  */
 <DEFMACRO NAME="PDFGEN_NUMERO_HEADER">
 	<header class="numero__header">
+		<MACRO NAME="PDFGEN_TOP">
+
 		<!--[ Titre ]-->
 		<h1 class="main-title publi__title"><FUNC NAME="PDFGEN_ISSUE" ID_NUMERO="[#DOCUMENT]" /></h1>
 
@@ -84,34 +92,49 @@
 </DEFMACRO>
 
 /**
- * Description physique de l'ouvrage.
+ * Métadonnées du numéro.
  */
-<DEFMACRO NAME="PDFGEN_NUMERO_DESCRIPTIONOUVRAGE">
+<DEFMACRO NAME="PDFGEN_NUMERO_METADATA">
+	<div class="numero__metadata">
+		<!--[ URL ]-->
+		<p class="url"><a href="[#SITEINFOS.URL]/[#ID|makeurlwithid]">[#SITEINFOS.URL]/[#ID|makeurlwithid]</a></p>
+	
+		<!--[ Référence électronique ]-->
+		<h2 class="section-header--small">[@PDFGEN.REFERENCE_ELECTRONIQUE]</h2>
+		<p class="article__reference">
+			<MACRO NAME="PDFGEN_REFERENCE_ELECTRONIQUE" />
+		</p>
+	
+		<!--[ Droits d'auteur ]-->
+		<IF COND="[#OPTIONS.METADONNEESSITE.DROITSAUTEUR]">
+			<h2 class="section-header--small">[@PDFGEN.LICENCE]</h2>
+			<p class="article__licence">[#OPTIONS.METADONNEESSITE.DROITSAUTEUR]</p>
+		</IF>
+		
+		<!--[ Description physique de l'ouvrage ]-->
 		<IF COND="[#DESCRIPTIONOUVRAGE]">
 			<p class="publi__descriptionouvrage">[#DESCRIPTIONOUVRAGE]</p>
 		</IF>
-</DEFMACRO>
-
-/**
- * ISBN.
- */
-<DEFMACRO NAME="PDFGEN_NUMERO_ISBN">
+	
+		<!--[ ISBN ]-->
 		<IF COND="[#ISBN]">
-			<p class="publi__isbn">[@PDFGEN.ISBN]&nbsp;: [#ISBN]</p>
+			<p class="publi__isbn"><strong>[@PDFGEN.ISBN]&nbsp;:</strong> [#ISBN]</p>
 		</IF>
-</DEFMACRO>
 
-/**
- * Lien pour commander le numéro.
- */
-<DEFMACRO NAME="PDFGEN_NUMERO_ORDER">
+		<!--[ DOI ]-->
+		<IF COND="[%PREFIXEDOI]">
+			<p class="doi"><strong>DOI&nbsp;:</strong> [%PREFIXEDOI][#ID]</p>
+		</IF>
+	
+		<!--[ Lien pour commander le numéro ]-->
 		<IF COND="[#URLPUBLICATIONEDITEUR]">
 			<p class="publi__urlpublicationediteur">
 				<a rel="external" class="publi__order-button button external" href="[#URLPUBLICATIONEDITEUR|htmlspecialchars(ENT_COMPAT, 'UTF-8')]">
-					[@PDFGEN.COMMANDER_NUMERO]
+					<strong>[@PDFGEN.COMMANDER_NUMERO]&nbsp;</strong>: [#URLPUBLICATIONEDITEUR|htmlspecialchars(ENT_COMPAT, 'UTF-8')]
 				</a>
 			</p>
 		</IF>
+	</div>
 </DEFMACRO>
 
 /**
@@ -120,6 +143,7 @@
 <DEFMACRO NAME="PDFGEN_NUMERO_INTRODUCTION">
 		<IF COND="[#INTRODUCTION]">
 			<section class="publi__introduction">
+				<h2 class="section-header">[@PDFGEN.INTRODUCTION]</h2>
 				<IF COND="[#INTRODUCTION:#LANG]">
 					[#INTRODUCTION:#LANG]
 				<ELSEIF COND="[#INTRODUCTION:#LANGUE]"/>
