@@ -127,50 +127,6 @@
 </DEFMACRO>
 
 /**
- * Page de garde du document.
- * @param {string} [type] - Type du document : "article" ou "numero".
- */
-<DEFFUNC NAME="PDFGEN_FRONT" OPTIONAL="type_document">
-	<section class="front">
-		<!--[ Logo et titre du site, publication parente ]-->
-		<MACRO NAME="PDFGEN_TOP" />
-	 
-		<!--[ Header document ]-->
-		<IF COND="[#TYPE_DOCUMENT] EQ 'numero'">
-			<MACRO NAME="PDFGEN_NUMERO_HEADER" />
-		<ELSE/>
-			<MACRO NAME="PDFGEN_ARTICLE_HEADER" />
-		</IF>
-
-		<div class="front__section">
-			<!--[ URL ]-->
-			<p class="front__url">[#SITEINFOS.URL]/[#ID|makeurlwithid]</p>
-
-			<!--[ DOI ]-->
-			<IF COND="[%PREFIXEDOI] AND [#TYPE] EQ 'article'">
-				<p class="article__doi"><strong>DOI&nbsp;:</strong> [%PREFIXEDOI][#ID]</p>
-			</IF>
-		</div>
-
-		<!--[ Pour citer ]-->
-		<div class="front__section">
-			<h2 class="section-header--small">[@PDFGEN.REFERENCE_ELECTRONIQUE]</h2>
-			<p class="article__reference">
-				<MACRO NAME="PDFGEN_REFERENCE_ELECTRONIQUE" />
-			</p>
-		</div>
-
-		<!--[ Droits d'auteur ]-->
-		<IF COND="[#OPTIONS.METADONNEESSITE.DROITSAUTEUR]">
-			<div class="front__section">
-				<h2 class="section-header--small">[@PDFGEN.LICENCE]</h2>
-				<p class="article__licence">[#OPTIONS.METADONNEESSITE.DROITSAUTEUR]</p>
-			</div>
-		</IF>
-	</section>
-</DEFFUNC>
-
-/**
  * Informations sur le site.
  */
 <DEFMACRO NAME="PDFGEN_TOP">

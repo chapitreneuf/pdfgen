@@ -8,7 +8,7 @@
 		<MACRO NAME="PDFGEN_ARTICLE_INIT" />
 		<div id="article-[#ID]" class="document article" data-lodel-id="[#ID]">
 			<IF COND="![%IS_NUMERO]">
-				<FUNC NAME="PDFGEN_FRONT" TYPE_DOCUMENT="article" />
+				<MACRO NAME="PDFGEN_ARTICLE_FRONT" />
 			</IF>
 			<div class="main article">
 				<MACRO NAME="PDFGEN_ARTICLE_HEADER" />
@@ -59,6 +59,45 @@
 	<IF COND="[#DATEPUBLI] LE today() OR [#LODELUSER.RIGHTS] GE 5">
 		<LET VAR="texte_accessible">1</LET>
 	</IF>
+</DEFMACRO>
+
+/**
+ * Page de garde de l'article.
+ */
+<DEFMACRO NAME="PDFGEN_ARTICLE_FRONT">
+	<section class="front">
+		<!--[ Logo et titre du site, publication parente ]-->
+		<MACRO NAME="PDFGEN_TOP" />
+	 
+		<!--[ Header article ]-->
+		<MACRO NAME="PDFGEN_ARTICLE_HEADER" />
+
+		<div class="front__section">
+			<!--[ URL ]-->
+			<p class="front__url">[#SITEINFOS.URL]/[#ID|makeurlwithid]</p>
+
+			<!--[ DOI ]-->
+			<IF COND="[%PREFIXEDOI] AND [#TYPE] EQ 'article'">
+				<p class="article__doi"><strong>DOI&nbsp;:</strong> [%PREFIXEDOI][#ID]</p>
+			</IF>
+		</div>
+
+		<!--[ Pour citer ]-->
+		<div class="front__section">
+			<h2 class="section-header--small">[@PDFGEN.REFERENCE_ELECTRONIQUE]</h2>
+			<p class="article__reference">
+				<MACRO NAME="PDFGEN_REFERENCE_ELECTRONIQUE" />
+			</p>
+		</div>
+
+		<!--[ Droits d'auteur ]-->
+		<IF COND="[#OPTIONS.METADONNEESSITE.DROITSAUTEUR]">
+			<div class="front__section">
+				<h2 class="section-header--small">[@PDFGEN.LICENCE]</h2>
+				<p class="article__licence">[#OPTIONS.METADONNEESSITE.DROITSAUTEUR]</p>
+			</div>
+		</IF>
+	</section>
 </DEFMACRO>
 
 /**
