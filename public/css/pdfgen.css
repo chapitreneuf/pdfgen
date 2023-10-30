@@ -303,6 +303,11 @@ sup, sub, .footnotecall, .FootnoteSymbol, .endnotecall, .EndnoteSymbol {
   content: none !important;
 }
 
+.plateforme__logo {
+  height: 100px;
+  margin-top: 2rem;
+}
+
 /* ABSTRACTS AND KEYWORDS */
 /* ====================== */
 
