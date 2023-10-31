@@ -342,23 +342,31 @@
  * @param {string} [classname] - Attribut class optionnel de l'élément.
  */
 <DEFFUNC NAME="PDFGEN_NUMERO_LI_DOCUMENT" OPTIONAL="afficher_soustitre, afficher_titres_traduits, afficher_datepubli">
-	<a class="toc__link [#CLASSNAME]" href="#article-[#ID]">
-		<!--[ Titre ]-->
-		<IF COND="[#LANGUE]">
-			<LET VAR="lang_attr">xml:lang="[#LANGUE]" lang="[#LANGUE]"</LET>
-		</IF>
-		<span class="toc__title" [#LANG_ATTR]>[#TITRE|removenotes]</span>
+	<IF COND="[%IS_NUMERO]">
+		<a class="toc__link [#CLASSNAME]" href="#article-[#ID]">
+	<ELSE/>
+		<span class="toc__link [#CLASSNAME]">
+	</IF>
+	<!--[ Titre ]-->
+	<IF COND="[#LANGUE]">
+		<LET VAR="lang_attr">xml:lang="[#LANGUE]" lang="[#LANGUE]"</LET>
+	</IF>
+	<span class="toc__title" [#LANG_ATTR]>[#TITRE|removenotes]</span>
 
-		<!--[ Sous-titre ]-->
-		<IF COND="[#AFFICHER_SOUSTITRE] AND [#SOUSTITRE]">
-			<span class="toc__subtitle">[#SOUSTITRE|removenotes]</span>
-		</IF>
+	<!--[ Sous-titre ]-->
+	<IF COND="[#AFFICHER_SOUSTITRE] AND [#SOUSTITRE]">
+		<span class="toc__subtitle">[#SOUSTITRE|removenotes]</span>
+	</IF>
 
-		<!--[ Date de publication si publié dans une rubrique électronique ]-->
-		<IF COND="[#AFFICHER_DATEPUBLI]">
-			<span class="toc__datepubli">[#DATEPUBLI|humandate]</span>
-		</IF>
-	</a>
+	<!--[ Date de publication si publié dans une rubrique électronique ]-->
+	<IF COND="[#AFFICHER_DATEPUBLI]">
+		<span class="toc__datepubli">[#DATEPUBLI|humandate]</span>
+	</IF>
+	<IF COND="[%IS_NUMERO]">
+		</a>
+	<ELSE/>
+		</span>
+	</IF>
 </DEFFUNC>
 
 /**

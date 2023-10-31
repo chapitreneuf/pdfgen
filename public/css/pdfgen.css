@@ -113,7 +113,6 @@ html, body {
 }
 
 a, a:visited {
-  text-decoration: none;
   color: var(--color-grey-dark);
   text-decoration: underline;
 }
@@ -341,6 +340,7 @@ sup, sub, .footnotecall, .FootnoteSymbol, .endnotecall, .EndnoteSymbol {
 
 .toc__link {
   text-decoration: none;
+  color: var(--color-grey-dark);
 }
 
 
