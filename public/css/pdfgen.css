@@ -443,6 +443,11 @@ h6.texte {
   width: 50%;
   margin: 2rem 0 2rem auto;
   break-after: avoid;
+  text-align: left;
+  hyphens: none;
+  -ms-hyphens: none;
+  -moz-hyphens: none;
+  -webkit-hyphens: none;
 }
 
 ul.texte, ol.texte {
@@ -466,6 +471,11 @@ p.citation, p.citationbis, p.citationter {
   padding: .3rem 0 .3rem 1.5rem;
   font-size: .95rem;
   line-height: 150%;
+  text-align: left;
+  hyphens: none;
+  -ms-hyphens: none;
+  -moz-hyphens: none;
+  -webkit-hyphens: none;
 }
 
 p.citationbis {
@@ -500,7 +510,6 @@ p.citationter {
 }
 
 .question {
-  color: var(--color-grey-medium);
   font-weight: bold;
   margin-top: 1rem;
   margin-bottom: .3rem;
@@ -508,10 +517,6 @@ p.citationter {
 
 .question + .question {
   margin-top: .7rem;
-}
-
-.reponse {
-  color: var(--color-grey-medium);
 }
 
 .code, pre, code {
@@ -542,12 +547,14 @@ table.example + table.example {
   margin-top: 0;
 }
 
-table p {
+table p, table p.texte {
   padding: 0;
+  text-align: left;
 }
 
 td {
   padding: .3rem;
+  vertical-align: top;
 }
 
 .groupe-illustration {
@@ -618,7 +625,7 @@ h1 .footnotecall, h1 .endnotecall, h2 .footnotecall, h2 .endnotecall {
 }
 
 .article__biblio-contents p {
-  text-align: justify;
+  text-align: left;
 }
 
 .article__biblio-contents p:not(:first-child) {
