@@ -9,6 +9,7 @@
 		<div id="article-[#ID]" class="document article" data-lodel-id="[#ID]">
 			<IF COND="![%IS_NUMERO]">
 				<MACRO NAME="PDFGEN_ARTICLE_FRONT" />
+				<MACRO NAME="PDFGEN_ARTICLE_SOMMAIRE_PARENT"/>
 			</IF>
 			<div class="main article">
 				<MACRO NAME="PDFGEN_ARTICLE_HEADER" />
@@ -101,6 +102,18 @@
 		<!--[ Logo plateforme ]-->
 		<MACRO NAME="PDFGEN_PLATEFORME" />
 	</section>
+</DEFMACRO>
+
+/**
+ * Description.
+ */
+<DEFMACRO NAME="PDFGEN_ARTICLE_SOMMAIRE_PARENT">
+	<IF COND="[%ARTICLE_DISPLAY_PARENT_SOMMAIRE]">
+		<LET VAR="id_numero_parent">[#ID|getParentByType('numero')]</LET>
+		<LOOP NAME="pdfgen_article_sommaire_parent" TABLE="publications" WHERE="id = '[#ID_NUMERO_PARENT]'">
+			<MACRO NAME="PDFGEN_NUMERO_SOMMAIRE" />
+		</LOOP>
+	</IF>
 </DEFMACRO>
 
 /**

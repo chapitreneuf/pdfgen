@@ -37,7 +37,7 @@
 <contents name="ressources_auteur_autres_bases" textgroup="pdfgen" status="2">Autres ressources du même auteur </contents>
 <contents name="resume" textgroup="pdfgen" status="2">Résumé</contents>
 <contents name="resumes" textgroup="pdfgen" status="2">Résumés</contents>
-<contents name="sommaire" textgroup="pdfgen" status="2">Sommaire</contents>
+<contents name="sommaire" textgroup="pdfgen" status="2">Sommaire du numéro</contents>
 <contents name="texte" textgroup="pdfgen" status="2">Texte</contents>
 <contents name="texte_extrait" textgroup="pdfgen" status="2">Extrait</contents>
 <contents name="texte_integral" textgroup="pdfgen" status="2">Texte</contents>
