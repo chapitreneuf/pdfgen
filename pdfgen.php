@@ -42,7 +42,8 @@ class pdfgen extends Plugins {
 
 		$id = $context['document'];
 		$document = DAO::getDAO("entities")->getById($id);
-		$clearcache = $this->_config['cache_disabled']['value'] || (C::get('editor', 'lodeluser') && isset($context['clearcache'])) ? true : false;
+		$cache_disabled = isset($this->_config['cache_disabled']['value']) ? $this->_config['cache_disabled']['value'] : false;
+		$clearcache = $cache_disabled || (C::get('editor', 'lodeluser') && isset($context['clearcache'])) ? true : false;
 
 		$lang = isset($context['lang']) ? $context['lang'] : "";
 		$debug = isset($context['debug']) ? $context['debug'] : "";
@@ -51,11 +52,11 @@ class pdfgen extends Plugins {
 
 		if ( ! is_dir($cache_path) ) {
 			mkdir($cache_path, 0755, TRUE);
-                }
+		}
 		$article_url = "${context['siteurl']}/?do=_pdfgen_view&document=${id}&lang=${lang}&debug=${debug}";
 
 		$cache_key = md5($article_url);
-                $cache_file = $cache_path . DIRECTORY_SEPARATOR . $cache_key;
+		$cache_file = $cache_path . DIRECTORY_SEPARATOR . $cache_key;
 
 		if ( $clearcache || ! file_exists( $cache_file ) || filemtime( $cache_file ) < strtotime($document->upd)) {
 
