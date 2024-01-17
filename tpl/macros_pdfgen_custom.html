@@ -11,16 +11,25 @@
  */
 <DEFMACRO NAME="PDFGEN_CUSTOM_INIT">
 	<!--[ Afficher le sommaire du numéro parent au début de chaque article ]-->
-	<LET VAR="article_display_parent_sommaire" GLOBAL="1"></LET>
+	<LET VAR="article_display_parent_sommaire" GLOBAL="1">1</LET>
 
 	<!--[ Position des résumés et mots-clés dans les articles : "top" ou "bottom" ]-->
-	<LET VAR="abstract_position" GLOBAL="1">bottom</LET>
+	<LET VAR="abstract_position" GLOBAL="1">top</LET>
 </DEFMACRO>
 
  /**
  * Hook pour l'insertion de CSS dans le head.
  */
 <DEFMACRO NAME="PDFGEN_CUSTOM_CSS">
+	<style>
+		p.citation, p.citationbis, p.citationter {
+			color: var(--color-grey-medium);
+		}
+
+		.article__biblio-contents {
+			columns: 1;
+		}
+	</style>
 </DEFMACRO>
 
 /**
