@@ -36,12 +36,16 @@ class pdfgen extends Plugins {
 	}
 
 	public function getAction (&$context, &$error) {
+                global $db;
 		setlocale(LC_ALL, 'C');
 
 		$site_name = $context['siteinfos']['name'];
 
 		$id = $context['document'];
 		$document = DAO::getDAO("entities")->getById($id);
+
+		$last_child = $db->getRow(lq("SELECT id, upd FROM entities INNER JOIN relations ON relations.id2 = entities.id WHERE relations.id1 = {$document->id} ORDER BY upd DESC"));
+
 		$cache_disabled = isset($this->_config['cache_disabled']['value']) ? $this->_config['cache_disabled']['value'] : false;
 		$clearcache = $cache_disabled || (C::get('editor', 'lodeluser') && isset($context['clearcache'])) ? true : false;
 
@@ -58,7 +62,12 @@ class pdfgen extends Plugins {
 		$cache_key = md5($article_url);
 		$cache_file = $cache_path . DIRECTORY_SEPARATOR . $cache_key;
 
-		if ( $clearcache || ! file_exists( $cache_file ) || filemtime( $cache_file ) < strtotime($document->upd)) {
+		$clearcache = $clearcache
+			|| ! file_exists( $cache_file )
+			|| filemtime( $cache_file ) < strtotime($document->upd)
+			|| sizeof($last_child) > 0 && filemtime( $cache_file ) < strtotime($last_child['upd']);
+
+		if ( $clearcache ) {
 
 			$client = new Client($this->_config['gotenberg_url']['value']);
 			$request = new URLRequest($article_url);
