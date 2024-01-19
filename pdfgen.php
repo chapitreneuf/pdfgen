@@ -62,6 +62,7 @@ class pdfgen extends Plugins {
 
 			$client = new Client($this->_config['gotenberg_url']['value']);
 			$request = new URLRequest($article_url);
+			$request->setWaitTimeout(30);
 
 			$request->setPaperSize(Request::A4);
 			$request->setMargins(Request::NO_MARGINS);
