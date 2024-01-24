@@ -11,6 +11,10 @@ use TheCodingMachine\Gotenberg\Request;
 use TheCodingMachine\Gotenberg\RequestException;
 use GuzzleHttp\Psr7\LazyOpenStream;
 
+// Configuration de Gotenberg
+$waitDelay = 10;
+$waitTimeout = 30;
+
 class pdfgen extends Plugins {
 	public function enableAction (&$context, &$error) {
 		if(!parent::_checkRights(LEVEL_ADMINLODEL)) { return; }
@@ -71,7 +75,8 @@ class pdfgen extends Plugins {
 
 			$client = new Client($this->_config['gotenberg_url']['value']);
 			$request = new URLRequest($article_url);
-			$request->setWaitTimeout(30);
+			$request->setWaitDelay($waitDelay);
+			$request->setWaitTimeout($waitTimeout);
 
 			$request->setPaperSize(Request::A4);
 			$request->setMargins(Request::NO_MARGINS);
