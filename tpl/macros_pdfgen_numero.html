@@ -40,14 +40,6 @@
 
 	<!--[ Le numéro a-t-il une couverture1 ? On complète cette variable dans PDFGEN_NUMERO_COVER ]-->
 	<LET VAR="has_cover" GLOBAL="1"></LET>
-
-	<!--[ Prefixe DOI ]-->
-	<!--[ Par défaut on utilise le champ des options [#OPTIONS.EXTRA.DOI_PREFIXE] ]-->
-	<IF COND="[#OPTIONS.EXTRA.DOI_PREFIXE]">
-		<LET VAR="prefixedoi" GLOBAL="1">[#OPTIONS.EXTRA.DOI_PREFIXE]</LET>
-	<ELSE/> <!--[ Retrocompatibilité Nova 1.2 ]-->
-		<LET VAR="prefixedoi" GLOBAL="1">[#OPTIONS.NOVA.PREFIXEDOI]</LET>
-	</IF>
 	
 	<!--[ Liste des ID des traductions de textes qui se trouvent dans la même rubrique que l'origial. Permet également de conditionner les boucles relatives aux traductions. ]-->
 	<LOOP NAME="base_init_get_original_with_translation"
@@ -159,9 +151,7 @@
 		</IF>
 
 		<!--[ DOI ]-->
-		<IF COND="[%PREFIXEDOI]">
-			<p class="doi"><strong>DOI&nbsp;:</strong> [%PREFIXEDOI][#ID]</p>
-		</IF>
+		<MACRO NAME="PDFGEN_DOI" />
 	
 		<!--[ Lien pour commander le numéro ]-->
 		<IF COND="[#URLPUBLICATIONEDITEUR]">

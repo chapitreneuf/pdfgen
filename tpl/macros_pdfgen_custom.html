@@ -15,6 +15,9 @@
 
 	<!--[ Position des résumés et mots-clés dans les articles : "top" ou "bottom" ]-->
 	<LET VAR="abstract_position" GLOBAL="1">bottom</LET>
+
+	<!--[ Types sur lesquels on affiche un DOI, séparés par une virgule ]-->
+	<LET VAR="show_doi_for_types" GLOBAL="1"><IF COND="[#OPTIONS.EXTRA.DOI_TYPES]">[#OPTIONS.EXTRA.DOI_TYPES]<ELSE/>article</IF></LET>
 </DEFMACRO>
 
  /**
