@@ -95,11 +95,22 @@
  * Styles CSS.
  */
 <DEFMACRO NAME="PDFGEN_HTML_STYLES">
-	<!-- normalize.css -->
+	<!--[ normalize.css ]-->
 	<link rel="stylesheet" href="[#SHAREDIR]/plugins/custom/pdfgen/public/vendor/normalize.css/normalize.css">
 
-	<!-- Styles du PDF -->
+	<!--[ Styles du PDF ]-->
 	<link rel="stylesheet" href="[#SHAREDIR]/plugins/custom/pdfgen/public/css/pdfgen.css">
+
+	<!--[ Add watermark on previewed documents ]-->
+	<LOOP NAME="pdfgen_html_start_status" TABLE="entities" WHERE="id = '[#DOCUMENT]' && status < 0">
+		<style>
+			@page {
+				background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg viewBox='0 0 300 245' fill='none' xmlns='http://www.w3.org/2000/svg'%3e%3ctext x='0' y='150' fill='%23CCCCCC' transform='rotate(-30)' %3e[@PDFGEN.VERSION_PREPARATOIRE|strtoupper]%3c/text%3e%3c/svg%3e");
+				background-position: top center;
+				background-repeat: no-repeat;
+			}
+		</style>
+	</LOOP>
 
 	<!--[ Hook pour l'insertion de CSS ]-->
 	<MACRO NAME="PDFGEN_CUSTOM_CSS"/>
