@@ -38,7 +38,7 @@
 	<LOOP NAME="pdfgen_init_type"
 				TABLE="entities, types"
 				SELECT="id, class, type"
-				WHERE="id = '[#DOCUMENT]' AND class IN ('publications', 'textes') AND entities.idtype = types.id">
+				WHERE="status >= -8 AND id = '[#DOCUMENT]' AND class IN ('publications', 'textes') AND entities.idtype = types.id">
 		<DO>
 			<IF COND="[#CLASS] EQ 'textes'">
 				<LET VAR="tpl_type" GLOBAL="1">article</LET>
@@ -155,7 +155,7 @@
  * @param {string} [id_numero] - Id du numéro.
  */
 <DEFFUNC NAME="PDFGEN_ISSUE" REQUIRED="id_numero">
-	<LOOP NAME="pdfgen_article_front_parent" TABLE="publications" WHERE="id='[#ID_NUMERO]'" SELECT="numero, titre, periode, datepublipapier, datepubli, creationdate" />
+	<LOOP NAME="pdfgen_article_front_parent" TABLE="publications" WHERE="status >= -8 AND id='[#ID_NUMERO]'" SELECT="numero, titre, periode, datepublipapier, datepubli, creationdate" />
 		<p class="issue">
 			<span class="issue__number">[#NUMERO]</span>
 			<FUNC NAME="PDFGEN_PERIODE_PUBLI" WRAP_CLASS="issue__date" PREPEND="&nbsp;|&nbsp;" />
@@ -184,7 +184,7 @@
 	<IF COND="[#CITATION]"> [[@PDFGEN.EN_LIGNE]]</IF>
 
 	<LOOP NAME="pdfgen_paru_dans" TABLE="relations, publications" SELECT="id,titre,numero,datepublipapier,datepubli,periode"
-		WHERE="id2 = '[#ID]' AND type IN ('numero', 'rubrique') AND nature = 'P' AND id1 = publications.identity"
+		WHERE="status >= -8 AND id2 = '[#ID]' AND type IN ('numero', 'rubrique') AND nature = 'P' AND id1 = publications.identity"
 		ORDER="degree DESC" LIMIT="2">
 
 		<BEFORE>, </BEFORE>
@@ -265,7 +265,7 @@
 		<LET VAR="LIEN_DEBUT"><a href="[#HREF]"></LET>
 		<LET VAR="LIEN_FIN"></a></LET>
 	</IF>
-	<LOOP NAME="pdfgen_lister_personnes" TABLE="relations, persons" SELECT="g_firstname,g_familyname" WHERE="id1 = '[#ID]' AND id2 = persons.id AND nature = 'G' AND type = '[#TYPE]'" ORDER="degree">
+	<LOOP NAME="pdfgen_lister_personnes" TABLE="relations, persons" SELECT="g_firstname,g_familyname" WHERE="status >= -8 AND id1 = '[#ID]' AND id2 = persons.id AND nature = 'G' AND type = '[#TYPE]'" ORDER="degree">
 
 		<BEFORE>
 			<IF COND="[#WRAP_ID] OR [#WRAP_CLASS]">
@@ -307,7 +307,7 @@
 <DEFMACRO NAME="PDFGEN_IMAGEACCROCHE">
 	<LOOP NAME="pdfgen_imageaccroche" 
 		TABLE="fichiers" 
-		WHERE="type = 'imageaccroche' AND idparent = [#ID]" 
+		WHERE="status >= -8 AND type = 'imageaccroche' AND idparent = [#ID]" 
 		ORDER="rank" 
 		LIMIT="0,1">
 
