@@ -1,6 +1,6 @@
 # Générateur de PDF pour Lodel
 
-![pdfgen latest version](https://img.shields.io/github/v/tag/edinum/pdfgen?color=blue&style=flat-square) [![License](https://img.shields.io/github/license/edinum/pdfgen?color=blue&style=flat-square)](https://github.com/edinum/pdfgen/blob/master/LICENSE)
+![pdfgen latest version](https://img.shields.io/github/v/tag/chapitreneuf/pdfgen?color=blue&style=flat-square) [![License](https://img.shields.io/github/license/chapitreneuf/pdfgen?color=blue&style=flat-square)](https://github.com/chapitreneuf/pdfgen/blob/master/LICENSE)
 
 ## Installation
 
@@ -31,7 +31,7 @@ Importez les fichiers `translations/translation-xx.xml` fournis dans ce dépôt 
 Dans le répertoire `share/plugins/custom/` de votre installation, clonez le dépôt :
 
 ```bash
-git clone https://github.com/edinum/pdfgen.git
+git clone https://github.com/chapitreneuf/pdfgen.git
 ```
 
 Accédez à l'administration des plugins de votre installation lodel (`https://votreinstallation/lodeladmin/index.php?do=list&lo=mainplugins`) et activez le plugin pdfgen.
@@ -103,16 +103,16 @@ Exemple pour remplacer la numérotation des paragraphes par un numéro de page :
 
 ## Crédits et financement
 
-Ce projet a été développé par le [collectif Edinum](https://edinum.org) pour les Bibliothèques universitaires de l'Université Jean Moulin Lyon 3. Il a été financé par l'Université Jean Moulin Lyon 3. 
+Ce projet a été développé par le [collectif Chapitre neuf](https://chapitre9.org) pour les Bibliothèques universitaires de l'Université Jean Moulin Lyon 3. Il a été financé par l'Université Jean Moulin Lyon 3. 
 
-Le collectif Edinum a accepté de publier son code source sous licence libre GPL3 sans contrepartie, affirmant ainsi son engagement en faveur du logiciel libre.
+Chapitre neuf a accepté de publier son code source sous licence libre GPL3 sans contrepartie, affirmant ainsi son engagement en faveur du logiciel libre.
 
 * Développement backend, PHP et Lodel : Nahuel Angelinetti
 * Design et intégration des templates : Thomas Brouard
 
 ## Licence
 
-**2020, Edinum.org**
+**2024, Chapitre neuf**
 
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 
