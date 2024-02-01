@@ -117,6 +117,10 @@ Exemple pour remplacer la numérotation des paragraphes par un numéro de page :
 
 Depuis PDFgen 1.3, il est possible de modifier le fichier macros_pdfgen_custom.html pour introduire des modifications et définir des paramètres qui s'appliqueront à l'ensemble des sites de l'instance Lodel.
 
+## Mise à niveau
+
+Dans le cas d'une mise à niveau, il est nécessaire de réinstaller les variables de traduction dans l'administration générale de Lodel (voir plus haut). En cas d'erreur lors de l'import les variables doivent être mises à jour manuellement via l'interface.
+
 ## Crédits et financement
 
 Ce projet a été développé par le [collectif Chapitre neuf](https://chapitre9.org) pour les Bibliothèques universitaires de l'Université Jean Moulin Lyon 3. Il a été financé par l'Université Jean Moulin Lyon 3. 
