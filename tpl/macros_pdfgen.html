@@ -6,15 +6,20 @@
  * Utilisation : ./?do=_pdfgen_view&document=999
  */
 <DEFMACRO NAME="PDFGEN_MAIN">
-
 	<MACRO NAME="PDFGEN_HTML_START"/>
 	
 	<!--[ Recherche du type du document ]-->
 	<MACRO NAME="PDFGEN_INIT_TYPE" />
 
+	<!--[ Personnalisations ]-->
+	<MACRO NAME="PDFGEN_CUSTOM_INIT" />
+
 	<SWITCH TEST="[%TPL_TYPE]">
-		<DO CASE="textes">
+		<DO CASE="article">
 			<MACRO NAME="PDFGEN_ARTICLE_MAIN"/>
+		</DO>
+		<DO CASE="numero">
+			<MACRO NAME="PDFGEN_NUMERO_MAIN"/>
 		</DO>
 		<DO CASE="default">
 			<h1>[@PDFGEN.DOCUMENT] [#DOCUMENT]</h1>
@@ -33,12 +38,12 @@
 	<LOOP NAME="pdfgen_init_type"
 				TABLE="entities, types"
 				SELECT="id, class, type"
-				WHERE="id = '[#DOCUMENT]' AND class IN ('publications', 'textes') AND entities.idtype = types.id">
+				WHERE="status >= -8 AND id = '[#DOCUMENT]' AND class IN ('publications', 'textes') AND entities.idtype = types.id">
 		<DO>
 			<IF COND="[#CLASS] EQ 'textes'">
-				<LET VAR="tpl_type" GLOBAL="1">textes</LET>
-			<ELSE/>
-				<LET VAR="tpl_type" GLOBAL="1">publications</LET>
+				<LET VAR="tpl_type" GLOBAL="1">article</LET>
+			<ELSEIF COND="[#CLASS] EQ 'publications' AND [#TYPE] EQ 'numero'"/>
+				<LET VAR="tpl_type" GLOBAL="1">numero</LET>
 			</IF>
 		</DO>
 	</LOOP>
@@ -90,11 +95,22 @@
  * Styles CSS.
  */
 <DEFMACRO NAME="PDFGEN_HTML_STYLES">
-	<!-- normalize.css -->
+	<!--[ normalize.css ]-->
 	<link rel="stylesheet" href="[#SHAREDIR]/plugins/custom/pdfgen/public/vendor/normalize.css/normalize.css">
 
-	<!-- Styles du PDF -->
+	<!--[ Styles du PDF ]-->
 	<link rel="stylesheet" href="[#SHAREDIR]/plugins/custom/pdfgen/public/css/pdfgen.css">
+
+	<!--[ Add watermark on previewed documents ]-->
+	<LOOP NAME="pdfgen_html_start_status" TABLE="entities" WHERE="id = '[#DOCUMENT]' && status < 0">
+		<style>
+			@page {
+				background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg viewBox='0 0 300 245' fill='none' xmlns='http://www.w3.org/2000/svg'%3e%3ctext x='0' y='150' fill='%23CCCCCC' transform='rotate(-30)' %3e[@PDFGEN.VERSION_PREPARATOIRE|strtoupper]%3c/text%3e%3c/svg%3e");
+				background-position: top center;
+				background-repeat: no-repeat;
+			}
+		</style>
+	</LOOP>
 
 	<!--[ Hook pour l'insertion de CSS ]-->
 	<MACRO NAME="PDFGEN_CUSTOM_CSS"/>
@@ -104,120 +120,12 @@
  * Scripts JavaScript.
  */
 <DEFMACRO NAME="PDFGEN_HTML_SCRIPTS">
+	<script src="[#SHAREDIR]/plugins/custom/pdfgen/public/vendor/hyphenopoly/Hyphenopoly_Loader.js"></script>
 	<script src="[#SHAREDIR]/plugins/custom/pdfgen/public/js/pdfgen.js"></script>
 	<script src="[#SHAREDIR]/plugins/custom/pdfgen/public/vendor/pagedjs/paged.polyfill.js"></script>
-	<script src="[#SHAREDIR]/plugins/custom/pdfgen/public/vendor/hyphenopoly/Hyphenopoly_Loader.js"></script>
 
 	<!--[ Hook pour l'insertion de JS ]-->
 	<MACRO NAME="PDFGEN_CUSTOM_JS"/>
-</DEFMACRO>
-
-/**
- * Hook pour l'insertion de CSS dans le head, à redéclarer dans macros_custom.html.
- */
-<DEFMACRO NAME="PDFGEN_CUSTOM_CSS">
-</DEFMACRO>
-
-/**
- * Hook pour l'insertion de JS dans le head, à redéclarer dans macros_custom.html.
- */
-<DEFMACRO NAME="PDFGEN_CUSTOM_JS">
-</DEFMACRO>
-
-/**
- * Macro principale des articles.
- */
-<DEFMACRO NAME="PDFGEN_ARTICLE_MAIN">
-	<LOOP NAME="pdfgen_article_main" TABLE="textes" WHERE="id=[#DOCUMENT]">
-		<MACRO NAME="PDFGEN_ARTICLE_INIT" />
-		<MACRO NAME="PDFGEN_ARTICLE_FRONT" />
-		<div class="main">
-			<MACRO NAME="PDFGEN_ARTICLE_HEADER" />
-			<MACRO NAME="PDFGEN_ARTICLE_NOTICEBIBLIOOEUVRE" />
-			<IF COND="[#TEXTE_ACCESSIBLE]">
-				<MACRO NAME="PDFGEN_ARTICLE_TOC" />
-				<MACRO NAME="PDFGEN_ARTICLE_ADDENDUM" />
-				<MACRO NAME="PDFGEN_ARTICLE_TEXTE" />
-				<MACRO NAME="PDFGEN_ARTICLE_BIBLIOGRAPHIE" />
-				<MACRO NAME="PDFGEN_ARTICLE_ANNEXE" />
-				<MACRO NAME="PDFGEN_ARTICLE_NOTESBASPAGE" />
-				<MACRO NAME="PDFGEN_ARTICLE_NOTEFIN" />
-			<ELSE />
-				<p>[@PDFGEN.AVERTISSEMENT_TEXTE_INTEGRAL] [#DATEPUBLI|formateddate('%B %Y')].</p>
-			</IF>
-			<MACRO NAME="PDFGEN_ARTICLE_RESUMES" />
-			<MACRO NAME="PDFGEN_ARTICLE_MOTSCLES" />
-			<FUNC NAME="PDFGEN_ARTICLE_DESCRIPTION_PERSONNES" TYPE="auteur" />
-			<FUNC NAME="PDFGEN_ARTICLE_DESCRIPTION_PERSONNES" TYPE="traducteur" />
-		</div>
-	</LOOP>
-</DEFMACRO>
-
-/**
- * Initialisation de la page article.
- */
-<DEFMACRO NAME="PDFGEN_ARTICLE_INIT">
-	<!--[ Prefixe DOI ]-->
-	<!--[ Par défaut on utilise le champ des options [#OPTIONS.EXTRA.DOI_PREFIXE] ]-->
-	<IF COND="[#OPTIONS.EXTRA.DOI_PREFIXE]">
-		<LET VAR="prefixedoi" GLOBAL="1">[#OPTIONS.EXTRA.DOI_PREFIXE]</LET>
-	<ELSE/> <!--[ Retrocompatibilité Nova 1.2 ]-->
-		<LET VAR="prefixedoi" GLOBAL="1">[#OPTIONS.NOVA.PREFIXEDOI]</LET>
-	</IF>
-
-	<!--[ Détecter les entrées d'index et créer une globale %HASENTRIES ]-->
-	<LOOP NAME="hasentries" TABLE="relations, entries, entrytypes" SELECT="COUNT(entries.id)" WHERE="nature = 'E' AND id1 = [#ID] AND id2 = entries.id AND class != 'indexavances'">
-		<IF COND="[#NBRESULTATS] GT 0">
-			<LET VAR="hasentries" GLOBAL="1">1</LET>
-		</IF>
-	</LOOP>
-
-	<!--[ Liste des auteurs ]-->
-	<LET VAR="liste_auteurs" GLOBAL="1"><FUNC NAME="PDFGEN_LISTER_PERSONNES" TYPE="auteur" APPEND=", " /></LET>
-
-	<!--[ Barrière mobile ]-->
-	<IF COND="[#DATEPUBLI] LE today() OR [#LODELUSER.RIGHTS] GE 5">
-		<LET VAR="texte_accessible">1</LET>
-	</IF>
-</DEFMACRO>
-
-/**
- * Page de garde de l'article.
- */
-<DEFMACRO NAME="PDFGEN_ARTICLE_FRONT">
-	<section class="front">
-		<!--[ Logo et titre du site, publication parente ]-->
-		<MACRO NAME="PDFGEN_TOP" />
-	 
-		<!--[ Header article ]-->
-		<MACRO NAME="PDFGEN_ARTICLE_HEADER" />
-
-		<div class="front__section">
-			<!--[ URL ]-->
-			<p class="front__url">[#SITEINFOS.URL]/[#ID|makeurlwithid]</p>
-
-			<!--[ DOI ]-->
-			<IF COND="[%PREFIXEDOI] AND [#TYPE] EQ 'article'">
-				<p class="article__doi"><strong>DOI&nbsp;:</strong> [%PREFIXEDOI][#ID]</p>
-			</IF>
-		</div>
-
-		<!--[ Pour citer ]-->
-		<div class="front__section">
-			<h2 class="section-header--small">[@PDFGEN.REFERENCE_ELECTRONIQUE]</h2>
-			<p class="article__reference">
-				<MACRO NAME="PDFGEN_ARTICLE_REFERENCE_ELECTRONIQUE" />
-			</p>
-		</div>
-
-		<!--[ Droits d'auteur ]-->
-		<IF COND="[#OPTIONS.METADONNEESSITE.DROITSAUTEUR]">
-			<div class="front__section">
-				<h2 class="section-header--small">[@PDFGEN.LICENCE]</h2>
-				<p class="article__licence">[#OPTIONS.METADONNEESSITE.DROITSAUTEUR]</p>
-			</div>
-		</IF>
-	</section>
 </DEFMACRO>
 
 /**
@@ -247,515 +155,34 @@
 			</IF>
 
 			<!--[ Numéro parent ]-->
-			<MACRO NAME="PDFGEN_PARENT_ISSUE" />
+			<LET VAR="id_numero_parent">[#ID|getParentByType('numero')]</LET>
+			<FUNC NAME="PDFGEN_ISSUE" ID_NUMERO="[#ID_NUMERO_PARENT]" />
 		</div>
 	</div>
 </DEFMACRO>
 
 /**
- * Informations sur le numéro parent.
+ * Informations sur le numéro.
+ * @param {string} [id_numero] - Id du numéro.
  */
-<DEFMACRO NAME="PDFGEN_PARENT_ISSUE">
-	<!--[ Numéro parent ]-->
-	<LET VAR="id_numero_parent">[#ID|getParentByType('numero')]</LET>
-	<LOOP NAME="pdfgen_article_front_parent" TABLE="publications" WHERE="id='[#ID_NUMERO_PARENT]'" SELECT="numero, titre, periode, datepublipapier, datepubli, creationdate" />
+<DEFFUNC NAME="PDFGEN_ISSUE" REQUIRED="id_numero">
+	<LOOP NAME="pdfgen_article_front_parent" TABLE="publications" WHERE="status >= -8 AND id='[#ID_NUMERO]'" SELECT="numero, titre, periode, datepublipapier, datepubli, creationdate" />
 		<p class="issue">
 			<span class="issue__number">[#NUMERO]</span>
 			<FUNC NAME="PDFGEN_PERIODE_PUBLI" WRAP_CLASS="issue__date" PREPEND="&nbsp;|&nbsp;" />
 			<IF COND="[#TITRE] AND [#TITRE] NE [#NUMERO]">
-				<br /><span class="issue__title">[#TITRE]</span>
+				&nbsp;<br /><span class="issue__title">[#TITRE]</span>
 			</IF>
 		</p>
 	</LOOP>
-</DEFMACRO>
-
-/**
- * Header du document.
- */
-<DEFMACRO NAME="PDFGEN_ARTICLE_HEADER">
-	<header class="article__header">
-		<!--[ Numéro de document ]-->
-		<IF COND="[#NUMERODOCUMENT] AND [#NUMERODOCUMENT] NE '0'">
-			<p class="main-number article__number">#[#NUMERODOCUMENT]</p>
-		</IF>
-		<!--[ Sous-titre du document ]-->
-		<IF COND="[#SURTITRE]">
-			<p class="main-subhead article__subhead">[#SURTITRE|removenotes]</p>
-		</IF>
-		<!--[ Titre du document ]-->
-		<h1 class="main-title article__title">[#TITRE|removenotes]</h1>
-
-		<!--[ Sous-titre du document ]-->
-		<IF COND="[#SOUSTITRE]">
-			<p class="main-subtitle article__subtitle">[#SOUSTITRE|removenotes]</p>
-		</IF>
-
-		<!--[ Titres alternatifs ]-->
-		<IF COND="[#ALTERTITRE]">
-			<div class="main-altertitle article__altertitle">
-				<LET VAR="value">[#ALTERTITRE]</LET>
-				<LOOP NAME="mltext">
-					<p xml:lang="[#LANG]" lang="[#LANG]">[#VALUE|removenotes]</p>
-				</LOOP>
-			</div>
-		</IF>
-
-		<!--[ Auteurs ]-->
-		<FUNC NAME="PDFGEN_LISTER_PERSONNES" TYPE="auteur" WRAP_ID="article-author" WRAP_CLASS="article__author"/>
-
-		<!--[ Traducteurs ]-->
-		<FUNC NAME="PDFGEN_LISTER_PERSONNES" TYPE="traducteur" WRAP_ID="article-translator" WRAP_CLASS="article__translator" PREPEND="[@PDFGEN.TRADUCTION_DE] "/>
-	</header>
-</DEFMACRO>
+</DEFFUNC>
 
 /**
  * Référence électronique.
  */
-<DEFMACRO NAME="PDFGEN_ARTICLE_REFERENCE_ELECTRONIQUE">
+<DEFMACRO NAME="PDFGEN_REFERENCE_ELECTRONIQUE">
 	[%LISTE_AUTEURS]«&nbsp;[#TITRE|removenotes]&nbsp;», <FUNC NAME="PDFGEN_PARU_DANS" CITATION="1" /><IF COND="[#NUMERODOCUMENT]">, [@PDFGEN.DOCUMENT|strtolower] [#NUMERODOCUMENT]</IF>, [@PDFGEN.MIS_EN_LIGNE_LE] [#DATEPUBLI|humandate], [@PDFGEN.CONSULTE_LE] <?php echo strftime('%d %B %Y');?>. URL&nbsp;: [#SITEINFOS.URL]/[#ID|makeurlwithid]
 </DEFMACRO>
-
-/**
- * Notice bibliographique de l'œuvre commentée.
- */
-<DEFMACRO NAME="PDFGEN_ARTICLE_NOTICEBIBLIOOEUVRE">
-	<!--[ Notice biblio ]-->
-	<IF COND="[#NOTICEBIBLIOOEUVRE]">
-		<h2 class="section-header">[@PDFGEN.REFERENCE_OEUVRE]</h2>
-		<div class="article__oeuvre">
-			[#NOTICEBIBLIOOEUVRE|cleanCallNotes]
-		</div>
-	</IF>
-</DEFMACRO>
-
-/**
- * Section résumés.
- */
-<DEFMACRO NAME="PDFGEN_ARTICLE_RESUMES">
-	<IF COND="[#RESUME]">
-		<section class="article__abstract">
-			<IF COND="[#RESUME|substr_count('<r2r:ml')] GT 1">
-				<h2 class="section-header">[@PDFGEN.RESUMES]</h2>
-			<ELSE />
-				<h2 class="section-header">[@PDFGEN.RESUME]</h2>
-			</IF>
-
-			<div class="article__abstract-contents">
-				<IF COND="[#RESUME] LIKE /<r2r:ml lang=\"([a-z]+)\"/">
-					<LOOP NAME="foreach" ARRAY="[#MATCHES.1]">
-						<div class="article__abstract-item">
-							<h3 class="section-header--small">[#VALUE|humanlang]</h3>
-							<div class="article__abstract-text hyphenate" lang="[#VALUE]" xml:lang="[#VALUE]">
-								[#RESUME:#VALUE]
-							</div>
-						</div>
-					</LOOP>
-				<ELSE/>
-					[#RESUME]
-				</IF>
-			</div>
-		</section>
-	</IF>
-</DEFMACRO>
-
-
-/**
- * Section indexes liés au document.
- */
-<DEFMACRO NAME="PDFGEN_ARTICLE_MOTSCLES">
-	<IF COND="[%HASENTRIES]">
-		<section class="article__entries">
-			<LOOP NAME="pdfgen_article_motscles" 
-				TABLE="relations, entries, entrytypes" 
-				SELECT="DISTINCT(idtype), title, altertitle, type AS entrytype" 
-				WHERE="id1 = '[#ID]' AND id2 = entries.id AND entries.idtype = entrytypes.id AND entrytypes.class = 'indexes'" 
-				ORDER="entrytypes.rank">
-
-				<BEFORE>
-					<div class="article__entries-title">
-						<h2 class="section-header">[@PDFGEN.INDEX]</h2>
-					</div>
-					<div class="article__entries-content">
-				</BEFORE>
-				<DO>
-					<LOOP NAME="pdfgen_article_motscles_entrees" 
-						TABLE="entries" SELECT="id, g_name" 
-						WHERE="idtype = '[#IDTYPE]' AND iddocument = '[#ID]'" 
-						ORDER="degree">
-						<BEFORE>
-							<!--[ Support index rtl ]-->
-							<IF COND="[#ENTRYTYPE] LIKE /^motscles([a-z]*)$/">
-								<LET VAR="entrydir"><FUNC NAME="PDFGEN_GET_LANG_DIR" LANG="[#MATCHES.1.0]"/></LET>
-							</IF>
-							<div class="article__index article__index--type-[#ENTRYTYPE]" dir="[#ENTRYDIR]">
-								<h3 class="section-header--small"><FUNC NAME="PDFGEN_ML_TITRE" INDEX="true" /></h3>
-						</BEFORE>
-						<DOFIRST><span class="entry">[#G_NAME]</span></DOFIRST>
-						<DO>, <span class="entry">[#G_NAME]</span></DO>
-						<AFTER>
-							</div>
-						</AFTER>
-					</LOOP>
-				</DO>
-				<AFTER>
-					</div>
-				</AFTER>
-			</LOOP>
-		</section>
-	</IF>
-</DEFMACRO>
-
-/**
- * Section table des matières du document.
- */
-<DEFMACRO NAME="PDFGEN_ARTICLE_TOC">
-	<IF COND="[#TEXTE]">
-		<LET VAR="TOC_PREV_NIVEAU" GLOBAL="1">1</LET>
-		<LET VAR="OUVRIR_UL"><ul></LET>
-		<LET VAR="FERMER_UL"></ul></li></LET>
-		<!--[ [#COUNT] et <DOFIRST> ne fonctionnent pas pour la loop "toc" donc on utilise un workaround avec une variable globale [%TOC_COUNT] ]-->
-		<LET VAR="TOC_COUNT" GLOBAL="1">0</LET>
-		<LOOP NAME="toc" TEXT="[#TEXTE]">
-			<BEFORE>
-				<section class="article__toc">
-					<h2 class="section-header">[@PDFGEN.TOC]</h2>
-					<div class="article__toc-contents">
-						<ul>
-			</BEFORE>
-			<DO>
-				<LET VAR="TOC_COUNT" GLOBAL="1">[%TOC_COUNT|lmath('+', '1')]</LET>
-				<LET VAR="ECART">[#NIVEAU|lmath('-', [%TOC_PREV_NIVEAU])]</LET>
-				<LET VAR="LIEN"><a href="#tocto[#TOCID]" class="toc__link" id="tocfrom[#TOCID]">[#TITRE|removenotes]</a></LET>
-				<IF COND="[#ECART] EQ 0">
-					<IF COND="[%TOC_COUNT] GT 1">
-						</li>
-					</IF>
-					<li dir="[#DIR]">[#LIEN]
-				<ELSEIF COND="[#ECART] GT 0" />
-					[#OUVRIR_UL|str_repeat([#ECART])]
-					<li dir="[#DIR]">[#LIEN]
-				<ELSE />
-					<IF COND="[%TOC_COUNT] GT 1">
-						</li>
-					</IF>
-					[#FERMER_UL|str_repeat([#ECART|lmath('*', -1)])]
-					<li dir="[#DIR]">[#LIEN]
-				</IF>
-				<LET VAR="TOC_PREV_NIVEAU" GLOBAL="1">[#NIVEAU]</LET>
-			</DO>
-			<AFTER>
-							<!--[ Fermeture des derniers ul/li ]-->
-							</li>
-							<IF COND="[%TOC_PREV_NIVEAU] GT 1">
-								[#FERMER_UL|str_repeat([%TOC_PREV_NIVEAU|lmath('-', 1)])]
-							</IF>
-						</ul>
-					</div>
-				</section>
-			</AFTER>
-		</LOOP>
-	</IF>
-</DEFMACRO>
-
-/**
- * Sections errata, dédicace, ndlr et ndla.
- */
-<DEFMACRO NAME="PDFGEN_ARTICLE_ADDENDUM">
-	<!--[ Errata ]-->
-	<IF COND="[#ADDENDUM]">
-		<section class="article__errata">
-			<h2 class="section-header">[@PDFGEN.ERRATA]</h2>
-			<div class="article__errata-contents">
-				[#ADDENDUM|cleanCallNotes|tocss]
-			</div>
-		</section>
-	</IF>
-
-	<!--[ Dédicace ]-->
-	<IF COND="[#DEDICACE]">
-		<section class="article__dedication">
-			<h2 class="section-header">[@PDFGEN.DEDICACE]</h2>
-			<div class="article__dedication-contents">
-				[#DEDICACE|cleanCallNotes|tocss]
-			</div>
-		</section>
-	</IF>
-
-	<!--[ NDLR ]-->
-	<IF COND="[#NDLR]">
-		<section class="article__ndlr">
-			<h2 class="section-header">[@PDFGEN.NDLR]</h2>
-			<div class="article__ndlr-contents">
-				[#NDLR|cleanCallNotes|tocss]
-			</div>
-		</section>
-	</IF>
-
-	<!--[ NDLA ]-->
-	<IF COND="[#NDLA]">
-		<section class="article__ndla">
-			<h2 class="section-header">[@PDFGEN.NDLA]</h2>
-			<div class="article__ndla-contents">
-				[#NDLA|cleanCallNotes|tocss]
-			</div>
-		</section>
-	</IF>
-</DEFMACRO>
-
-/**
- * Section texte principal du document.
- */
-<DEFMACRO NAME="PDFGEN_ARTICLE_TEXTE">
-	<IF COND="[#TEXTE]">
-		<section class="article__text">
-			<IF COND="[#TYPE] EQ 'informations' OR [#TYPE] EQ 'actualite'">
-				<LET VAR="text_section_title">[@PDFGEN.TEXTE]</LET>
-			<ELSEIF COND="[#TEXTE_ACCESSIBLE]" />
-				<LET VAR="text_section_title">[@PDFGEN.TEXTE_INTEGRAL]</LET>
-			<ELSE />
-				<LET VAR="text_section_title">[@PDFGEN.TEXTE_EXTRAIT]</LET>
-			</IF>
-			<h2 class="section-header">[#TEXT_SECTION_TITLE]</h2>
-
-			<MACRO NAME="PDFGEN_ARTICLE_TEXTE_CONTENTS" />
-		</section>
-	</IF>
-</DEFMACRO>
-
-/**
- * Afficher le texte.
- */
-<DEFMACRO NAME="PDFGEN_ARTICLE_TEXTE_CONTENTS">
-	<div class="row">
-		<div class="article__text-contents hyphenate" lang="[#LANGUE]">
-			<!--[ Image d'accroche ]-->
-			<MACRO NAME="PDFGEN_ARTICLE_IMAGEACCROCHE" />
-
-			<!--[ Chapo ]-->
-			<MACRO NAME="PDFGEN_ARTICLE_CHAPO" />
-
-			<!--[ Texte intégral ]-->
-			<IF COND="[#OPTIONS.OPTIONSAFFICHAGE.AFFICHAGEREMERCIEMENTS] NE 'bottom' AND [#REMERCIEMENTS]">[#REMERCIEMENTS]</IF>
-			<IF COND="[#TEXTE_ACCESSIBLE]"/>
-				[#TEXTE|cleanCallNotes|tocable|tocss('heading')|illustrations(800)|media]
-			<ELSE />
-				[#TEXTE|removenotes|tocable|tocss('heading')|illustrations(800)|cuttext(1000, true)|media]
-			</IF>
-			<IF COND="[#OPTIONS.OPTIONSAFFICHAGE.AFFICHAGEREMERCIEMENTS] EQ 'bottom' AND [#REMERCIEMENTS]">[#REMERCIEMENTS]</IF>
-		</div>
-	</div>
-</DEFMACRO>
-
-/**
- * Image d'accroche du document.
- */
-<DEFMACRO NAME="PDFGEN_ARTICLE_IMAGEACCROCHE">
-	<LOOP NAME="pdfgen_article_imageaccroche" 
-		TABLE="fichiers" 
-		WHERE="type = 'imageaccroche' AND idparent = [#ID]" 
-		ORDER="rank" 
-		LIMIT="0,1">
-
-		<IF COND="[#VIGNETTE]">
-			<LET VAR="accroche">[#VIGNETTE|vignette(500)]</LET>
-		<ELSE/>
-			<LET VAR="accroche">[#DOCUMENT|vignette(500)]</LET>
-		</IF>
-		<div class="article__accroche">
-			<a href="[#ID|makeurlwithid]">
-				<img alt="[#TITRE|textebrut]" src="[#ACCROCHE|trim]" />
-			</a>
-			<IF COND="[#CREDITS]">
-				<p class="article__accroche-credits accroche-credits">[#CREDITS]</p>
-			</IF>
-		</div>
-	</LOOP>
-</DEFMACRO>
-
-/**
- * Chapo.
- */
-<DEFMACRO NAME="PDFGEN_ARTICLE_CHAPO">
-	<IF COND="[#CHAPO]">
-		<p class="article__chapo">[#CHAPO|cleanCallNotes]</p>
-	</IF>
-</DEFMACRO>
-
-/**
- * Section bibliographie du document.
- */
-<DEFMACRO NAME="PDFGEN_ARTICLE_BIBLIOGRAPHIE">
-	<IF COND="[#BIBLIOGRAPHIE] AND [#TEXTE_ACCESSIBLE]">
-		<section class="article__biblio">
-			<h2 class="section-header">[@PDFGEN.BIBLIOGRAPHIE]</h2>
-			<div class="article__biblio-contents hyphenate">
-				[(#BIBLIOGRAPHIE|cleanCallNotes|tocss('heading')|illustrations(800, 'bibliographie')|media)]
-			</div>
-		</section>
-	</IF>
-</DEFMACRO>
-
-/**
- * Section annexes (texte) du document.
- */
-<DEFMACRO NAME="PDFGEN_ARTICLE_ANNEXE">
-	<!--[ Annexe ]-->
-	<IF COND="[#ANNEXE] AND [#TEXTE_ACCESSIBLE]">
-		<section class="article__appendix">
-			<h2 class="section-header">[@PDFGEN.ANNEXE]</h2>
-			<div class="article__appendix-contents hyphenate" lang="[#LANGUE]">
-				[#ANNEXE|cleanCallNotes|tocss('heading')|illustrations(800, 'annexe')|media]
-			</div>
-		</section>
-	</IF>
-</DEFMACRO>
-
-/**
- * Section notes de bas de page.
- */
-<DEFMACRO NAME="PDFGEN_ARTICLE_NOTESBASPAGE">
-	<IF COND="[#NOTESBASPAGE] AND [#TEXTE_ACCESSIBLE]">
-		<section class="article__footnotes">
-			<h2 class="section-header">[@PDFGEN.NOTES]</h2>
-			<div class="article__footnotes-contents hyphenate" lang="[#LANGUE]" xml:lang="[#LANGUE]">
-				[#NOTESBASPAGE]
-			</div>
-		</section>
-	</IF>
-</DEFMACRO>
-
-/**
- * Section notes de fin.
- */
-<DEFMACRO NAME="PDFGEN_ARTICLE_NOTEFIN">
-	<IF COND="[#NOTEFIN] AND [#TEXTE_ACCESSIBLE]">
-		<section class="article__endnotes">
-			<h2 class="section-header">[@PDFGEN.NOTEFIN]</h2>
-			<div class="article__endnotes-contents hyphenate" lang="[#LANGUE]" xml:lang="[#LANGUE]">
-				[#NOTEFIN]
-			</div>
-		</section>
-	</IF>
-</DEFMACRO>
-
-/**
- * Section description des auteurs, traducteurs.
- * @param {string} type - Type de personne.
- */
-<DEFFUNC NAME="PDFGEN_ARTICLE_DESCRIPTION_PERSONNES" REQUIRED="type">
-	<LOOP NAME="pdfgen_article_description_personnes" 
-		SELECT="persons.id" 
-		TABLE="relations, persons" 
-		WHERE="id1 = '[#DOCUMENT]' AND id2 = persons.id AND nature = 'G' AND type = '[#TYPE]'"
-		ORDER="degree">
-		
-		<BEFORE>
-			<section class="article__persons-infos">
-				<IF COND="[#TYPE] EQ 'traducteur'">
-					<LET VAR="TITRE_SECTION"><IF COND="[#NBRESULTATS] GT 1">[@PDFGEN.TRADUCTEURS]<ELSE/>[@PDFGEN.TRADUCTEUR]</IF></LET>
-				<ELSE />
-					<LET VAR="TITRE_SECTION"><IF COND="[#NBRESULTATS] GT 1">[@PDFGEN.AUTEURS]<ELSE/>[@PDFGEN.AUTEUR]</IF></LET>
-				</IF>
-				<h2 class="section-header">[#TITRE_SECTION]</h2>
-				<div class="article__persons-infos-contents">
-		</BEFORE>
-
-		<DO>
-			<LOOP NAME="pdfgen_article_description_personnes_auteur" 
-				SELECT="idperson, nomfamille, prenom, description, courriel" 
-				TABLE="auteurs" 
-				WHERE="id = '[#ID]' AND iddocument='[#DOCUMENT]'">
-
-				<h3 class="section-header--small article__persons-infos-identity">
-					<a href="[#IDPERSON|makeurlwithid]">[#PRENOM] <span class="family-name">[#NOMFAMILLE]</span></a>
-				</h3>
-				<IF COND="[#DESCRIPTION]">
-					<p class="article__person-description">
-						[#DESCRIPTION|removetags("p")]
-					</p>
-				</IF>
-				<IF COND="[#COURRIEL]">
-					<a class="article__person-email" href="mailto:[#COURRIEL]">[#COURRIEL]</a>
-				</IF>
-				<MACRO NAME="PDFGEN_ARTICLE_AUTEUR_IDNO" />
-			</LOOP>
-		</DO>
-
-		<AFTER>
-				</div>
-			</section>
-		</AFTER>
-	</LOOP>
-</DEFFUNC>
-
-/**
- * Identifiants de l'auteur dans d'autres bases.
- */
-<DEFMACRO NAME="PDFGEN_ARTICLE_AUTEUR_IDNO">
-	<FUNC NAME="PDFGEN_ARTICLE_AUTEUR_IDNO_ITEM" TYPE="IDREF" URL="https://www.idref.fr/[#IDREF]" CONDITION="[#IDREF]" />
-	<FUNC NAME="PDFGEN_ARTICLE_AUTEUR_IDNO_ITEM" TYPE="ORCID" URL="http://orcid.org/[#ORCID]" CONDITION="[#ORCID]" />
-	<FUNC NAME="PDFGEN_ARTICLE_AUTEUR_IDNO_ITEM" TYPE="HAL" URL="https://cv.archives-ouvertes.fr/[#HAL]" CONDITION="[#HAL]" />
-	<FUNC NAME="PDFGEN_ARTICLE_AUTEUR_IDNO_ITEM" TYPE="ISNI" URL="http://www.isni.org/[#ISNI]" CONDITION="[#ISNI]" />
-	<!--[ BNF: https://www.bnf.fr/fr/lidentifiant-ark-archival-resource-key ]-->
-	<IF COND="[#ARK] LIKE /(?<=\/cb)[^\/%.-]{8}(?=.?$)/">
-		<FUNC NAME="PDFGEN_ARTICLE_AUTEUR_IDNO_ITEM" TYPE="BNF" CONDITION="1" URL="https://data.bnf.fr/fr/[#MATCHES.0.0]" />
-	</IF>
-</DEFMACRO>
-
-/**
-* Affichage de l'icone d'une base ou est reference l'auteur.
-* @param {string} type - Type d'identifiant.
-* @param {string} url - URL cible.
-* @param {boolean} [condition] - Affiche l'icone seulement si true.
-*/
-<DEFFUNC NAME="PDFGEN_ARTICLE_AUTEUR_IDNO_ITEM" REQUIRED="type, url" OPTIONAL="condition">
-	<IF COND="[#CONDITION]">
-		<p class="article__person-idno">
-			[#TYPE]&nbsp;: [#URL]
-		</p>
-	</IF>
-</DEFFUNC>
-
-/**
- * Affiche les personnes liées à l'entité en cours.
- * @param {string} type - Nom du type des personnes.
- * @param {string} [wrap_class] - Valeur de l'attribut class du second élément DIV conteneur.
- * @param {string} [prepend] - Texte à afficher avant la liste de personnes.
- * @param {string} [append] - Texte à afficher après la liste de personnes.
- * @param {string} [href] - Lien à wrapper.
- */
-<DEFFUNC NAME="PDFGEN_LISTER_PERSONNES" REQUIRED="type" OPTIONAL="wrap_class, prepend, append, href">
-	<IF COND="[#HREF]">
-		<LET VAR="LIEN_DEBUT"><a href="[#HREF]"></LET>
-		<LET VAR="LIEN_FIN"></a></LET>
-	</IF>
-	<LOOP NAME="pdfgen_lister_personnes" TABLE="relations, persons" SELECT="g_firstname,g_familyname" WHERE="id1 = '[#ID]' AND id2 = persons.id AND nature = 'G' AND type = '[#TYPE]'" ORDER="degree">
-
-		<BEFORE>
-			<IF COND="[#WRAP_ID] OR [#WRAP_CLASS]">
-				<IF COND="[#WRAP_ID]">
-					<LET VAR="id_tag"> id="[#WRAP_ID]"</LET>
-				</IF>
-				<IF COND="[#WRAP_CLASS]">
-					<LET VAR="class_tag"> class="[#WRAP_CLASS]"</LET>
-				</IF>
-				<p[#ID_TAG][#CLASS_TAG]>
-			</IF>
-			[#PREPEND]
-		</BEFORE>
-		<DOFIRST>
-			<span<IF COND="[#G_FIRSTNAME|text_is_rtl]"> dir="rtl"</IF>>[#LIEN_DEBUT][#G_FIRSTNAME] <span class="family-name">[#G_FAMILYNAME]</span>[#LIEN_FIN]</span>
-		</DOFIRST>
-		<DO>, <span<IF COND="[#G_FIRSTNAME|text_is_rtl]"> dir="rtl"</IF>>[#LIEN_DEBUT][#G_FIRSTNAME] <span class="family-name">[#G_FAMILYNAME]</span>[#LIEN_FIN]</span></DO>
-		<DOLAST> [@PDFGEN.AND] <span<IF COND="[#G_FIRSTNAME|text_is_rtl]"> dir="rtl"</IF>>[#LIEN_DEBUT][#G_FIRSTNAME] <span class="family-name">[#G_FAMILYNAME]</span>[#LIEN_FIN]</span></DOLAST>
-		<AFTER>
-			[#APPEND]
-			<IF COND="[#WRAP_ID] OR [#WRAP_CLASS]">
-				</p>
-			</IF>
-		</AFTER>
-	</LOOP>
-</DEFFUNC>
 
 /**
 * Affiche la mention "Paru dans" :
@@ -768,7 +195,7 @@
 	<IF COND="[#CITATION]"> [[@PDFGEN.EN_LIGNE]]</IF>
 
 	<LOOP NAME="pdfgen_paru_dans" TABLE="relations, publications" SELECT="id,titre,numero,datepublipapier,datepubli,periode"
-		WHERE="id2 = '[#ID]' AND type IN ('numero', 'rubrique') AND nature = 'P' AND id1 = publications.identity"
+		WHERE="status >= -8 AND id2 = '[#ID]' AND type IN ('numero', 'rubrique') AND nature = 'P' AND id1 = publications.identity"
 		ORDER="degree DESC" LIMIT="2">
 
 		<BEFORE>, </BEFORE>
@@ -835,3 +262,104 @@
 		</IF>
 	</IF>
 </DEFFUNC>
+
+/**
+ * Affiche les personnes liées à l'entité en cours.
+ * @param {string} type - Nom du type des personnes.
+ * @param {string} [wrap_class] - Valeur de l'attribut class du second élément DIV conteneur.
+ * @param {string} [prepend] - Texte à afficher avant la liste de personnes.
+ * @param {string} [append] - Texte à afficher après la liste de personnes.
+ * @param {string} [href] - Lien à wrapper.
+ */
+<DEFFUNC NAME="PDFGEN_LISTER_PERSONNES" REQUIRED="type" OPTIONAL="wrap_class, prepend, append, href">
+	<IF COND="[#HREF]">
+		<LET VAR="LIEN_DEBUT"><a href="[#HREF]"></LET>
+		<LET VAR="LIEN_FIN"></a></LET>
+	</IF>
+	<LOOP NAME="pdfgen_lister_personnes" TABLE="relations, persons" SELECT="g_firstname,g_familyname" WHERE="status >= -8 AND id1 = '[#ID]' AND id2 = persons.id AND nature = 'G' AND type = '[#TYPE]'" ORDER="degree">
+
+		<BEFORE>
+			<IF COND="[#WRAP_ID] OR [#WRAP_CLASS]">
+				<IF COND="[#WRAP_ID]">
+					<LET VAR="id_tag"> id="[#WRAP_ID]"</LET>
+				</IF>
+				<IF COND="[#WRAP_CLASS]">
+					<LET VAR="class_tag"> class="[#WRAP_CLASS]"</LET>
+				</IF>
+				<p[#ID_TAG][#CLASS_TAG]>
+			</IF>
+			[#PREPEND]
+		</BEFORE>
+		<DOFIRST>
+			<span<IF COND="[#G_FIRSTNAME|text_is_rtl]"> dir="rtl"</IF>>[#LIEN_DEBUT][#G_FIRSTNAME] <span class="family-name">[#G_FAMILYNAME]</span>[#LIEN_FIN]</span>
+		</DOFIRST>
+		<DO>, <span<IF COND="[#G_FIRSTNAME|text_is_rtl]"> dir="rtl"</IF>>[#LIEN_DEBUT][#G_FIRSTNAME] <span class="family-name">[#G_FAMILYNAME]</span>[#LIEN_FIN]</span></DO>
+		<DOLAST> [@PDFGEN.AND] <span<IF COND="[#G_FIRSTNAME|text_is_rtl]"> dir="rtl"</IF>>[#LIEN_DEBUT][#G_FIRSTNAME] <span class="family-name">[#G_FAMILYNAME]</span>[#LIEN_FIN]</span></DOLAST>
+		<AFTER>
+			[#APPEND]
+			<IF COND="[#WRAP_ID] OR [#WRAP_CLASS]">
+				</p>
+			</IF>
+		</AFTER>
+	</LOOP>
+</DEFFUNC>
+
+/**
+ * Obtenir la direction d'une langue. Retourne ltr ou rtl.
+ * @param {string} lang - Langue à tester
+ */
+<DEFFUNC NAME="PDFGEN_GET_LANG_DIR" REQUIRED="lang">
+	<IF COND="[#LANG|lang_is_rtl]">rtl<ELSE />ltr</IF>
+</DEFFUNC>
+
+/**
+ * Image d'accroche du document.
+ */
+<DEFMACRO NAME="PDFGEN_IMAGEACCROCHE">
+	<LOOP NAME="pdfgen_imageaccroche" 
+		TABLE="fichiers" 
+		WHERE="status >= -8 AND type = 'imageaccroche' AND idparent = [#ID]" 
+		ORDER="rank" 
+		LIMIT="0,1">
+
+		<IF COND="[#VIGNETTE]">
+			<LET VAR="accroche">[#VIGNETTE|vignette(500)]</LET>
+		<ELSE/>
+			<LET VAR="accroche">[#DOCUMENT|vignette(500)]</LET>
+		</IF>
+		<div class="accroche">
+			<a href="[#ID|makeurlwithid]">
+				<img alt="[#TITRE|textebrut]" src="[#ACCROCHE|trim]" />
+			</a>
+			<IF COND="[#CREDITS]">
+				<p class="article__accroche-credits accroche-credits">[#CREDITS]</p>
+			</IF>
+		</div>
+	</LOOP>
+</DEFMACRO>
+
+/**
+ * Affichage du DOI.
+ */
+<DEFMACRO NAME="PDFGEN_DOI">
+	<!--[ Prefixe DOI ]-->
+	<!--[ Par défaut on utilise le champ des options [#OPTIONS.EXTRA.DOI_PREFIXE] ]-->
+	<IF COND="[#OPTIONS.EXTRA.DOI_PREFIXE]">
+		<LET VAR="prefixedoi" GLOBAL="1">[#OPTIONS.EXTRA.DOI_PREFIXE]</LET>
+	<ELSE/> <!--[ Retrocompatibilité Nova 1.2 ]-->
+		<LET VAR="prefixedoi" GLOBAL="1">[#OPTIONS.NOVA.PREFIXEDOI]</LET>
+	</IF>
+	<IF COND="[%SHOW_DOI_FOR_TYPES] LIKE /([^,]+)/">
+		<LET VAR="showthistype"><LOOP NAME="foreach" ARRAY="[#MATCHES.1]"><IF COND="[#TYPE] EQ [#VALUE|trim]">1</IF></LOOP></LET>
+	</IF>
+	<IF COND="[%PREFIXEDOI] AND [#SHOWTHISTYPE]">
+		<p class="doi"><strong>DOI&nbsp;:</strong> [%PREFIXEDOI][#ID]</p>
+	</IF>
+</DEFMACRO>
+
+/**
+ * Logo de la plateforme dans /plugins/custom/pdfgen/public/plateforme.png
+ */
+<DEFMACRO NAME="PDFGEN_PLATEFORME">
+	<img class="plateforme__logo" src="[#SHAREDIR]/plugins/custom/pdfgen/public/plateforme.png" alt="" onerror="this.remove()" />
+</DEFMACRO>

@@ -13,13 +13,18 @@
 <contents name="auteurs" textgroup="pdfgen" status="2">Authors</contents>
 <contents name="avertissement_texte_integral" textgroup="pdfgen" status="2">Full text document will be published online on</contents>
 <contents name="bibliographie" textgroup="pdfgen" status="2">Bibliography</contents>
+<contents name="commander_numero" textgroup="pdfgen" status="2">Order issue</contents>
 <contents name="consulte_le" textgroup="pdfgen" status="2">connection on</contents>
 <contents name="dedicace" textgroup="pdfgen" status="2">Dedication</contents>
+<contents name="directeur_publication" textgroup="pdfgen" status="2">Edited by</contents>
 <contents name="document" textgroup="pdfgen" status="2">Document</contents>
 <contents name="document_not_found" textgroup="pdfgen" status="2">Could not create the requested document. Please make sure the article is published.</contents>
 <contents name="en_ligne" textgroup="pdfgen" status="2">Online</contents>
 <contents name="errata" textgroup="pdfgen" status="2">Errata</contents>
+<contents name="historique" textgroup="pdfgen" status="2">Publication history</contents>
 <contents name="index" textgroup="pdfgen" status="2">Index</contents>
+<contents name="introduction" textgroup="pdfgen" status="2">Introduction</contents>
+<contents name="isbn" textgroup="pdfgen" status="2">ISBN</contents>
 <contents name="licence" textgroup="pdfgen" status="2">Copyright</contents>
 <contents name="mis_en_ligne_le" textgroup="pdfgen" status="2">Online since</contents>
 <contents name="ndla" textgroup="pdfgen" status="2">Author's notes</contents>
@@ -32,6 +37,7 @@
 <contents name="ressources_auteur_autres_bases" textgroup="pdfgen" status="2">Author resources in other databases</contents>
 <contents name="resume" textgroup="pdfgen" status="2">Abstract</contents>
 <contents name="resumes" textgroup="pdfgen" status="2">Abstracts</contents>
+<contents name="sommaire" textgroup="pdfgen" status="2">Issue contents</contents>
 <contents name="texte" textgroup="pdfgen" status="2">Text</contents>
 <contents name="texte_extrait" textgroup="pdfgen" status="2">Excerpt</contents>
 <contents name="texte_integral" textgroup="pdfgen" status="2">Text</contents>
@@ -39,6 +45,7 @@
 <contents name="traducteur" textgroup="pdfgen" status="2">Translator</contents>
 <contents name="traducteurs" textgroup="pdfgen" status="2">Translators</contents>
 <contents name="traduction_de" textgroup="pdfgen" status="2">Translated by</contents>
+<contents name="version_preparatoire" textgroup="pdfgen" status="2">Preparatory version</contents>
 </texts>
 </row>
 </translations>

@@ -22,7 +22,19 @@
   }
 }
 
-.front {
+.cover {
+  page: coverLayout;
+}
+
+@page coverLayout {
+  margin: 0;
+
+  @top-left { 
+    content: none; 
+  }
+}
+
+.front, .souspartie {
   page: frontLayout;
 }
 
@@ -38,6 +50,10 @@
   page: mainLayout;
 }
 
+.main.article {
+  break-after: page;
+}
+
 @page mainLayout:first {
   margin: 15mm 30mm 15mm 30mm;
 
@@ -46,7 +62,19 @@
   }
 }
 
-.main-title {
+.sommaire {
+  break-before: page;
+  break-after: page;
+  page: sommaireLayout;
+}
+
+@page sommaireLayout {
+  @top-left { 
+    content: none; 
+  }
+}
+
+.titrecourant {
   string-set: title content(text);
 }
 
@@ -85,7 +113,6 @@ html, body {
 }
 
 a, a:visited {
-  text-decoration: none;
   color: var(--color-grey-dark);
   text-decoration: underline;
 }
@@ -129,8 +156,12 @@ tr, td, img {
   break-inside: avoid;
 }
 
-sup, sub, .footnotecall, .FootnoteSymbol {
+sup, sub, .footnotecall, .FootnoteSymbol, .endnotecall, .EndnoteSymbol {
   line-height: 0;
+}
+
+.hidden {
+  display: none;
 }
 
 .section-header, .section-header--small {
@@ -222,7 +253,7 @@ sup, sub, .footnotecall, .FootnoteSymbol {
   line-height: 125%;
 }
 
-.article__title {
+.main-title {
   margin: .5rem 0;
   font-size: 1.7rem;
   font-family: var(--font-text);
@@ -230,25 +261,25 @@ sup, sub, .footnotecall, .FootnoteSymbol {
   font-weight: normal;
 }
 
-.article__subtitle {
+.main-subtitle {
   font-family: var(--font-text);
   line-height: 120%;
   font-size: 1.3rem;
   margin: .5rem 0;
 }
 
-.article__altertitle {
+.main-altertitle {
   font-family: var(--font-text);
   line-height: 125%;
   font-style: italic;
   color: var(--color-grey-medium);
 }
 
-.article__altertitle em, .article__altertitle i {
+.main-altertitle em, .main-altertitle i {
   font-style: normal;
 }
 
-.article__author {
+.article__author, .publi__director {
   margin: 1rem 0;
   font-weight: bold;
   font-size: 1.05rem;
@@ -258,16 +289,25 @@ sup, sub, .footnotecall, .FootnoteSymbol {
   margin: 1rem 0;
 }
 
-.front__url {
+.url {
   margin: 1rem 0;
   text-decoration: underline;
 }
 
-.front__url::before {
+.url::before {
   content: url(../icons/link-alt.svg);
   margin-right: 5px;
   display: inline-block;
   transform: scale(0.9) translate(0, 6px);
+}
+
+.url a::after {
+  content: none !important;
+}
+
+.plateforme__logo {
+  height: 100px;
+  margin-top: 2rem;
 }
 
 /* ABSTRACTS AND KEYWORDS */
@@ -300,6 +340,7 @@ sup, sub, .footnotecall, .FootnoteSymbol {
 
 .toc__link {
   text-decoration: none;
+  color: var(--color-grey-dark);
 }
 
 
@@ -378,10 +419,13 @@ h6.texte {
   font-size: 1.1rem;
 }
 
-.article__accroche {
+.accroche {
+  max-width: 300px;
+}
+
+.article .accroche {
   float: left;
   clear: left;
-  max-width: 300px;
   margin: 0 1rem 1rem -4rem;
 }
 
@@ -399,6 +443,11 @@ h6.texte {
   width: 50%;
   margin: 2rem 0 2rem auto;
   break-after: avoid;
+  text-align: left;
+  hyphens: none;
+  -ms-hyphens: none;
+  -moz-hyphens: none;
+  -webkit-hyphens: none;
 }
 
 ul.texte, ol.texte {
@@ -422,6 +471,11 @@ p.citation, p.citationbis, p.citationter {
   padding: .3rem 0 .3rem 1.5rem;
   font-size: .95rem;
   line-height: 150%;
+  text-align: left;
+  hyphens: none;
+  -ms-hyphens: none;
+  -moz-hyphens: none;
+  -webkit-hyphens: none;
 }
 
 p.citationbis {
@@ -456,7 +510,6 @@ p.citationter {
 }
 
 .question {
-  color: var(--color-grey-medium);
   font-weight: bold;
   margin-top: 1rem;
   margin-bottom: .3rem;
@@ -464,10 +517,6 @@ p.citationter {
 
 .question + .question {
   margin-top: .7rem;
-}
-
-.reponse {
-  color: var(--color-grey-medium);
 }
 
 .code, pre, code {
@@ -498,12 +547,14 @@ table.example + table.example {
   margin-top: 0;
 }
 
-table p {
+table p, table p.texte {
   padding: 0;
+  text-align: left;
 }
 
 td {
   padding: .3rem;
+  vertical-align: top;
 }
 
 .groupe-illustration {
@@ -545,12 +596,16 @@ td {
   color: var(--color-grey-medium);
 }
 
-.footnotecall {
+.footnotecall, .endnotecall {
   font-size: 0.8em;
   vertical-align: super;
   margin-left: .2em;
   color: inherit;
   text-decoration: none;
+}
+
+h1 .footnotecall, h1 .endnotecall, h2 .footnotecall, h2 .endnotecall {
+  font-size: 0.6em;
 }
 
 /* ARTICLE BIBLIOGRAPHY */
@@ -570,7 +625,7 @@ td {
 }
 
 .article__biblio-contents p {
-  text-align: justify;
+  text-align: left;
 }
 
 .article__biblio-contents p:not(:first-child) {
@@ -613,8 +668,129 @@ td {
   margin-top: .5rem;
 }
 
-.FootnoteSymbol {
+.FootnoteSymbol, .EndnoteSymbol {
   margin-right: .5em;
   font-size: .8rem;
   text-decoration: none;
+}
+
+/* COUVERTURE */
+/* ========== */
+
+.cover {
+  width: 210mm;
+  height: 297mm;
+}
+
+.cover img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-height: none !important;
+  break-after: page;
+  margin: 0;
+  padding: 0;
+  object-fit: contain;
+}
+
+/* NUMERO */
+/* ====== */
+
+.cols {
+  display: flex;
+}
+
+.cols .accroche {
+  max-width: 250px;
+  margin: 1rem 1rem 1rem -4rem;
+}
+
+.numero__header {
+  width: 100%;
+  border-bottom: 1px solid var(--color-grey-dark);
+}
+
+.numero__metadata {
+  break-after: page;
+}
+
+.numero .site {
+  border-bottom: 1px solid var(--color-grey-dark);
+}
+
+.numero .site .site__logo {
+  display: none;
+}
+
+.numero .site .col {
+  margin: .5rem 0 1rem;
+}
+
+.publi__descriptionouvrage, .publi__isbn, .publi__urlpublicationediteur, .publi__introduction {
+  margin: .7rem 0;
+}
+
+.publi__urlpublicationediteur a {
+  text-decoration: none;
+  color: inherit;
+}
+
+.publi__urlpublicationediteur a.url-hidden:after {
+  content: none;
+}
+
+/* SOMMAIRE */
+/* ======== */
+
+.toc__contents {
+  list-style: none;
+  padding: 0;
+}
+
+.toc__li {
+  margin: .6rem 0;
+}
+
+.toc__link > span + span {
+  display: block;
+}
+
+.toc__header {
+  margin: 1rem 0;
+}
+
+.toc__publi-title {
+  margin: 1rem 0 0 0;
+}
+
+/* SOUS-PARTIES */
+/* ============ */
+
+.souspartie {
+  break-before: page;
+  margin-top: 8cm;
+}
+
+.souspartie + .souspartie {
+  break-before: auto;
+  margin-top: 1cm !important; /* paged.js workaround */
+}
+
+.souspartie + :not(.souspartie) {
+  break-before: page;
+}
+
+h2.souspartie__title {
+  font-family: var(--font-ui);
+  text-align: center;
+  font-size: 1.6rem;
+  font-weight: normal;
+}
+
+h2.souspartie__title--level1 {
+  font-size: 2.2rem;
+}
+
+h2.souspartie__title--level2 {
+  font-size: 1.9rem;
 }

@@ -1,0 +1,401 @@
+<CONTENT VERSION="1.0" LANG="fr" CHARSET="utf-8"/>
+
+/**
+ * Macro principale des numéros.
+ */
+<DEFMACRO NAME="PDFGEN_NUMERO_MAIN">
+	<LOOP NAME="pdfgen_numero_main" TABLE="publications" WHERE="status >= -8 AND id=[#DOCUMENT]">
+		<MACRO NAME="PDFGEN_NUMERO_INIT" />
+		<div id="numero-[#ID]" class="document numero root" data-lodel-id="[#ID]">
+			<MACRO NAME="PDFGEN_NUMERO_COVER" />
+			<div class="main numero">
+				<MACRO NAME="PDFGEN_NUMERO_TITRECOURANT" />
+				<div class="cols">
+					<IF COND="![%HAS_COVER]">
+						<MACRO NAME="PDFGEN_IMAGEACCROCHE" />
+					</IF>
+					<MACRO NAME="PDFGEN_NUMERO_HEADER" />
+				</div>
+				<MACRO NAME="PDFGEN_NUMERO_METADATA" />
+				<MACRO NAME="PDFGEN_NUMERO_INTRODUCTION" />
+				<MACRO NAME="PDFGEN_NUMERO_NDLR" />
+				<MACRO NAME="PDFGEN_NUMERO_HISTORIQUE" />
+				<MACRO NAME="PDFGEN_NUMERO_SOMMAIRE" />
+				<MACRO NAME="PDFGEN_NUMERO_ARTICLES"/>
+			</div>
+		</div>
+	</LOOP>
+</DEFMACRO>
+
+/**
+ * Initialisation de la page numéro.
+ */
+<DEFMACRO NAME="PDFGEN_NUMERO_INIT">
+	<IF COND="![#LANG]">
+		<LET VAR="LANG">[#SITELANG]</LET>
+	</IF>
+
+	<!--[ Variable utilisée par les articles pour déterminer si c'est un PDF de numéro complet ]-->
+	<LET VAR="is_numero" GLOBAL="1">1</LET>
+
+	<!--[ Le numéro a-t-il une couverture1 ? On complète cette variable dans PDFGEN_NUMERO_COVER ]-->
+	<LET VAR="has_cover" GLOBAL="1"></LET>
+	
+	<!--[ Liste des ID des traductions de textes qui se trouvent dans la même rubrique que l'origial. Permet également de conditionner les boucles relatives aux traductions. ]-->
+	<LOOP NAME="base_init_get_original_with_translation"
+		SELECT="relations.id1, entities.idparent"
+		TABLE="relations, entities"
+		WHERE="status >= -8 AND relations.nature = 'traduction' AND entities.id = relations.id2">
+
+		<LOOP NAME="base_init_get_id_translation_same_parent"
+			SELECT="entities.id"
+			TABLE="entities"
+			WHERE="status >= -8 AND idparent = '[#IDPARENT]' AND id = '[#ID1]'">
+			<LET ARRAY="relations_traduction_parent_unique[]" GLOBAL="1">[#ID]</LET>
+		</LOOP>
+	</LOOP>
+
+	<!--[ Usage dans une LOOP : WHERE="id [#NOT_IN_TRADUCTIONS_PARENT_UNIQUE]" ]-->
+	<LET VAR="not_in_traductions_parent_unique"><IF COND="![%RELATIONS_TRADUCTION_PARENT_UNIQUE]">IS NOT NULL<ELSE/>NOT IN ([%RELATIONS_TRADUCTION_PARENT_UNIQUE|implode(',')])</IF></LET>
+</DEFMACRO>
+
+/**
+ * Titre courant du numéro.
+ */
+<DEFMACRO NAME="PDFGEN_NUMERO_TITRECOURANT">
+	<p class="titrecourant hidden">[#OPTIONS.METADONNEESSITE.TITRESITE], [#NUMERO]<FUNC NAME="PDFGEN_PERIODE_PUBLI" PREPEND="&nbsp;|&nbsp;" /></p>
+</DEFMACRO>
+
+/**
+ * Couverture du numéro.
+ */
+<DEFMACRO NAME="PDFGEN_NUMERO_COVER">
+	<LOOP NAME="pdfgen_numero_cover" 
+		TABLE="fichiers" 
+		WHERE="status >= -8 AND type = 'couverture1' AND idparent = [#ID]" 
+		ORDER="rank" 
+		LIMIT="0,1">
+
+		<IF COND="[#VIGNETTE]">
+			<LET VAR="cover">[#VIGNETTE|vignette(1000)]</LET>
+		<ELSE/>
+			<LET VAR="cover">[#DOCUMENT|vignette(1000)]</LET>
+		</IF>
+		<div class="cover">
+			<img alt="[#TITRE|textebrut]" src="[#COVER|trim]" />
+		</div>
+
+		<LET VAR="has_cover" GLOBAL="1">1</LET>
+	</LOOP>
+</DEFMACRO>
+
+/**
+ * Header du document.
+ */
+<DEFMACRO NAME="PDFGEN_NUMERO_HEADER">
+	<header class="numero__header">
+		<MACRO NAME="PDFGEN_TOP">
+
+		<!--[ Titre ]-->
+		<h1 class="main-title publi__title"><FUNC NAME="PDFGEN_ISSUE" ID_NUMERO="[#DOCUMENT]" /></h1>
+
+		<!--[ Sous-titre ]-->
+		<IF COND="[#SOUSTITRE]">
+			<div class="main-subtitle publi__subtitle">[#SOUSTITRE]</div>
+		</IF>
+
+		<!--[ Altertitles ]-->
+		<!--[ Titres alternatifs ]-->
+		<IF COND="[#ALTERTITRE]">
+			<div class="main-altertitle publi__altertitle">
+				<LET VAR="value">[#ALTERTITRE]</LET>
+				<LOOP NAME="mltext">
+					<p xml:lang="[#LANG]" lang="[#LANG]">[#VALUE|removenotes]</p>
+				</LOOP>
+			</div>
+		</IF>
+
+		<!--[ Directeurs de la publication ]-->
+		<FUNC NAME="PDFGEN_LISTER_PERSONNES" TYPE="directeurdelapublication" WRAP_CLASS="publi__director" PREPEND="[@PDFGEN.DIRECTEUR_PUBLICATION] " />
+	</header>
+</DEFMACRO>
+
+/**
+ * Métadonnées du numéro.
+ */
+<DEFMACRO NAME="PDFGEN_NUMERO_METADATA">
+	<div class="numero__metadata">
+		<!--[ URL ]-->
+		<p class="url"><a href="[#SITEINFOS.URL]/[#ID|makeurlwithid]">[#SITEINFOS.URL]/[#ID|makeurlwithid]</a></p>
+	
+		<!--[ Référence électronique ]-->
+		<h2 class="section-header--small">[@PDFGEN.REFERENCE_ELECTRONIQUE]</h2>
+		<p class="article__reference">
+			<MACRO NAME="PDFGEN_REFERENCE_ELECTRONIQUE" />
+		</p>
+	
+		<!--[ Droits d'auteur ]-->
+		<IF COND="[#OPTIONS.METADONNEESSITE.DROITSAUTEUR]">
+			<h2 class="section-header--small">[@PDFGEN.LICENCE]</h2>
+			<p class="article__licence">[#OPTIONS.METADONNEESSITE.DROITSAUTEUR]</p>
+		</IF>
+		
+		<!--[ Description physique de l'ouvrage ]-->
+		<IF COND="[#DESCRIPTIONOUVRAGE]">
+			<p class="publi__descriptionouvrage">[#DESCRIPTIONOUVRAGE]</p>
+		</IF>
+	
+		<!--[ ISBN ]-->
+		<IF COND="[#ISBN]">
+			<p class="publi__isbn"><strong>[@PDFGEN.ISBN]&nbsp;:</strong> [#ISBN]</p>
+		</IF>
+
+		<!--[ DOI ]-->
+		<MACRO NAME="PDFGEN_DOI" />
+	
+		<!--[ Lien pour commander le numéro ]-->
+		<IF COND="[#URLPUBLICATIONEDITEUR]">
+			<p class="publi__urlpublicationediteur">
+				<a rel="external" class="publi__order-button button external" href="[#URLPUBLICATIONEDITEUR|htmlspecialchars(ENT_COMPAT, 'UTF-8')]">
+					<strong>[@PDFGEN.COMMANDER_NUMERO]&nbsp;</strong>: [#URLPUBLICATIONEDITEUR|htmlspecialchars(ENT_COMPAT, 'UTF-8')]
+				</a>
+			</p>
+		</IF>
+
+		<!--[ Logo plateforme ]-->
+		<MACRO NAME="PDFGEN_PLATEFORME" />
+	</div>
+</DEFMACRO>
+
+/**
+ * Introduction du numéro.
+ */
+<DEFMACRO NAME="PDFGEN_NUMERO_INTRODUCTION">
+		<IF COND="[#INTRODUCTION]">
+			<section class="publi__introduction">
+				<h2 class="section-header">[@PDFGEN.INTRODUCTION]</h2>
+				<IF COND="[#INTRODUCTION:#LANG]">
+					[#INTRODUCTION:#LANG]
+				<ELSEIF COND="[#INTRODUCTION:#LANGUE]"/>
+					[#INTRODUCTION:#LANGUE]
+				<ELSE/>
+					[#INTRODUCTION]
+				</IF>
+			</section>
+		</IF>
+</DEFMACRO>
+	
+/**
+ * NDLR du numéro.
+ */
+<DEFMACRO NAME="PDFGEN_NUMERO_NDLR">
+		<IF COND="[#NDLR]">
+			<section class="publi__ndlr">
+				<h2 class="section-header">[@PDFGEN.NDLR]</h2>
+				[#NDLR]
+			</section>
+		</IF>
+</DEFMACRO>
+
+/**
+ * Historique du numéro.
+ */
+<DEFMACRO NAME="PDFGEN_NUMERO_HISTORIQUE">
+		<IF COND="[#HISTORIQUE]">
+			<section class="publi__historique">
+				<h2 class="section-header">[@PDFGEN.HISTORIQUE]</h2>
+				[#HISTORIQUE]
+			</section>
+		</IF>
+</DEFMACRO>
+
+/**
+ * Sommaire du numéro.
+ */
+<DEFMACRO NAME="PDFGEN_NUMERO_SOMMAIRE">
+	<LET VAR="id_publi">[#DOCUMENT]</LET>
+	<LET VAR="profondeur">0</LET>
+
+	<section class="sommaire">
+		<LOOP NAME="pdfgen_numero_sommaire"
+			TABLE="entities, types"
+			SELECT="id, class, type"
+			WHERE="status >= -8 AND idparent = '[#ID]' AND id [#NOT_IN_TRADUCTIONS_PARENT_UNIQUE] AND type NOT IN ('fluxdesyndication','imageaccroche','rubriqueannuelle', 'imageaccrochelibrairie') AND type NOT LIKE '%annexe%' AND entities.idtype = types.id"
+			ORDER="entities.rank">
+			<BEFORE>
+				<IF COND="[#PROFONDEUR] EQ 0">
+					<h2 class="section-header">[@PDFGEN.SOMMAIRE]</h2>
+				</IF>
+				<ul class="toc__contents toc__contents--sommaire">
+			</BEFORE>
+			<DO>
+				<LOOP NAME="pdfgen_numero_sommaire_item" TABLE="#_TP_[#CLASS]" WHERE="identity = '[#ID]'">
+					<LET VAR="publi_dir"><FUNC NAME="PDFGEN_GET_LANG_DIR" LANG="[#LANGUE]"/></LET>
+					<li class="toc__li toc__li--class-[#CLASS]" lang="[#LANGUE]" dir="[#PUBLI_DIR]">
+						<SWITCH TEST="[#CLASS]">
+							<!--[ Publications ]-->
+							<DO CASE="publications">
+								<MACRO NAME="PDFGEN_NUMERO_LI_PUBLICATIONS"/>
+							</DO>
+							<!--[ Textes ]-->
+							<DO CASE="textes">
+								<FUNC NAME="PDFGEN_NUMERO_LI_TEXTE" />
+							</DO>
+						</SWITCH>
+					</li>
+				</LOOP>
+			</DO>
+			<AFTER>
+				</ul>
+			</AFTER>
+		</LOOP>
+	</section>
+</DEFMACRO>
+
+/**
+ * Afficher une publication dans le sommaire (rubrique, sous-partie).
+ */
+<DEFMACRO NAME="PDFGEN_NUMERO_LI_PUBLICATIONS">
+	<IF COND="[#TYPE] EQ 'rubrique' OR [#TYPE] EQ 'souspartie'">
+		<div class="toc__header">
+			<!--[ Titre ]-->
+			<LET VAR="hlevel">[#PROFONDEUR|lmath('+', 3)]</LET>
+			<IF COND="[#HLEVEL] GT 6">
+				<LET VAR="hlevel">6</LET>
+			</IF>
+			<h[#HLEVEL] class="toc__publi-title">
+				<IF COND="[#TITREALTER] AND [#ALTERTITRE:#LANG]">
+					[#ALTERTITRE:#LANG|removenotes]
+				<ELSE/>
+					[#TITRE|removenotes]
+				</IF>
+			</h[#HLEVEL]>
+			<!--[ Sous-titre ]-->
+			<IF COND="[#SOUSTITRE]">
+				<div class="toc__publi-subtitle">
+					[#SOUSTITRE]
+				</div>
+			</IF>
+			<!--[ Directeur de la publication ]-->
+			<FUNC NAME="PDFGEN_LISTER_PERSONNES" TYPE="directeurdelapublication" WRAP_CLASS="toc__director" PREPEND="[@PDFGEN.DIRECTEUR_PUBLICATION] " />
+		</div>
+		<!--[ Sommaire ]-->
+		<LET VAR="id_publi">[#ID]</LET>
+		<LET VAR="profondeur">[#PROFONDEUR|lmath('+', 1)]</LET>
+		<LOOP NAME="pdfgen_numero_sommaire"></LOOP>
+	</IF>
+</DEFMACRO>
+
+/**
+ * Afficher un élément de sommaire.
+ * @param {boolean} [afficher_datepubli] - Afficher la date de publication électronique du document (utilisé dans les rubriques).
+ */
+<DEFFUNC NAME="PDFGEN_NUMERO_LI_TEXTE" OPTIONAL="afficher_datepubli">
+	<FUNC NAME="PDFGEN_LISTER_PERSONNES" TYPE="auteur" WRAP_CLASS="toc__author" />
+	<!--[ Variable qui permet de connaitre les langues des traductions pour afficher les titres des autres langues à la fin ]-->
+	<LET ARRAY="langues_traductions_article" GLOBAL="1"></LET>
+	<LET ARRAY="langues_traductions_article[]" GLOBAL="1">[#LANGUE]</LET>
+	<!--[ Memoriser l'altertitre de la source ]-->
+	<LET VAR="altertitre_source" GLOBAL="1">[#ALTERTITRE]</LET>
+
+	<LOOP NAME="pdfgen_numero_li_texte"
+		TABLE="textes, relations"
+		SELECT="id, titre, soustitre, altertitre, LEFT(texte,1) AS texte, LEFT(alterfichier,1) AS alterfichier, documentcliquable, datepubli, langue, type, nature, numerodocument"
+		WHERE="status >= -8 AND id2 = '[#ID]' AND nature = 'traduction' AND id1 = textes.identity"
+		ORDER="rank">
+
+		<BEFORE>
+			<FUNC NAME="PDFGEN_NUMERO_LI_DOCUMENT" AFFICHER_DATEPUBLI="[#AFFICHER_DATEPUBLI]"/>
+		</BEFORE>
+
+		<DO>
+			<FUNC NAME="PDFGEN_NUMERO_LI_DOCUMENT" AFFICHER_DATEPUBLI="[#AFFICHER_DATEPUBLI]" CLASSNAME="translation" />
+			<LET ARRAY="langues_traductions_article[]" GLOBAL="1">[#LANGUE]</LET>
+		</DO>
+
+		<DOLAST>
+			<FUNC NAME="PDFGEN_NUMERO_LI_DOCUMENT" AFFICHER_DATEPUBLI="[#AFFICHER_DATEPUBLI]" CLASSNAME="translation" />
+			<LET ARRAY="langues_traductions_article[]" GLOBAL="1">[#LANGUE]</LET>
+		</DOLAST>
+
+		<ALTERNATIVE>
+			<FUNC NAME="PDFGEN_NUMERO_LI_DOCUMENT" AFFICHER_TITRES_TRADUITS="1" AFFICHER_DATEPUBLI="[#AFFICHER_DATEPUBLI]" />
+		</ALTERNATIVE>
+	</LOOP>
+</DEFFUNC>
+
+/**
+ * Affiche le titre, le sous-titre d'un document avec la mention "texte intégral", et le numéro du doc.
+ * @param {boolean} [afficher_soustitre] - Affichage du sous-titre.
+ * @param {boolean} [afficher_titres_traduits] - Affichage des titres traduits.
+ * @param {boolean} [afficher_datepubli] - Affichage de la date de publication.
+ * @param {string} [classname] - Attribut class optionnel de l'élément.
+ */
+<DEFFUNC NAME="PDFGEN_NUMERO_LI_DOCUMENT" OPTIONAL="afficher_soustitre, afficher_titres_traduits, afficher_datepubli">
+	<IF COND="[%IS_NUMERO]">
+		<a class="toc__link [#CLASSNAME]" href="#article-[#ID]">
+	<ELSE/>
+		<span class="toc__link [#CLASSNAME]">
+	</IF>
+	<!--[ Titre ]-->
+	<IF COND="[#LANGUE]">
+		<LET VAR="lang_attr">xml:lang="[#LANGUE]" lang="[#LANGUE]"</LET>
+	</IF>
+	<span class="toc__title" [#LANG_ATTR]>[#TITRE|removenotes]</span>
+
+	<!--[ Sous-titre ]-->
+	<IF COND="[#AFFICHER_SOUSTITRE] AND [#SOUSTITRE]">
+		<span class="toc__subtitle">[#SOUSTITRE|removenotes]</span>
+	</IF>
+
+	<!--[ Date de publication si publié dans une rubrique électronique ]-->
+	<IF COND="[#AFFICHER_DATEPUBLI]">
+		<span class="toc__datepubli">[#DATEPUBLI|humandate]</span>
+	</IF>
+	<IF COND="[%IS_NUMERO]">
+		</a>
+	<ELSE/>
+		</span>
+	</IF>
+</DEFFUNC>
+
+/**
+ * Articles du numéro.
+ */
+<DEFMACRO NAME="PDFGEN_NUMERO_ARTICLES">
+	<LET VAR="id_publi">[#DOCUMENT]</LET>
+	<LET VAR="profondeur">0</LET>
+
+	<LOOP NAME="pdfgen_numero_articles"
+		TABLE="entities, types"
+		SELECT="id, class, type"
+		WHERE="status >= -8 AND idparent = '[#ID]' AND id [#NOT_IN_TRADUCTIONS_PARENT_UNIQUE] AND type NOT IN ('fluxdesyndication','imageaccroche','rubriqueannuelle', 'imageaccrochelibrairie') AND type NOT LIKE '%annexe%' AND entities.idtype = types.id"
+		ORDER="entities.rank">
+		<LOOP NAME="pdfgen_numero_articles_item" TABLE="#_TP_[#CLASS]" WHERE="identity = '[#ID]'">
+			<SWITCH TEST="[#CLASS]">
+				<!--[ Publications ]-->
+				<DO CASE="publications">
+					<LET VAR="profondeur">[#PROFONDEUR|lmath('+', 1)]</LET>
+					<MACRO NAME="PDFGEN_NUMERO_SOUSPARTIE"/>
+					<LOOP NAME="pdfgen_numero_articles"></LOOP>
+				</DO>
+				<!--[ Textes ]-->
+				<DO CASE="textes">
+					<LET VAR="document">[#ID]</LET>
+					<MACRO NAME="PDFGEN_ARTICLE_MAIN"/>
+				</DO>
+			</SWITCH>
+		</LOOP>
+	</LOOP>
+</DEFMACRO>
+
+/**
+ * Affichage d'une page de sous-partie.
+ */
+<DEFMACRO NAME="PDFGEN_NUMERO_SOUSPARTIE">
+	<LOOP NAME="pdfgen_numero_souspartie" TABLE="publications" WHERE="status >= -8 AND id = '[#ID]'" SELECT="titre">
+		<div class="souspartie">
+			<h2 class="souspartie__title souspartie__title--level[#PROFONDEUR]">[#TITRE]</h2>
+		</div>
+	</LOOP>
+</DEFMACRO>

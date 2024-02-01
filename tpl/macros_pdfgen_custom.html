@@ -1,0 +1,33 @@
+<CONTENT VERSION="1.0" LANG="fr" CHARSET="utf-8"/>
+
+/**
+ * ==========
+ * Personnalisations communes à l'ensemble des sites de l'instance.
+ * ==========
+ */
+
+/**
+ * Options.
+ */
+<DEFMACRO NAME="PDFGEN_CUSTOM_INIT">
+	<!--[ Afficher le sommaire du numéro parent au début de chaque article ]-->
+	<LET VAR="article_display_parent_sommaire" GLOBAL="1"></LET>
+
+	<!--[ Position des résumés et mots-clés dans les articles : "top" ou "bottom" ]-->
+	<LET VAR="abstract_position" GLOBAL="1">bottom</LET>
+
+	<!--[ Types sur lesquels on affiche un DOI, séparés par une virgule ]-->
+	<LET VAR="show_doi_for_types" GLOBAL="1"><IF COND="[#OPTIONS.EXTRA.DOI_TYPES]">[#OPTIONS.EXTRA.DOI_TYPES]<ELSE/>article</IF></LET>
+</DEFMACRO>
+
+ /**
+ * Hook pour l'insertion de CSS dans le head.
+ */
+<DEFMACRO NAME="PDFGEN_CUSTOM_CSS">
+</DEFMACRO>
+
+/**
+ * Hook pour l'insertion de JS dans le head.
+ */
+<DEFMACRO NAME="PDFGEN_CUSTOM_JS">
+</DEFMACRO>
