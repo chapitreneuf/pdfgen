@@ -42,9 +42,11 @@ Enfin sur chaque site où vous souhaitez utiliser le générateur activez le plu
 http://login:password@domaine:port
 ```
 
-### Ajouter un logo en haut de page
+### Ajouter des logos
 
 Pour ajouter le logo du site en haut de la page des PDF, insérez une image `pdf_logo.png` dans le dossier `tpl/` du site.
+
+Pour afficher le logo de la plateforme sur les PDF, insérez une image `/plugins/custom/pdfgen/public/plateforme.png`.
 
 ## URLS
 
@@ -74,7 +76,17 @@ Quand le plugin est actif et configuré, on peut récupérer le lien vers le PDF
 </IF>
 ```
 
+## PDF des numéros et des documents non publiés (prévisualisation)
+
+Depuis PDFgen 1.3, le plugin supporte la génération des PDF des numéros complets et la prévisualisation des PDF des documents non publiés. Il est nécessaire d'utiliser la Nova 2.4 ou supérieure pour que ces fonctionnalités soient utilisables.
+
+Pour afficher le DOI des numéros sur les PDF, la dernière version de [lodel-options-extra](https://github.com/chapitreneuf/lodel-options-extra) doit être utilisée (option "Types présentant des DOI").
+
+Dans le cas où la génération de numéros longs entraînerait des problèmes (messages d'erreur, PDF vides), il est possible d'augmenter la valeur de la variable `$waitTimeout` dans pdfgen.php.
+
 ## Personnalisation
+
+### Personnalisation au niveau du site
 
 Il est possible de personnaliser les templates du PDF en redéclarant les macros de macros_pdfgen.html dans tpl/macros_custom.html.
 
@@ -100,6 +112,10 @@ Exemple pour remplacer la numérotation des paragraphes par un numéro de page :
 	</style>
 </DEFMACRO>
 ```
+
+### Personnalisation globale
+
+Depuis PDFgen 1.3, il est possible de modifier le fichier macros_pdfgen_custom.html pour introduire des modifications et définir des paramètres qui s'appliqueront à l'ensemble des sites de l'instance Lodel.
 
 ## Crédits et financement
 
