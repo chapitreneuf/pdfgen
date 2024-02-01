@@ -12,7 +12,7 @@ use TheCodingMachine\Gotenberg\RequestException;
 use GuzzleHttp\Psr7\LazyOpenStream;
 
 // Configuration de Gotenberg
-$waitDelay = 10;
+$waitDelay = 5;
 $waitTimeout = 30;
 
 class pdfgen extends Plugins {
