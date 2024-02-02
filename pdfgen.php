@@ -11,10 +11,6 @@ use TheCodingMachine\Gotenberg\Request;
 use TheCodingMachine\Gotenberg\RequestException;
 use GuzzleHttp\Psr7\LazyOpenStream;
 
-// Configuration de Gotenberg
-$waitDelay = 5;
-$waitTimeout = 30;
-
 class pdfgen extends Plugins {
 	public function enableAction (&$context, &$error) {
 		if(!parent::_checkRights(LEVEL_ADMINLODEL)) { return; }
@@ -40,8 +36,12 @@ class pdfgen extends Plugins {
 	}
 
 	public function getAction (&$context, &$error) {
-                global $db;
+		global $db;
 		setlocale(LC_ALL, 'C');
+
+		// Configuration de Gotenberg
+		$waitDelay = 5;
+		$waitTimeout = 30;
 
 		$site_name = $context['siteinfos']['name'];
 
@@ -72,7 +72,6 @@ class pdfgen extends Plugins {
 			|| sizeof($last_child) > 0 && filemtime( $cache_file ) < strtotime($last_child['upd']);
 
 		if ( $clearcache ) {
-
 			$client = new Client($this->_config['gotenberg_url']['value']);
 			$request = new URLRequest($article_url);
 			$request->setWaitDelay($waitDelay);
@@ -83,7 +82,6 @@ class pdfgen extends Plugins {
 
 			$client->store($request, $cache_file);
 			$client->post($request);
-
 		}
 
 		header('Content-Type: application/pdf');
