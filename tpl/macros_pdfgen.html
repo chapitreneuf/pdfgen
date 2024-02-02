@@ -38,7 +38,7 @@
 	<LOOP NAME="pdfgen_init_type"
 				TABLE="entities, types"
 				SELECT="id, class, type"
-				WHERE="id = '[#DOCUMENT]' AND class IN ('publications', 'textes') AND entities.idtype = types.id">
+				WHERE="status >= -8 AND id = '[#DOCUMENT]' AND class IN ('publications', 'textes') AND entities.idtype = types.id">
 		<DO>
 			<IF COND="[#CLASS] EQ 'textes'">
 				<LET VAR="tpl_type" GLOBAL="1">article</LET>
@@ -95,11 +95,22 @@
  * Styles CSS.
  */
 <DEFMACRO NAME="PDFGEN_HTML_STYLES">
-	<!-- normalize.css -->
+	<!--[ normalize.css ]-->
 	<link rel="stylesheet" href="[#SHAREDIR]/plugins/custom/pdfgen/public/vendor/normalize.css/normalize.css">
 
-	<!-- Styles du PDF -->
+	<!--[ Styles du PDF ]-->
 	<link rel="stylesheet" href="[#SHAREDIR]/plugins/custom/pdfgen/public/css/pdfgen.css">
+
+	<!--[ Add watermark on previewed documents ]-->
+	<LOOP NAME="pdfgen_html_start_status" TABLE="entities" WHERE="id = '[#DOCUMENT]' && status < 0">
+		<style>
+			@page {
+				background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg viewBox='0 0 300 245' fill='none' xmlns='http://www.w3.org/2000/svg'%3e%3ctext x='0' y='150' fill='%23CCCCCC' transform='rotate(-30)' %3e[@PDFGEN.VERSION_PREPARATOIRE|strtoupper]%3c/text%3e%3c/svg%3e");
+				background-position: top center;
+				background-repeat: no-repeat;
+			}
+		</style>
+	</LOOP>
 
 	<!--[ Hook pour l'insertion de CSS ]-->
 	<MACRO NAME="PDFGEN_CUSTOM_CSS"/>
@@ -155,7 +166,7 @@
  * @param {string} [id_numero] - Id du numéro.
  */
 <DEFFUNC NAME="PDFGEN_ISSUE" REQUIRED="id_numero">
-	<LOOP NAME="pdfgen_article_front_parent" TABLE="publications" WHERE="id='[#ID_NUMERO]'" SELECT="numero, titre, periode, datepublipapier, datepubli, creationdate" />
+	<LOOP NAME="pdfgen_article_front_parent" TABLE="publications" WHERE="status >= -8 AND id='[#ID_NUMERO]'" SELECT="numero, titre, periode, datepublipapier, datepubli, creationdate" />
 		<p class="issue">
 			<span class="issue__number">[#NUMERO]</span>
 			<FUNC NAME="PDFGEN_PERIODE_PUBLI" WRAP_CLASS="issue__date" PREPEND="&nbsp;|&nbsp;" />
@@ -184,7 +195,7 @@
 	<IF COND="[#CITATION]"> [[@PDFGEN.EN_LIGNE]]</IF>
 
 	<LOOP NAME="pdfgen_paru_dans" TABLE="relations, publications" SELECT="id,titre,numero,datepublipapier,datepubli,periode"
-		WHERE="id2 = '[#ID]' AND type IN ('numero', 'rubrique') AND nature = 'P' AND id1 = publications.identity"
+		WHERE="status >= -8 AND id2 = '[#ID]' AND type IN ('numero', 'rubrique') AND nature = 'P' AND id1 = publications.identity"
 		ORDER="degree DESC" LIMIT="2">
 
 		<BEFORE>, </BEFORE>
@@ -265,7 +276,7 @@
 		<LET VAR="LIEN_DEBUT"><a href="[#HREF]"></LET>
 		<LET VAR="LIEN_FIN"></a></LET>
 	</IF>
-	<LOOP NAME="pdfgen_lister_personnes" TABLE="relations, persons" SELECT="g_firstname,g_familyname" WHERE="id1 = '[#ID]' AND id2 = persons.id AND nature = 'G' AND type = '[#TYPE]'" ORDER="degree">
+	<LOOP NAME="pdfgen_lister_personnes" TABLE="relations, persons" SELECT="g_firstname,g_familyname" WHERE="status >= -8 AND id1 = '[#ID]' AND id2 = persons.id AND nature = 'G' AND type = '[#TYPE]'" ORDER="degree">
 
 		<BEFORE>
 			<IF COND="[#WRAP_ID] OR [#WRAP_CLASS]">
@@ -307,7 +318,7 @@
 <DEFMACRO NAME="PDFGEN_IMAGEACCROCHE">
 	<LOOP NAME="pdfgen_imageaccroche" 
 		TABLE="fichiers" 
-		WHERE="type = 'imageaccroche' AND idparent = [#ID]" 
+		WHERE="status >= -8 AND type = 'imageaccroche' AND idparent = [#ID]" 
 		ORDER="rank" 
 		LIMIT="0,1">
 
@@ -325,6 +336,25 @@
 			</IF>
 		</div>
 	</LOOP>
+</DEFMACRO>
+
+/**
+ * Affichage du DOI.
+ */
+<DEFMACRO NAME="PDFGEN_DOI">
+	<!--[ Prefixe DOI ]-->
+	<!--[ Par défaut on utilise le champ des options [#OPTIONS.EXTRA.DOI_PREFIXE] ]-->
+	<IF COND="[#OPTIONS.EXTRA.DOI_PREFIXE]">
+		<LET VAR="prefixedoi" GLOBAL="1">[#OPTIONS.EXTRA.DOI_PREFIXE]</LET>
+	<ELSE/> <!--[ Retrocompatibilité Nova 1.2 ]-->
+		<LET VAR="prefixedoi" GLOBAL="1">[#OPTIONS.NOVA.PREFIXEDOI]</LET>
+	</IF>
+	<IF COND="[%SHOW_DOI_FOR_TYPES] LIKE /([^,]+)/">
+		<LET VAR="showthistype"><LOOP NAME="foreach" ARRAY="[#MATCHES.1]"><IF COND="[#TYPE] EQ [#VALUE|trim]">1</IF></LOOP></LET>
+	</IF>
+	<IF COND="[%PREFIXEDOI] AND [#SHOWTHISTYPE]">
+		<p class="doi"><strong>DOI&nbsp;:</strong> [%PREFIXEDOI][#ID]</p>
+	</IF>
 </DEFMACRO>
 
 /**

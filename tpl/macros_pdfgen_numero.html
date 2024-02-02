@@ -4,7 +4,7 @@
  * Macro principale des numéros.
  */
 <DEFMACRO NAME="PDFGEN_NUMERO_MAIN">
-	<LOOP NAME="pdfgen_numero_main" TABLE="publications" WHERE="id=[#DOCUMENT]">
+	<LOOP NAME="pdfgen_numero_main" TABLE="publications" WHERE="status >= -8 AND id=[#DOCUMENT]">
 		<MACRO NAME="PDFGEN_NUMERO_INIT" />
 		<div id="numero-[#ID]" class="document numero root" data-lodel-id="[#ID]">
 			<MACRO NAME="PDFGEN_NUMERO_COVER" />
@@ -40,25 +40,17 @@
 
 	<!--[ Le numéro a-t-il une couverture1 ? On complète cette variable dans PDFGEN_NUMERO_COVER ]-->
 	<LET VAR="has_cover" GLOBAL="1"></LET>
-
-	<!--[ Prefixe DOI ]-->
-	<!--[ Par défaut on utilise le champ des options [#OPTIONS.EXTRA.DOI_PREFIXE] ]-->
-	<IF COND="[#OPTIONS.EXTRA.DOI_PREFIXE]">
-		<LET VAR="prefixedoi" GLOBAL="1">[#OPTIONS.EXTRA.DOI_PREFIXE]</LET>
-	<ELSE/> <!--[ Retrocompatibilité Nova 1.2 ]-->
-		<LET VAR="prefixedoi" GLOBAL="1">[#OPTIONS.NOVA.PREFIXEDOI]</LET>
-	</IF>
 	
 	<!--[ Liste des ID des traductions de textes qui se trouvent dans la même rubrique que l'origial. Permet également de conditionner les boucles relatives aux traductions. ]-->
 	<LOOP NAME="base_init_get_original_with_translation"
 		SELECT="relations.id1, entities.idparent"
 		TABLE="relations, entities"
-		WHERE="relations.nature = 'traduction' AND entities.id = relations.id2">
+		WHERE="status >= -8 AND relations.nature = 'traduction' AND entities.id = relations.id2">
 
 		<LOOP NAME="base_init_get_id_translation_same_parent"
 			SELECT="entities.id"
 			TABLE="entities"
-			WHERE="idparent = '[#IDPARENT]' AND id = '[#ID1]'">
+			WHERE="status >= -8 AND idparent = '[#IDPARENT]' AND id = '[#ID1]'">
 			<LET ARRAY="relations_traduction_parent_unique[]" GLOBAL="1">[#ID]</LET>
 		</LOOP>
 	</LOOP>
@@ -80,7 +72,7 @@
 <DEFMACRO NAME="PDFGEN_NUMERO_COVER">
 	<LOOP NAME="pdfgen_numero_cover" 
 		TABLE="fichiers" 
-		WHERE="type = 'couverture1' AND idparent = [#ID]" 
+		WHERE="status >= -8 AND type = 'couverture1' AND idparent = [#ID]" 
 		ORDER="rank" 
 		LIMIT="0,1">
 
@@ -159,9 +151,7 @@
 		</IF>
 
 		<!--[ DOI ]-->
-		<IF COND="[%PREFIXEDOI]">
-			<p class="doi"><strong>DOI&nbsp;:</strong> [%PREFIXEDOI][#ID]</p>
-		</IF>
+		<MACRO NAME="PDFGEN_DOI" />
 	
 		<!--[ Lien pour commander le numéro ]-->
 		<IF COND="[#URLPUBLICATIONEDITEUR]">
@@ -230,7 +220,7 @@
 		<LOOP NAME="pdfgen_numero_sommaire"
 			TABLE="entities, types"
 			SELECT="id, class, type"
-			WHERE="idparent = '[#ID]' AND id [#NOT_IN_TRADUCTIONS_PARENT_UNIQUE] AND type NOT IN ('fluxdesyndication','imageaccroche','rubriqueannuelle', 'imageaccrochelibrairie') AND type NOT LIKE '%annexe%' AND entities.idtype = types.id"
+			WHERE="status >= -8 AND idparent = '[#ID]' AND id [#NOT_IN_TRADUCTIONS_PARENT_UNIQUE] AND type NOT IN ('fluxdesyndication','imageaccroche','rubriqueannuelle', 'imageaccrochelibrairie') AND type NOT LIKE '%annexe%' AND entities.idtype = types.id"
 			ORDER="entities.rank">
 			<BEFORE>
 				<IF COND="[#PROFONDEUR] EQ 0">
@@ -311,7 +301,7 @@
 	<LOOP NAME="pdfgen_numero_li_texte"
 		TABLE="textes, relations"
 		SELECT="id, titre, soustitre, altertitre, LEFT(texte,1) AS texte, LEFT(alterfichier,1) AS alterfichier, documentcliquable, datepubli, langue, type, nature, numerodocument"
-		WHERE="id2 = '[#ID]' AND nature = 'traduction' AND id1 = textes.identity"
+		WHERE="status >= -8 AND id2 = '[#ID]' AND nature = 'traduction' AND id1 = textes.identity"
 		ORDER="rank">
 
 		<BEFORE>
@@ -379,7 +369,7 @@
 	<LOOP NAME="pdfgen_numero_articles"
 		TABLE="entities, types"
 		SELECT="id, class, type"
-		WHERE="idparent = '[#ID]' AND id [#NOT_IN_TRADUCTIONS_PARENT_UNIQUE] AND type NOT IN ('fluxdesyndication','imageaccroche','rubriqueannuelle', 'imageaccrochelibrairie') AND type NOT LIKE '%annexe%' AND entities.idtype = types.id"
+		WHERE="status >= -8 AND idparent = '[#ID]' AND id [#NOT_IN_TRADUCTIONS_PARENT_UNIQUE] AND type NOT IN ('fluxdesyndication','imageaccroche','rubriqueannuelle', 'imageaccrochelibrairie') AND type NOT LIKE '%annexe%' AND entities.idtype = types.id"
 		ORDER="entities.rank">
 		<LOOP NAME="pdfgen_numero_articles_item" TABLE="#_TP_[#CLASS]" WHERE="identity = '[#ID]'">
 			<SWITCH TEST="[#CLASS]">
@@ -403,7 +393,7 @@
  * Affichage d'une page de sous-partie.
  */
 <DEFMACRO NAME="PDFGEN_NUMERO_SOUSPARTIE">
-	<LOOP NAME="pdfgen_numero_souspartie" TABLE="publications" WHERE="id = '[#ID]'" SELECT="titre">
+	<LOOP NAME="pdfgen_numero_souspartie" TABLE="publications" WHERE="status >= -8 AND id = '[#ID]'" SELECT="titre">
 		<div class="souspartie">
 			<h2 class="souspartie__title souspartie__title--level[#PROFONDEUR]">[#TITRE]</h2>
 		</div>

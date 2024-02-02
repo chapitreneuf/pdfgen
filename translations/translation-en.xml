@@ -45,6 +45,7 @@
 <contents name="traducteur" textgroup="pdfgen" status="2">Translator</contents>
 <contents name="traducteurs" textgroup="pdfgen" status="2">Translators</contents>
 <contents name="traduction_de" textgroup="pdfgen" status="2">Translated by</contents>
+<contents name="version_preparatoire" textgroup="pdfgen" status="2">Preparatory version</contents>
 </texts>
 </row>
 </translations>
