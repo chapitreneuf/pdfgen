@@ -7,7 +7,7 @@
  */
 <DEFMACRO NAME="PDFGEN_MAIN">
 	<MACRO NAME="PDFGEN_HTML_START"/>
-	
+
 	<!--[ Recherche du type du document ]-->
 	<MACRO NAME="PDFGEN_INIT_TYPE" />
 
@@ -105,7 +105,7 @@
 	<LOOP NAME="pdfgen_html_start_status" TABLE="entities" WHERE="id = '[#DOCUMENT]' && status < 0">
 		<style>
 			@page {
-				background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg viewBox='0 0 300 245' fill='none' xmlns='http://www.w3.org/2000/svg'%3e%3ctext x='0' y='150' fill='%23CCCCCC' transform='rotate(-30)' %3e[@PDFGEN.VERSION_PREPARATOIRE|strtoupper]%3c/text%3e%3c/svg%3e");
+				background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg viewBox='0 0 300 245' fill='none' xmlns='http://www.w3.org/2000/svg'%3e%3ctext x='0' y='150' fill='%23CCCCCC' transform='rotate(-30)' %3e[@PDFGEN.VERSION_PREPARATOIRE]%3c/text%3e%3c/svg%3e");
 				background-position: top center;
 				background-repeat: no-repeat;
 			}
@@ -143,12 +143,12 @@
 		<div class="col">
 			<!--[ Titre de la revue ]-->
 			<p class="site__title">[#OPTIONS.METADONNEESSITE.TITRESITE]</p>
-			
+
 			<!--[ ISSN ]-->
 			<IF COND="[#OPTIONS.METADONNEESSITE.ISSN_ELECTRONIQUE]">
 				<p class="site__issn">ISSN&nbsp;: [#OPTIONS.METADONNEESSITE.ISSN_ELECTRONIQUE]</p>
 			</IF>
-			
+
 			<!--[ Editeur ]-->
 			<IF COND="[#OPTIONS.METADONNEESSITE.EDITEUR]">
 				<p class="site__publisher">[@PDFGEN.PUBLISHER]&nbsp;: [#OPTIONS.METADONNEESSITE.EDITEUR]</p>
@@ -229,7 +229,7 @@
 		<IF COND="[#ALTERTITLE:#SITELANG]">[#ALTERTITLE:#SITELANG]<ELSE/>[#TITLE]</IF>
 	<ELSE />
 		<IF COND="[#ALTERTITRE:#SITELANG]">[#ALTERTITRE:#SITELANG]<ELSE/>[#TITRE]</IF>
-	</IF>	
+	</IF>
 </DEFFUNC>
 
 /**
@@ -316,10 +316,10 @@
  * Image d'accroche du document.
  */
 <DEFMACRO NAME="PDFGEN_IMAGEACCROCHE">
-	<LOOP NAME="pdfgen_imageaccroche" 
-		TABLE="fichiers" 
-		WHERE="status >= -8 AND type = 'imageaccroche' AND idparent = [#ID]" 
-		ORDER="rank" 
+	<LOOP NAME="pdfgen_imageaccroche"
+		TABLE="fichiers"
+		WHERE="status >= -8 AND type = 'imageaccroche' AND idparent = [#ID]"
+		ORDER="rank"
 		LIMIT="0,1">
 
 		<IF COND="[#VIGNETTE]">
