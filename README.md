@@ -61,6 +61,8 @@ Le PDF généré est mis en cache par le générateur et automatiquement recalcu
 
 `/?do=_pdfgen_get&document=[#ID]&lang=[#LANG]&clearcache=1`
 
+Il est aussi possible de supprimer le contenu du répertoire "CACHE" de la revue.
+
 ## Utilisation dans les templates
 
 Quand le plugin est actif et configuré, on peut récupérer le lien vers le PDF automatique dans les templates avec la variable LodelScript `[#PDFGEN_URL]`.
@@ -123,7 +125,7 @@ Dans le cas d'une mise à niveau, il est nécessaire de réinstaller les variabl
 
 ## Crédits et financement
 
-Ce projet a été développé par le [collectif Chapitre neuf](https://chapitre9.org) pour les Bibliothèques universitaires de l'Université Jean Moulin Lyon 3. Il a été financé par l'Université Jean Moulin Lyon 3. 
+Ce projet a été développé par le [collectif Chapitre neuf](https://chapitre9.org) pour les Bibliothèques universitaires de l'Université Jean Moulin Lyon 3. Il a été financé par l'Université Jean Moulin Lyon 3.
 
 Chapitre neuf a accepté de publier son code source sous licence libre GPL3 sans contrepartie, affirmant ainsi son engagement en faveur du logiciel libre.
 
