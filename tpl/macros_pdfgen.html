@@ -16,7 +16,12 @@
 
 	<SWITCH TEST="[%TPL_TYPE]">
 		<DO CASE="article">
-			<MACRO NAME="PDFGEN_ARTICLE_MAIN"/>
+			<IF COND="[#VARIANT] EQ 'frontpage'">
+				<!--[ ?do=_pdfgen_view&document=123&lang=fr&variant=frontpage ]-->
+				<MACRO NAME="PDFGEN_ARTICLE_FRONTPAGE_MAIN"/>
+			<ELSE/>
+				<MACRO NAME="PDFGEN_ARTICLE_MAIN"/>
+			</IF>
 		</DO>
 		<DO CASE="numero">
 			<MACRO NAME="PDFGEN_NUMERO_MAIN"/>

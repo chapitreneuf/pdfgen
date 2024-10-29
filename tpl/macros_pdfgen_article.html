@@ -525,3 +525,15 @@
 		</p>
 	</IF>
 </DEFFUNC>
+
+/**
+ * Macro principale de la frontpage articles (paramètre ?variant=frontpage)
+ */
+<DEFMACRO NAME="PDFGEN_ARTICLE_FRONTPAGE_MAIN">
+	<LOOP NAME="pdfgen_article_frontpage_main" TABLE="textes" WHERE="status >= -8 AND id=[#DOCUMENT]">
+		<MACRO NAME="PDFGEN_ARTICLE_INIT" />
+		<div id="article-[#ID]" class="document article frontpage" data-lodel-id="[#ID]">
+			<MACRO NAME="PDFGEN_ARTICLE_FRONT" />
+		</div>
+	</LOOP>
+</DEFMACRO>
