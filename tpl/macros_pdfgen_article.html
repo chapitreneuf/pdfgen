@@ -67,7 +67,7 @@
 	<section class="front">
 		<!--[ Logo et titre du site, publication parente ]-->
 		<MACRO NAME="PDFGEN_TOP" />
-	 
+
 		<!--[ Header article ]-->
 		<MACRO NAME="PDFGEN_ARTICLE_HEADER" />
 
@@ -201,10 +201,10 @@
 <DEFMACRO NAME="PDFGEN_ARTICLE_MOTSCLES">
 	<IF COND="[%HASENTRIES]">
 		<section class="article__entries">
-			<LOOP NAME="pdfgen_article_motscles" 
-				TABLE="relations, entries, entrytypes" 
-				SELECT="DISTINCT(idtype), title, altertitle, type AS entrytype" 
-				WHERE="entries.status >= -8 AND entrytypes.status >= -8 AND id1 = '[#ID]' AND id2 = entries.id AND entries.idtype = entrytypes.id AND entrytypes.class = 'indexes'" 
+			<LOOP NAME="pdfgen_article_motscles"
+				TABLE="relations, entries, entrytypes"
+				SELECT="DISTINCT(idtype), title, altertitle, type AS entrytype"
+				WHERE="entries.status >= -8 AND entrytypes.status >= -8 AND id1 = '[#ID]' AND id2 = entries.id AND entries.idtype = entrytypes.id AND entrytypes.class = 'indexes'"
 				ORDER="entrytypes.rank">
 
 				<BEFORE>
@@ -214,9 +214,9 @@
 					<div class="article__entries-content">
 				</BEFORE>
 				<DO>
-					<LOOP NAME="pdfgen_article_motscles_entrees" 
-						TABLE="entries" SELECT="id, g_name" 
-						WHERE="status >= -8 AND idtype = '[#IDTYPE]' AND iddocument = '[#ID]'" 
+					<LOOP NAME="pdfgen_article_motscles_entrees"
+						TABLE="entries" SELECT="id, g_name"
+						WHERE="status >= -8 AND idtype = '[#IDTYPE]' AND iddocument = '[#ID]'"
 						ORDER="degree">
 						<BEFORE>
 							<!--[ Support index rtl ]-->
@@ -453,12 +453,12 @@
  * @param {string} type - Type de personne.
  */
 <DEFFUNC NAME="PDFGEN_ARTICLE_DESCRIPTION_PERSONNES" REQUIRED="type">
-	<LOOP NAME="pdfgen_article_description_personnes" 
-		SELECT="persons.id" 
-		TABLE="relations, persons" 
+	<LOOP NAME="pdfgen_article_description_personnes"
+		SELECT="persons.id"
+		TABLE="relations, persons"
 		WHERE="status >= -8 AND id1 = '[#DOCUMENT]' AND id2 = persons.id AND nature = 'G' AND type = '[#TYPE]'"
 		ORDER="degree">
-		
+
 		<BEFORE>
 			<section class="article__persons-infos">
 				<IF COND="[#TYPE] EQ 'traducteur'">
@@ -471,9 +471,9 @@
 		</BEFORE>
 
 		<DO>
-			<LOOP NAME="pdfgen_article_description_personnes_auteur" 
-				SELECT="idperson, nomfamille, prenom, description, courriel" 
-				TABLE="auteurs" 
+			<LOOP NAME="pdfgen_article_description_personnes_auteur"
+				SELECT="idperson, nomfamille, prenom, description, courriel"
+				TABLE="auteurs"
 				WHERE="status >= -8 AND id = '[#ID]' AND iddocument='[#DOCUMENT]'">
 
 				<h3 class="section-header--small article__persons-infos-identity">
