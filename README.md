@@ -63,15 +63,26 @@ Le PDF généré est mis en cache par le générateur et automatiquement recalcu
 
 Il est aussi possible de supprimer le contenu du répertoire "CACHE" de la revue.
 
+### Génération de la page de garde des articles
+
+Depuis la version 1.4, une option propose d'ajouter automatiquement une page de garde aux fac-similés des articles.
+
+L'URL de récupération est : `?do=_pdfgen_getcoveredfacsimile&document=[#ID]&lang=[#LANG]`
+
 ## Utilisation dans les templates
 
-Quand le plugin est actif et configuré, on peut récupérer le lien vers le PDF automatique dans les templates avec la variable LodelScript `[#PDFGEN_URL]`.
+Quand le plugin est actif et configuré, on peut récupérer le lien vers le PDF automatique dans les templates avec la variable LodelScript `[#PDFGEN_URL]` (ou `[#PDFGEN_FACSIMILE_URL]` pour les fac-similés).
 
 ```html
-<!--[ Si un PDF fac-similé est lié à l'article, on pointe vers ce fichier ]-->
+<!--[ Si un PDF fac-similé est lié à l'article… ]-->
 <IF COND="[#ALTERFICHIER]">
-  <a role="button" href="[#ID|makeurlwithid|query_string('file', '1')]">Télécharger le PDF</a>
-
+	<!--[ …on pointe vers la version avec une page de garde automatique si nécessaire ]-->
+	<IF COND="[#PDFGEN_FACSIMILE_URL]">
+		<a role="button" href="[#PDFGEN_FACSIMILE_URL]">Télécharger le PDF</a>
+	<ELSE />
+		<!--[ …sinon vers le PDF fac-similé directement ]-->
+		<a role="button" href="[#ID|makeurlwithid|query_string('file', '1')]">Télécharger le PDF</a>
+	</IF>
 <!--[ Sinon on vérifie que le générateur est actif et si oui on pointe vers le PDF automatique ]-->
 <ELSEIF COND="[#PDFGEN_URL]" />
   <a role="button" href="[#PDFGEN_URL]">Télécharger le PDF</a>

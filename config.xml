@@ -9,5 +9,6 @@
 	<parameters>
 		<param name="gotenberg_url" title="URL du service Gotenberg" type="text" defaultValue="https://" required="true" />
 		<param name="cache_disabled" title="Désactiver le cache des PDF" defaultValue="" type="boolean" required="false" />
+		<param name="facsimile_cover_enabled" title="Générer la page de garde des facsimilés" defaultValue="" type="boolean" required="false" />
 	</parameters>
 </LodelPlugin>
