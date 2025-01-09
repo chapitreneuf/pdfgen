@@ -34,12 +34,14 @@ class pdfgen extends Plugins {
 	}
 
 	public function preview (&$context)	{
-		if ($this->_config['gotenberg_url']['value']) {
+		$gotenberg_url = isset($this->_config['gotenberg_url']['value']) ? $this->_config['gotenberg_url']['value'] : false;
+		$facsimile_cover_enabled = isset($this->_config['facsimile_cover_enabled']['value']) ? $this->_config['facsimile_cover_enabled']['value'] : false;
+		if ($gotenberg_url) {
 			// Set [#PDFGEN_URL] if pdfgen is ready
 			C::set('pdfgen_url', "${context['siteurl']}/?do=_pdfgen_get&document=${context['id']}&lang=${context['sitelang']}");
 
 			// Set [#PDFGEN_FACSIMILE_URL]
-			if ($this->_config['facsimile_cover_enabled']['value']) {
+			if ($facsimile_cover_enabled) {
 				C::set('pdfgen_facsimile_url', "${context['siteurl']}/?do=_pdfgen_getcoveredfacsimile&document=${context['id']}&lang=${context['sitelang']}");
 			}
 		}
