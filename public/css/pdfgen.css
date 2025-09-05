@@ -17,8 +17,8 @@
 }
 
 @page:blank {
-  @top-left { 
-    content: none; 
+  @top-left {
+    content: none;
   }
 }
 
@@ -29,8 +29,8 @@
 @page coverLayout {
   margin: 0;
 
-  @top-left { 
-    content: none; 
+  @top-left {
+    content: none;
   }
 }
 
@@ -41,8 +41,8 @@
 @page frontLayout {
   margin: 15mm 30mm 15mm 30mm;
 
-  @top-left { 
-    content: none; 
+  @top-left {
+    content: none;
   }
 }
 
@@ -57,8 +57,8 @@
 @page mainLayout:first {
   margin: 15mm 30mm 15mm 30mm;
 
-  @top-left { 
-    content: none; 
+  @top-left {
+    content: none;
   }
 }
 
@@ -69,8 +69,8 @@
 }
 
 @page sommaireLayout {
-  @top-left { 
-    content: none; 
+  @top-left {
+    content: none;
   }
 }
 
@@ -341,6 +341,7 @@ sup, sub, .footnotecall, .FootnoteSymbol, .endnotecall, .EndnoteSymbol {
 .toc__link {
   text-decoration: none;
   color: var(--color-grey-dark);
+	display: block;
 }
 
 
