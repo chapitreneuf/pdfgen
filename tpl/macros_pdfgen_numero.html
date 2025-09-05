@@ -292,9 +292,6 @@
  */
 <DEFFUNC NAME="PDFGEN_NUMERO_LI_TEXTE" OPTIONAL="afficher_datepubli">
 	<FUNC NAME="PDFGEN_LISTER_PERSONNES" TYPE="auteur" WRAP_CLASS="toc__author" />
-	<!--[ Variable qui permet de connaitre les langues des traductions pour afficher les titres des autres langues à la fin ]-->
-	<LET ARRAY="langues_traductions_article" GLOBAL="1"></LET>
-	<LET ARRAY="langues_traductions_article[]" GLOBAL="1">[#LANGUE]</LET>
 	<!--[ Memoriser l'altertitre de la source ]-->
 	<LET VAR="altertitre_source" GLOBAL="1">[#ALTERTITRE]</LET>
 
@@ -310,13 +307,7 @@
 
 		<DO>
 			<FUNC NAME="PDFGEN_NUMERO_LI_DOCUMENT" AFFICHER_DATEPUBLI="[#AFFICHER_DATEPUBLI]" CLASSNAME="translation" />
-			<LET ARRAY="langues_traductions_article[]" GLOBAL="1">[#LANGUE]</LET>
 		</DO>
-
-		<DOLAST>
-			<FUNC NAME="PDFGEN_NUMERO_LI_DOCUMENT" AFFICHER_DATEPUBLI="[#AFFICHER_DATEPUBLI]" CLASSNAME="translation" />
-			<LET ARRAY="langues_traductions_article[]" GLOBAL="1">[#LANGUE]</LET>
-		</DOLAST>
 
 		<ALTERNATIVE>
 			<FUNC NAME="PDFGEN_NUMERO_LI_DOCUMENT" AFFICHER_TITRES_TRADUITS="1" AFFICHER_DATEPUBLI="[#AFFICHER_DATEPUBLI]" />
