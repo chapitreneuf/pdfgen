@@ -40,7 +40,7 @@
 
 	<!--[ Le numéro a-t-il une couverture1 ? On complète cette variable dans PDFGEN_NUMERO_COVER ]-->
 	<LET VAR="has_cover" GLOBAL="1"></LET>
-	
+
 	<!--[ Liste des ID des traductions de textes qui se trouvent dans la même rubrique que l'origial. Permet également de conditionner les boucles relatives aux traductions. ]-->
 	<LOOP NAME="base_init_get_original_with_translation"
 		SELECT="relations.id1, entities.idparent"
@@ -70,10 +70,10 @@
  * Couverture du numéro.
  */
 <DEFMACRO NAME="PDFGEN_NUMERO_COVER">
-	<LOOP NAME="pdfgen_numero_cover" 
-		TABLE="fichiers" 
-		WHERE="status >= -8 AND type = 'couverture1' AND idparent = [#ID]" 
-		ORDER="rank" 
+	<LOOP NAME="pdfgen_numero_cover"
+		TABLE="fichiers"
+		WHERE="status >= -8 AND type = 'couverture1' AND idparent = [#ID]"
+		ORDER="rank"
 		LIMIT="0,1">
 
 		<IF COND="[#VIGNETTE]">
@@ -127,24 +127,24 @@
 	<div class="numero__metadata">
 		<!--[ URL ]-->
 		<p class="url"><a href="[#SITEINFOS.URL]/[#ID|makeurlwithid]">[#SITEINFOS.URL]/[#ID|makeurlwithid]</a></p>
-	
+
 		<!--[ Référence électronique ]-->
 		<h2 class="section-header--small">[@PDFGEN.REFERENCE_ELECTRONIQUE]</h2>
 		<p class="article__reference">
 			<MACRO NAME="PDFGEN_REFERENCE_ELECTRONIQUE" />
 		</p>
-	
+
 		<!--[ Droits d'auteur ]-->
 		<IF COND="[#OPTIONS.METADONNEESSITE.DROITSAUTEUR]">
 			<h2 class="section-header--small">[@PDFGEN.LICENCE]</h2>
 			<p class="article__licence">[#OPTIONS.METADONNEESSITE.DROITSAUTEUR]</p>
 		</IF>
-		
+
 		<!--[ Description physique de l'ouvrage ]-->
 		<IF COND="[#DESCRIPTIONOUVRAGE]">
 			<p class="publi__descriptionouvrage">[#DESCRIPTIONOUVRAGE]</p>
 		</IF>
-	
+
 		<!--[ ISBN ]-->
 		<IF COND="[#ISBN]">
 			<p class="publi__isbn"><strong>[@PDFGEN.ISBN]&nbsp;:</strong> [#ISBN]</p>
@@ -152,7 +152,7 @@
 
 		<!--[ DOI ]-->
 		<MACRO NAME="PDFGEN_DOI" />
-	
+
 		<!--[ Lien pour commander le numéro ]-->
 		<IF COND="[#URLPUBLICATIONEDITEUR]">
 			<p class="publi__urlpublicationediteur">
@@ -184,7 +184,7 @@
 			</section>
 		</IF>
 </DEFMACRO>
-	
+
 /**
  * NDLR du numéro.
  */
@@ -381,8 +381,19 @@
 				</DO>
 				<!--[ Textes ]-->
 				<DO CASE="textes">
-					<LET VAR="document">[#ID]</LET>
-					<MACRO NAME="PDFGEN_ARTICLE_MAIN"/>
+						<!--[ Original ]-->
+						<LET VAR="document">[#ID]</LET>
+						<MACRO NAME="PDFGEN_ARTICLE_MAIN"/>
+
+						<!--[ Traductions ]-->
+						<LOOP NAME="pdfgen_numero_articles_traductions"
+							TABLE="textes, relations"
+							SELECT="id, titre, soustitre, altertitre, LEFT(texte,1) AS texte, LEFT(alterfichier,1) AS alterfichier, documentcliquable, datepubli, langue, type, nature, numerodocument"
+							WHERE="status >= -8 AND id2 = '[#ID]' AND nature = 'traduction' AND id1 = textes.identity"
+							ORDER="rank">
+							<LET VAR="document">[#ID]</LET>
+							<MACRO NAME="PDFGEN_ARTICLE_MAIN"/>
+						</LOOP>
 				</DO>
 			</SWITCH>
 		</LOOP>
