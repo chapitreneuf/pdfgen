@@ -221,9 +221,10 @@
 						<BEFORE>
 							<!--[ Support index rtl ]-->
 							<IF COND="[#ENTRYTYPE] LIKE /^motscles([a-z]*)$/">
-								<LET VAR="entrydir"><FUNC NAME="PDFGEN_GET_LANG_DIR" LANG="[#MATCHES.1.0]"/></LET>
+								<LET VAR="entrylang">[#MATCHES.1.0]</LET>
+								<LET VAR="entrydir"><FUNC NAME="PDFGEN_GET_LANG_DIR" LANG="[#ENTRYLANG]"/></LET>
 							</IF>
-							<div class="article__index article__index--type-[#ENTRYTYPE]" dir="[#ENTRYDIR]">
+							<div class="article__index article__index--type-[#ENTRYTYPE]" lang="[#ENTRYLANG]" dir="[#ENTRYDIR]">
 								<h3 class="section-header--small"><FUNC NAME="PDFGEN_ML_TITRE" INDEX="true" /></h3>
 						</BEFORE>
 						<DOFIRST><span class="entry">[#G_NAME]</span></DOFIRST>
