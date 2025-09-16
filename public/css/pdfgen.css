@@ -54,6 +54,11 @@
   break-after: page;
 }
 
+/* Fix missing break before last article of the issue */
+.document.article + .document.article {
+  break-before: page;
+}
+
 @page mainLayout:first {
   margin: 15mm 30mm 15mm 30mm;
 
