@@ -346,7 +346,12 @@ sup, sub, .footnotecall, .FootnoteSymbol, .endnotecall, .EndnoteSymbol {
 .toc__link {
   text-decoration: none;
   color: var(--color-grey-dark);
-	display: block;
+  display: block;
+}
+
+/* Éviter les string RTL qui chassent dans la table des matières (#24) */
+.toc__link span[data-following] {
+  display: inline;
 }
 
 
