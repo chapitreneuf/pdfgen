@@ -101,6 +101,8 @@ Dans le cas où la génération de numéros longs entraînerait des problèmes (
 
 ### Personnalisation au niveau du site
 
+#### Dans Lodelscript
+
 Il est possible de personnaliser les templates du PDF en redéclarant les macros de macros_pdfgen.html dans tpl/macros_custom.html.
 
 Les macros `PDFGEN_CUSTOM_JS` et `PDFGEN_CUSTOM_CSS` à déclarer dans tpl/macros_custom.html permettent d'ajouter respectivement des scripts et des styles à la page.
@@ -125,6 +127,10 @@ Exemple pour remplacer la numérotation des paragraphes par un numéro de page :
 	</style>
 </DEFMACRO>
 ```
+
+#### Import CSS
+
+Depuis la version 1.5 le fichier `tpl/public/css/pdf.css` du site est importé par PDFgen quand il existe. Les versions récentes de la maquette Nova compilent ce fichier à partir de la source optionnelle `less/pdf.css`.
 
 ### Personnalisation globale
 
