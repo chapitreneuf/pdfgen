@@ -117,6 +117,12 @@
 		</style>
 	</LOOP>
 
+	<!--[ Appeler pdf.css depuis le template du site s'il existe ]-->
+	<LET VAR="css_path">./tpl/public/css/pdf.css</LET>
+	<IF COND="[#CSS_PATH|file_exists]">
+		<link rel="stylesheet" href="./tpl/public/css/pdf.css">
+	</IF>
+
 	<!--[ Hook pour l'insertion de CSS ]-->
 	<MACRO NAME="PDFGEN_CUSTOM_CSS"/>
 </DEFMACRO>
